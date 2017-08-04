@@ -29,40 +29,46 @@ fileorder = [3,     8,     9,    2,    7,   13,   4,    10,   1,    5,    11,   
 
 Nf = 10
 sm_eps = 0.05
-t_eps = 0.5
-seed = 37  # CD9
+t_eps = 1.0
+#seed = 37  # CD9
+#seed = 1188 # TLR1
+seed = 702 # TLR4
+#seed = 1292 # LAMP1
+#seed = 542 # EGR2
+
 
 ls = [] # labels
 os = [] # orders
 ns = [] # number of nodes
+ix = [] # index to genes
 ms = [] # means
 ss = [] # sd's
 sc = [] # scales
 rs = [] # ranks
+aw = [] # raw signal
 
-for i in range(0,14):
+for i in range(0,len(inputs)):
     # compute wavelets
     print("working on file " + str(i))
     sig = graphFun.loadSignal(dirs+inputs[i])  # log10 of value + 0.001
-    fil = waveletFun.waveletFilter(net, sig, Nf)
+    genes = graphFun.loadGenes(dirs+inputs[i])
+    msr = waveletFun.waveletFilter(net, sig, Nf)
     # the filtered signal is in shape (Nf, num_nodes)
     # for given seed, compute segmentations.
-    msr = graphFun.segmentSpace(gra, sm_eps, t_eps, seed, fil)
+    msr = graphFun.segmentSpace(gra, sm_eps, t_eps, seed, msr, sig)
     # collect the results for this input
     ls += [filelabel[i] for x in range(0,Nf)]
     os += [fileorder[i] for x in range(0,Nf)]
-    ns += [len(x) for x in msr[0]]
+    ns += [len(x) for x in msr[0]]  # msr[0] is the index to genes
+    ix += msr[0]
     ms += [np.mean(x) for x in msr[1]]
     ss += [np.std(x) for x in msr[1]]
     rs += [np.mean(x) for x in msr[2]]
     sc += [i for i in range(0,Nf)]
-    print(len(msr[0]))
-    print(len(msr[1]))
-    print(len([filelabel[i] for x in range(0,len(filelabel))]))
+    aw += [np.mean(x) for x in msr[3]]
     print("******************************************")
 
-
-fout = open("test_out.txt", 'w')
+fout = open("tlr4_test_out.txt", 'w')
 fout.write('\t'.join(ls) + '\n')
 fout.write('\t'.join([str(oi) for oi in os]) + '\n')
 fout.write('\t'.join([str(ni) for ni in ns]) + '\n')
@@ -70,5 +76,7 @@ fout.write('\t'.join([str(x) for x in ms]) + '\n')
 fout.write('\t'.join([str(x) for x in ss]) + '\n')
 fout.write('\t'.join([str(x) for x in sc]) + '\n')
 fout.write('\t'.join([str(x) for x in rs]) + '\n')
+fout.write('\t'.join([str(x) for x in aw]) + '\n')
+fout.write('\t'.join([':'.join([genes[j] for j in i]) for i in ix ]))
 fout.close()
 # compare segmentation levels across time points.

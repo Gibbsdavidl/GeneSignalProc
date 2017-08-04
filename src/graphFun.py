@@ -14,6 +14,15 @@ def loadSignal(filename):
     return(np.array(signal))
 
 
+def loadGenes(filename):
+    signal = []
+    fin = open(filename,'r').read().strip().split("\n")
+    for line in fin:
+        bits = line.split("\t")
+        signal.append(bits[2])
+    return(np.array(signal))
+
+
 def loadData(netfile, sigfile):
     sig = np.loadtxt(sigfile)
     mat = np.loadtxt(netfile, delimiter='\t')
@@ -31,7 +40,7 @@ def groupTest(sig, pt, sm_eps, t_eps):
         return(res0 < t_eps)
 
 
-def segment(net, sm_eps, t_eps, seed, scalespace, level):
+def segment(net, sm_eps, t_eps, seed, scalespace, expr, level):
     # returns a local segmentation
     q = net.neighbors(seed)
     inset  = [seed]  # the inside of the segment
@@ -55,21 +64,23 @@ def segment(net, sm_eps, t_eps, seed, scalespace, level):
             inset += willadd
         willadd = []
         #print("inset size: " + str(len(inset)) + "  mean: " + str(np.mean(signal[inset])) + "  sd: " +str(np.std(signal[inset] )))
-    return( (inset, signal[inset], stats.rankdata(signal)[inset] ) )
+    return( (inset, signal[inset], stats.rankdata(signal)[inset], expr[inset] ) )
 
 #segment(gra, 0.01, 37, scalespace, 2)
 
 
-def segmentSpace(net, sm_eps, t_eps, seed, sig):
+def segmentSpace(net, sm_eps, t_eps, seed, msr, sig):
     segList = []
     sigList = []
     ranList = []
-    for i in range(0,len(sig)):
-        res0 = segment(net, sm_eps, t_eps, seed, sig, i)
+    rawList = []
+    for i in range(0,len(msr)):
+        res0 = segment(net, sm_eps, t_eps, seed, msr, sig, i)
         segList.append(res0[0])
         sigList.append(res0[1])
         ranList.append(res0[2])
-    return( (segList, sigList, ranList) )
+        rawList.append(res0[3])
+    return( (segList, sigList, ranList, rawList) )
 
 
 def gini(resList):
