@@ -1,0 +1,17 @@
+library(readr)
+library(ggplot2)
+#dat <- read_tsv("egr2_test_out.txt")
+dat <- read_tsv("lamp1_test_out.txt")
+dat <- t(dat)
+dat <- data.frame(dat, stringsAsFactors=F)
+dat$X1 <- as.numeric(dat$X1)
+dat$X2 <- as.numeric(dat$X2)
+dat$X3 <- as.numeric(dat$X3)
+dat$X4 <- as.numeric(dat$X4)
+dat$X5 <- as.numeric(dat$X5)
+dat$X6 <- as.numeric(dat$X6)
+dat <- dat[dat$X5 > 0,]
+
+png("lamp1_set_plot.png")
+qplot(dat[,1], dat[,6], col=factor(dat[,5]), geom="line", xlab="time point", ylab="mean rank within segment")
+dev.off()

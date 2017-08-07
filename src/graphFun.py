@@ -70,16 +70,30 @@ def segment(net, sm_eps, t_eps, seed, scalespace, expr, level):
 
 
 def segmentSpace(net, sm_eps, t_eps, seed, msr, sig):
-    segList = []
-    sigList = []
-    ranList = []
-    rawList = []
+    segList = [] # the inset
+    sigList = [] # the wavelet coefficients of the set
+    ranList = [] # the rank of the gene in the set
+    rawList = [] # the expression of the genes
     for i in range(0,len(msr)):
         res0 = segment(net, sm_eps, t_eps, seed, msr, sig, i)
         segList.append(res0[0])
         sigList.append(res0[1])
         ranList.append(res0[2])
         rawList.append(res0[3])
+    return( (segList, sigList, ranList, rawList) )
+
+
+def seedSpace(net, sm_eps, t_eps, seed, msr, sig):
+    segList = [] # just the seeds
+    sigList = [] # the wavelet coefficient
+    ranList = [] # the rank of the expr
+    rawList = [] # the actual expression
+    for i in range(0,len(msr)):
+        res0 = msr[i,seed]
+        segList.append([seed])
+        sigList.append([res0])
+        ranList.append([stats.rankdata(sig)[seed]])
+        rawList.append([sig[seed]])
     return( (segList, sigList, ranList, rawList) )
 
 
