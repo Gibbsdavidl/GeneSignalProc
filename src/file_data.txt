@@ -1,0 +1,14 @@
+
+dirs = "data/data_tables/"
+
+inputs = [
+"GSM2262836_gene_level.tsv",  "GSM2262841_gene_level.tsv",  "GSM2262846_gene_level.tsv",
+"GSM2262837_gene_level.tsv",  "GSM2262842_gene_level.tsv",  "GSM2262847_gene_level.tsv",
+"GSM2262838_gene_level.tsv",  "GSM2262843_gene_level.tsv",  "GSM2262890_gene_level.tsv",
+"GSM2262839_gene_level.tsv",  "GSM2262844_gene_level.tsv",  "GSM2262891_gene_level.tsv",
+"GSM2262840_gene_level.tsv",  "GSM2262845_gene_level.tsv"
+]
+
+filelabel = ["1h", "d1", "d6", "1h", "d1", "d6", "4h", "d6", "0h", "4h", "d6", "0h", "4h", "d6"]
+
+fileorder = [3,     8,     9,    2,    7,   13,   4,    10,   1,    5,    11,   0,    6,    12]
