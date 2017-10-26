@@ -6,16 +6,21 @@ import waveletFun
 import numpy as np
 import pygsp as gs
 import igraph as ig
+from datetime import datetime, timedelta
+
+print("starting at:")
+started = datetime.now()
+print(started)
 
 # made the network in pygsp
 print("loading network")
-mat = np.loadtxt("test/kuldist_selgene_75perc_filter.tsv", delimiter='\t')
+mat = np.loadtxt("data/pruned_filtered_intersected_K2_matrix.tsv.gz", delimiter='\t')
 gra = ig.Graph.Weighted_Adjacency(list(mat), mode="undirected")
 net = gs.graphs.Graph(W=mat)
 net.directed = False
 
 # for each input file
-dirs = "test/data_tables/"
+dirs = "data/data_tables/"
 inputs = [
 "GSM2262836_gene_level.tsv",  "GSM2262841_gene_level.tsv",  "GSM2262846_gene_level.tsv",
 "GSM2262837_gene_level.tsv",  "GSM2262842_gene_level.tsv",  "GSM2262847_gene_level.tsv",
@@ -32,9 +37,9 @@ sm_eps = 0.05
 t_eps = 1.0
 #seed = 37  # CD9
 #seed = 1188 # TLR1
-#seed = 702 # TLR4
+seed = 702 # TLR4
 #seed = 1292 # LAMP1
-seed = 542 # EGR2
+#seed = 542 # EGR2
 
 
 ls = [] # labels
@@ -47,7 +52,8 @@ sc = [] # scales
 rs = [] # ranks
 aw = [] # raw signal
 
-for i in range(0,len(inputs)):
+#for i in range(0,len(inputs)):
+for i in range(0,1):
     # compute wavelets
     print("working on file " + str(i))
     sig = graphFun.loadSignal(dirs+inputs[i])  # log10 of value + 0.001
@@ -68,7 +74,7 @@ for i in range(0,len(inputs)):
     aw += [np.mean(x) for x in msr[3]]
     print("******************************************")
 
-fout = open("egr2_test_out.txt", 'w')
+fout = open("tlr4_test_out.txt", 'w')
 fout.write('\t'.join(ls) + '\n')
 fout.write('\t'.join([str(oi) for oi in os]) + '\n')
 fout.write('\t'.join([str(ni) for ni in ns]) + '\n')
@@ -80,3 +86,8 @@ fout.write('\t'.join([str(x) for x in aw]) + '\n')
 fout.write('\t'.join([':'.join([genes[j] for j in i]) for i in ix ]))
 fout.close()
 # compare segmentation levels across time points.
+
+print("finished at:")
+stopped = datetime.now()
+print(stopped)
+print(stopped - started)

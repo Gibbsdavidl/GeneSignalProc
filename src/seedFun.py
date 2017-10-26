@@ -32,8 +32,8 @@ sm_eps = 0.05
 t_eps = 1.0
 #seed = 37  # CD9
 #seed = 1188 # TLR1
-#seed = 702 # TLR4
-seed = 1292 # LAMP1
+seed = 702 # TLR4
+#seed = 1292 # LAMP1
 #seed = 542 # EGR2
 
 
