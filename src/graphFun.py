@@ -5,22 +5,28 @@ import igraph as ig
 #import cairo
 from scipy import stats
 
-def loadSignal(filename):
+def loadSignal(filename, header=1):
     signal = []
     fin = open(filename,'r').read().strip().split("\n")
     for line in fin:
-        bits = line.split("\t")
-        signal.append(np.log10(float(bits[0])+0.001))
+        if header == 1:
+            header = 0 # skip the header
+        else:
+            bits = line.split("\t")
+            signal.append(np.log10(float(bits[1])+0.001))
     return(np.array(signal))
 
 
-def loadGenes(filename):
-    signal = []
+def loadGenes(filename, header=1):
+    genes = []
     fin = open(filename,'r').read().strip().split("\n")
     for line in fin:
-        bits = line.split("\t")
-        signal.append(bits[2])
-    return(np.array(signal))
+        if header == 1:
+            header = 0 # skip header
+        else:
+            bits = line.split("\t")
+            genes.append(bits[0])
+    return(np.array(genes))
 
 
 def loadData(netfile, sigfile):
