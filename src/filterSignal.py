@@ -1,6 +1,5 @@
 
 
-# the big dive
 import sys, getopt
 import graphFun
 import waveletFun
