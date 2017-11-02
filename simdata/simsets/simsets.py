@@ -6,6 +6,7 @@
 
 import numpy as np
 import string
+import copy
 
 # function to flatten lists
 def f(E):
@@ -19,20 +20,32 @@ def f(E):
         a.extend(b)
         return a
 
-def simsetdata(ngenes):
+def simsetdata(ngenes, mean_sample_size, sd_sample_size):
+    # given a number of genes, generate gene sets, and then thin them out
+    # for a smaller number of sets that still contains all genes
     # first we define the set of genes
     genes = [''.join([string.ascii_lowercase[i] for i in np.random.randint(low=0, high=26, size=5)]) for j in range(0,ngenes)]
     # then we define a number of sets that contain all genes
     idx  = 0
-    sampsize = round(abs(np.random.normal(80,20)))
+    sampsize = round(abs(np.random.normal(mean_sample_size,sd_sample_size)))
     set1 = [genes[i] for i in np.random.randint(low=0, high=len(genes), size=sampsize)]
     sets =[(set1)]
     while(sum([genes[i] in f(sets) for i in range(0,len(genes))]) < len(genes)):
-      sampsize = round(abs(np.random.normal(80,20)))
+      sampsize = round(abs(np.random.normal(mean_sample_size,sd_sample_size)))
       set1 = [genes[i] for i in np.random.randint(low=0, high=len(genes), size=sampsize)]
       sets.append(set1)
       idx += 1
-    return((genes, sets))
+    # after doing all the set creation...
+    # could do some thinning .. drop sets if coverage over genes doesn't drop
+    settry = copy.deepcopy(sets)
+    for si in sets:
+        settry.remove(si)
+        # if all genes still represented, then stay dropped
+        if sum([genes[i] in f(settry) for i in range(0,len(genes))]) == len(genes):
+            print("good drop point, still got: " + str(sum([genes[i] in f(settry) for i in range(0,len(genes))])) + " genes")
+        else:
+            settry.append(si) # OK, put it back.
+    return((genes, settry))
 
 # Next we produce a matrix connecting sets.
 def setoverlap(sets):
@@ -124,32 +137,89 @@ def setscores(m, genes):
     scoremat = np.zeros( (len(genes),len(genes)) )
     for gi in range(0,len(genes)):
         for hi in range(0,len(genes)):
-            scoremat[gi,hi] = kulczynski2(m[:,gi], m[:,hi])
+            if gi != hi:
+                scoremat[gi,hi] = kulczynski2(m[:,gi], m[:,hi])
     return(scoremat)
 
 
-def permscores(scrmat, setmat, perms):
+def binit(x, t):
+    if x < t:
+        return(1)
+    else:
+        return(0)
+
+
+def permscores(scrmat, setmat, ngenes, perms):
     # want to generate simulated vectors
     # that have same number of set memberships,
     # but random set memberships
     #---
     # first get list of set-membership-counts
-    for pi in perms:
-        #
+    num_genes_in_each_set = [sum(x) for x in setmat]
+    print(num_genes_in_each_set)
+    allscrrs = []
+    for pi in range(0,perms):
+        p1 = float(np.random.choice(a=num_genes_in_each_set, size=1))/ngenes
+        p2 = float(np.random.choice(a=num_genes_in_each_set, size=1))/ngenes
+        set1 = [binit(np.random.sample(), p1) for x in range(0, ngenes)]
+        set2 = [binit(np.random.sample(), p2) for x in range(0, ngenes)]
+        scrr = kulczynski2(set1,set2)
+        allscrrs.append(scrr)
+    return(np.max(allscrrs))
+
+
+def apply_threshold(gesc, cutoff):
+    gesc2 = copy.deepcopy((gesc))
+    gesc2[np.where(gesc2 <= cutoff)] = 0
+    return(gesc2)
+
+
+def gen_expression(gord, sets):
+    # for each set, generate a mean value and a stddev
+    set_means = [np.random.sample() * 10 for si in sets]
+    set_sds   = [np.random.sample() * 5 for si in sets]
+    gexpr = np.zeros(len(gord)) # expr for each gene
+    nbexpr = np.zeros(len(gord))
+    for i,g in enumerate(gord):
+        for j,s in enumerate(sets):
+            if g in s: # if this gene is in this set
+                gexpr[i] += abs(np.random.normal(set_means[j], set_sds[j], size=1))
+                nbexpr[i] += np.random.negative_binomial(n=100, p=set_means[j]/10.0, size=1)
+    return((gexpr,nbexpr))
+
+
+#####################
+# Going to generate:#
+# 1. number of sets
+# 2. a binary set-membership matrix
+# 3. similarity scores between genes, based on shared set membership
+# 4. permutation based score to threshold the similarity scores
+# 5. network based on similarity scores
+# 6. a gene ordering based on joining sets
+# 7. simulated expression values based on shared-set values.
+############################################################
 
 # first simulate the gene and gene sets
-genes, sets = simsetdata(100)
+ngenes = 100
+genes, sets = simsetdata(ngenes, 30, 30)
 
-# then generate the set matrix
+# then generate the set matrix (sema)
 sema = setmatrix(genes, sets)
 np.savetxt(X=sema, delimiter='\t', fname="setmatrix.tsv")
 
-# then score the gene-gene pairs
+# then score the gene-gene pairs (gene scores gesc)
 gesc = setscores(sema, genes)
-np.savetxt(X=gesc, delimiter='\t', fname="scorematrix.tsv")
+# find the permutation based thresholds
+cutoff = permscores(gesc, sema, ngenes, 100)
+gesc2  = apply_threshold(gesc, cutoff)
+np.savetxt(X=gesc2, delimiter='\t', fname="scorematrix.tsv")
 
-# then get the gene ordering
+# then get the gene ordering (gene ordering gord
 gord = fulljoin(sets)
 np.savetxt(X=gord, fmt='%s', delimiter='\t', fname="geneorder.tsv")
+
+# generate the set-based expression levels
+(gexpr,nbexpr) = gen_expression(gord, sets)
+np.savetxt(X=np.transpose([gexpr,nbexpr]), delimiter='\t', fname='exprdat.tsv')
 
 print("done")
