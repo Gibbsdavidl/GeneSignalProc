@@ -17,6 +17,9 @@ try:
 except getopt.GetoptError:
     print ('filterSignal.py -m <adj matrix> -d <working dir> -i <filelist> -o <output_prefix> -n <number of scales>')
     sys.exit(2)
+if len(opts) == 0:
+    print ('filterSignal.py -m <adj matrix> -d <working dir> -i <filelist> -o <output_prefix> -n <number of scales>')
+    sys.exit(2)
 for opt, arg in opts:
     if opt == '-h':
         print('filterSignal.py -m <adj matrix> -d <working dir> -i <filelist> -o <output_prefix> -n <number of scales>')
@@ -41,18 +44,21 @@ net.directed = False
 
 # for each input file
 inputs = open(dirs+filelist,'r').read().strip().split("\n")
+outputlist = open(dirs+'filtered_files_list.txt', 'w')
 
 for i in range(0,len(inputs)):
     # compute wavelets
     print("working on file " + str(i))
     # process the data
-    sig = graphFun.loadSignal(dirs+inputs[i], 1)  # log10 of value + 0.001
-    genes = graphFun.loadGenes(dirs+inputs[i], 1)
+    sig = graphFun.loadSignal(dirs+inputs[i], 0)  # log10 of value + 0.001
+    genes = graphFun.loadGenes(dirs+inputs[i], 0)
     msr = waveletFun.waveletFilter(net, sig, Nf)
     # the filtered signal is in shape (Nf, num_nodes)
     np.savetxt(outputprefix+"_"+str(i)+".txt", msr, delimiter='\t')
+    outputlist.write(outputprefix+'_'+str(i)+'.txt'+'\n')
     print("******************************************")
 
+outputlist.close()
 print("finished at:")
 stopped = datetime.now()
 print(stopped)

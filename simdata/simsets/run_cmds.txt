@@ -1,0 +1,4 @@
+
+# first filter each file
+GeneSignalProc/src/filterSignal.py -m scorematrix.tsv -d simdata/simsets/ -i filelist.txt -o exprtest1 -n 10
+

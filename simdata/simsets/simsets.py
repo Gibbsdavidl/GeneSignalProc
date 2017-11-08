@@ -45,7 +45,9 @@ def simsetdata(ngenes, mean_sample_size, sd_sample_size):
             print("good drop point, still got: " + str(sum([genes[i] in f(settry) for i in range(0,len(genes))])) + " genes")
         else:
             settry.append(si) # OK, put it back.
-    return((genes, settry))
+    setnames = [''.join([string.ascii_lowercase[i] for i in np.random.randint(low=0, high=26, size=5)]) for j in
+             range(0, len(settry))]
+    return((genes, settry, setnames))
 
 # Next we produce a matrix connecting sets.
 def setoverlap(sets):
@@ -99,12 +101,17 @@ def fulljoin(sets):
         sets = nextsets
     return(sets[0])
 
-def setmatrix(genes, sets):
-    m = np.zeros( (len(sets), len(genes)) )
-    for gi in range(0,len(genes)):
+def setmatrix(genes, sets, setnames):
+    m = np.empty( (len(sets), len(genes)+1), dtype='U128')
+    for gi in range(0,len(genes)+1):
         for si in range(0,len(sets)):
-            if genes[gi] in sets[si]:
-                m[si,gi] = 1
+            if gi == 0:
+                m[si, gi] = setnames[si]
+            else:
+                if genes[(gi-1)] in sets[si]:
+                    m[si,gi] = '1'
+                else:
+                    m[si,gi] = '0'
     return(m)
 
 
@@ -149,13 +156,23 @@ def binit(x, t):
         return(0)
 
 
+def setmat_to_numeric(setmat):
+    cols = len(setmat[0])
+    rows = len(setmat)
+    m = np.zeros((rows, cols-1))
+    for j in range(0,cols-1):
+        for i in range(0,rows):
+            m[i,j] = float(setmat[i,(j+1)])
+    return(m)
+
 def permscores(scrmat, setmat, ngenes, perms):
     # want to generate simulated vectors
     # that have same number of set memberships,
     # but random set memberships
     #---
     # first get list of set-membership-counts
-    num_genes_in_each_set = [sum(x) for x in setmat]
+    setmatnum = setmat_to_numeric(setmat)
+    num_genes_in_each_set = [sum(x) for x in setmatnum]
     print(num_genes_in_each_set)
     allscrrs = []
     for pi in range(0,perms):
@@ -201,11 +218,12 @@ def gen_expression(gord, sets):
 
 # first simulate the gene and gene sets
 ngenes = 100
-genes, sets = simsetdata(ngenes, 30, 30)
+genes, sets, setnames = simsetdata(ngenes, 30, 30)
 
 # then generate the set matrix (sema)
-sema = setmatrix(genes, sets)
-np.savetxt(X=sema, delimiter='\t', fname="setmatrix.tsv")
+sema = setmatrix(genes, sets, setnames)
+# can insert gene names into rows, but have to have binary values as strings
+np.savetxt(X=sema, fmt='%s', delimiter='\t', fname="setmatrix.tsv")
 
 # then score the gene-gene pairs (gene scores gesc)
 gesc = setscores(sema, genes)
