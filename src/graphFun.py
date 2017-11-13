@@ -5,7 +5,7 @@ import igraph as ig
 #import cairo
 from scipy import stats
 
-def loadSignal(filename, header=1):
+def loadSignal(filename, header=1, column=1):
     signal = []
     fin = open(filename,'r').read().strip().split("\n")
     for line in fin:
@@ -13,7 +13,8 @@ def loadSignal(filename, header=1):
             header = 0 # skip the header
         else:
             bits = line.split("\t")
-            signal.append(np.log10(float(bits[1])+0.001))
+            #signal.append(np.log10(float(bits[column])+0.001))
+            signal.append(float(bits[column]))
     return(np.array(signal))
 
 

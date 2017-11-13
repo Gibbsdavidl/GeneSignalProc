@@ -142,10 +142,12 @@ def kulczynski2(x, y):
 def setscores(m, genes):
     # take a setmatrix
     scoremat = np.zeros( (len(genes),len(genes)) )
-    for gi in range(0,len(genes)):
-        for hi in range(0,len(genes)):
+    for gi in range(1,(len(genes)+1)):
+        for hi in range(1,(len(genes)+1)):
             if gi != hi:
-                scoremat[gi,hi] = kulczynski2(m[:,gi], m[:,hi])
+                x = [float(xi) for xi in m[:,gi]]
+                y = [float(yi) for yi in m[:,hi]]
+                scoremat[(gi-1),(hi-1)] = kulczynski2(x, y)
     return(scoremat)
 
 
@@ -190,18 +192,24 @@ def apply_threshold(gesc, cutoff):
     gesc2[np.where(gesc2 <= cutoff)] = 0
     return(gesc2)
 
-
-def gen_expression(gord, sets):
-    # for each set, generate a mean value and a stddev
+def gen_means_and_sds(sets, idx, jdx, slope):
+    # the idx gene set will be following a linear trend.
+    # the jdx indexes the time point
     set_means = [np.random.sample() * 10 for si in sets]
     set_sds   = [np.random.sample() * 5 for si in sets]
+    set_means[idx] = jdx * slope
+    return( (set_means, set_sds) )
+
+
+def gen_expression(gord, sets, set_means, set_sds):
+    # for each set, generate a mean value and a stddev
     gexpr = np.zeros(len(gord)) # expr for each gene
     nbexpr = np.zeros(len(gord))
     for i,g in enumerate(gord):
         for j,s in enumerate(sets):
             if g in s: # if this gene is in this set
                 gexpr[i] += abs(np.random.normal(set_means[j], set_sds[j], size=1))
-                nbexpr[i] += np.random.negative_binomial(n=100, p=set_means[j]/10.0, size=1)
+                nbexpr[i] += np.random.negative_binomial(n=100, p=set_means[j]/max(set_means), size=1)
     return((gexpr,nbexpr))
 
 
@@ -237,7 +245,13 @@ gord = fulljoin(sets)
 np.savetxt(X=gord, fmt='%s', delimiter='\t', fname="geneorder.tsv")
 
 # generate the set-based expression levels
-(gexpr,nbexpr) = gen_expression(gord, sets)
-np.savetxt(X=np.transpose([gexpr,nbexpr]), delimiter='\t', fname='exprdat.tsv')
+expr_file_names = []
+for si in range(1,7):
+    expr_file_names.append('exprdat_'+str(si)+'.tsv')
+    (set_means, set_sds) = gen_means_and_sds(sets, 1, si, 3)
+    (gexpr,nbexpr) = gen_expression(gord, sets, set_means, set_sds)
+    np.savetxt(X=np.transpose([gord, gexpr,nbexpr]),  fmt='%s', delimiter='\t', fname='exprdat_'+str(si)+'.tsv')
+np.savetxt(X=expr_file_names, fmt='%s', delimiter='\t', fname="filelist.tsv")
+
 
 print("done")

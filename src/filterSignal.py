@@ -50,7 +50,7 @@ for i in range(0,len(inputs)):
     # compute wavelets
     print("working on file " + str(i))
     # process the data
-    sig = graphFun.loadSignal(dirs+inputs[i], 0)  # log10 of value + 0.001
+    sig = graphFun.loadSignal(dirs+inputs[i], 0, 1)  # log10 of value + 0.001
     genes = graphFun.loadGenes(dirs+inputs[i], 0)
     msr = waveletFun.waveletFilter(net, sig, Nf)
     # the filtered signal is in shape (Nf, num_nodes)
