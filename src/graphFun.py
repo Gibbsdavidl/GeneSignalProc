@@ -2,7 +2,7 @@
 
 import numpy as np
 import igraph as ig
-#import cairo
+import copy
 from scipy import stats
 
 def loadSignal(filename, header=1, column=1):
@@ -49,14 +49,30 @@ def groupTest(sig, pt, sm_eps, t_eps):
 
 def segment(net, sm_eps, t_eps, seed, scalespace, expr, level):
     # returns a local segmentation
-    q = net.neighbors(seed)
-    inset  = [seed]  # the inside of the segment
-    willadd = []
-    outset = []      # the outside of the segment
+    # net, an igraph network
+    # sm_eps, the difference threshold, used before a t-test can
+    # t_eps, t-stat threshold
+    # seed, node index
+    # scale space
+    # the matrix with rows as scales and columns as genes, matches the gene order
+    # expr, the signal
+    # level, which scale, which is the row of the filtered data.
+    #
+    q = net.neighbors(seed) # can we get neighbors within a certain distance?
+    inset  = [seed]         # the inside of the segment
+    willadd = []            # list of nodes that passed the test
+    outset = []             # the outside of the segment
     signal = scalespace[level,:]  # the signal at this level in the space
     while (len(q) > 0):  # while we still have nodes in the queue
-        x = q[0] # take the first one out
-        if groupTest(signal[inset], signal[x], sm_eps, t_eps):
+        #x = q[0] # take the first one out
+        testin = copy.deepcopy(inset)
+        testin.append(q[0])
+        testout_lists = ([net.neighbors(gi) for gi in testin])
+        testout = list(set([item for sublist in testout_lists for item in sublist]))
+        # try adding one
+        # but then the outside needs to be updated
+        # what is the difference between the newly formed group (+x) and the new outside
+        if groupTest(signal[inset], signal[x], sm_eps, t_eps): # test here. #
             # then we want to keep it
             willadd.append(x)
             q.remove(x)
