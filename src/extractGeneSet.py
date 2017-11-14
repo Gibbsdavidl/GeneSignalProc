@@ -8,7 +8,8 @@
 # NICE to have a heatmap, using this ordering, for each sample.
 
 import sys, getopt
-
+#from sklearn import cluster
+from scipy.cluster.hierarchy import dendrogram, linkage
 import numpy as np
 
 from datetime import datetime, timedelta
@@ -43,7 +44,7 @@ for opt, arg in opts:
 
 # get the input files, and where we will write the output file names
 inputs = open(dirs+filelist,'r').read().strip().split("\n")
-outputlist = open(dirs+'extracted_files_list.txt', 'w')
+output = open(dirs+'extracted.txt', 'w')
 
 # read in the set membership matrix
 setmat = np.loadtxt(dirs+setmatname, delimiter='\t', dtype='U128')
@@ -55,17 +56,37 @@ for i in range(0,len(inputs)):
     filteredList.append(mat)
 
 # then we want the genes in the gene set specified.
+# this is the set
+seti = (np.where([float(setname == setmat[i][0]) for i in range(0,len(setmat))]))[0][0]
+# and these are the indices into gene order.  0 here is 1 in the setmatrix.
+gidx = np.where( [ '1' == setmat[3][i] for i in range(1,len(setmat[0]))] )[0]
+
 
 # create a list of sub-matrices.
+subMatrixList = []
+for fi in filteredList:
+    submat = np.zeros( (len(fi), len(gidx) ))
+    for ri in range(0,len(fi)):  # for each row in the matrix
+        submat[ri, :] = fi[ri, gidx] # copy over the values for this gene set
+    subMatrixList.append(submat)
 
 # cluster one of them, and get the ordering.
+#ward = cluster.ward_tree(subMatrixList[4])
+Z = linkage(np.transpose(subMatrixList[4]), 'ward')
+Q = dendrogram(Z, get_leaves=True, distance_sort=True)
+geneOrder = Q['leaves']
 
 # reorder each sub-matrix
-
-# write out each sub-matrix
-
 # make a cool viz of each one.
 
 
+# write out each sub-matrix
+# write it in tidy format.
+output.write("TimePt\tScale\tValue\n")
+for i,sm in enumerate(subMatrixList):
+    # then for each row
+    for ri in range(0, len(sm)):
+        for ci in range(0, len(sm[ri])):
+            output.write(str(i) +'\t' + str(ri) + '\t' + str(sm[ri,ci]) + '\n')
 
 print("done")
