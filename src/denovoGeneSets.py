@@ -65,13 +65,17 @@ output = open(dirs+'extracted.txt', 'w')
 
 # build the graph
 mat = np.loadtxt(dirs+adjmat, delimiter='\t')
-gra = ig.Graph.Weighted_Adjacency(list(mat), mode="undirected")
+net = ig.Graph.Weighted_Adjacency(list(mat), mode="undirected")
 
 # then we create a list of the filtered expression matrices
 filteredList = []
 for i in range(0,len(inputs)):
-    mat = np.loadtxt(dirs + inputs[i], delimiter='\t')
-    filteredList.append(mat)
+    msr = np.loadtxt(dirs + inputs[i], delimiter='\t')
+    filteredList.append(msr)
 
 
-graphFun.segment(gra, 1, 2, 27, filteredList[1], [], 2)
+n = 2
+# seeds are going to be the top and bottom most expressed...
+# could have named genes too, but we want gene sets that contain
+# highly expressed (or all very low expressed).
+graphFun.segmentSpace(net, 0.25, msr, 10)

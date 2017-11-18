@@ -37,18 +37,22 @@ def loadData(netfile, sigfile):
     return( (sig, mat, net) )
 
 
-def groupTest(sig, pt, sm_eps, t_eps):
-    if len(sig) == 0:
+def groupTest(inset, outset, eps):
+    if len(inset) == 0:
         return(False)
     elif len(sig) < 2:
-        return( (np.abs(sig - pt) < sm_eps)[0] )
+        return( np.mean(inset) - np.mean(outset) )
     else:
-        res0 = np.abs(stats.ttest_1samp(sig, pt)[0])
-        return(res0 < t_eps)
+        res0 = stats.ttest_ind(inset, outset, equal_var=True)[0]
+        return(res0)
 
 
-def segment(net, sm_eps, t_eps, seed, scalespace, expr, level):
-    # returns a local segmentation
+def meanDiff(inset, outset):
+    return(np.mean(inset) - np.mean(outset))
+
+
+def segment(net, seed, scalespace, level, eps):
+    # returns a local segmentation, based around the specified seed
     # net, an igraph network
     # sm_eps, the difference threshold, used before a t-test can
     # t_eps, t-stat threshold
@@ -63,17 +67,18 @@ def segment(net, sm_eps, t_eps, seed, scalespace, expr, level):
     willadd = []            # list of nodes that passed the test
     outset = []             # the outside of the segment
     signal = scalespace[level,:]  # the signal at this level in the space
+    meanList = [0.0] # the list of mean differences
     while (len(q) > 0):  # while we still have nodes in the queue
-        #x = q[0] # take the first one out
-        testin = copy.deepcopy(inset)
-        testin.append(q[0])
-        testout_lists = ([net.neighbors(gi) for gi in testin])
-        testout = list(set([item for sublist in testout_lists for item in sublist]))
-        # try adding one
-        # but then the outside needs to be updated
+        x = q[0]
+        testin = copy.deepcopy(inset) # our test list
+        testin.append(x)              # take one out
+        testout_lists = ([net.neighbors(gi) for gi in testin])  # the neighbors for each node in the "IN-SET"
+        testout = list(set([item for sublist in testout_lists for item in sublist])) # Take union... these are the "OUT-SET"
+        thisDiff = meanDiff(signal[testin], signal[testout])
         # what is the difference between the newly formed group (+x) and the new outside
-        if groupTest(signal[inset], signal[x], sm_eps, t_eps): # test here. #
+        if thisDiff - meanList[len(meanList)-1] > eps: # if the difference has improved beyond eps #
             # then we want to keep it
+            meanList.append(thisDiff)  # keep this difference to compare to later
             willadd.append(x)
             q.remove(x)
             nx = [i for i in net.neighbors(x) if i not in inset + outset]
@@ -86,38 +91,27 @@ def segment(net, sm_eps, t_eps, seed, scalespace, expr, level):
             # then we have some nodes to add
             inset += willadd
         willadd = []
-        #print("inset size: " + str(len(inset)) + "  mean: " + str(np.mean(signal[inset])) + "  sd: " +str(np.std(signal[inset] )))
-    return( (inset, signal[inset], stats.rankdata(signal)[inset], expr[inset] ) )
+    return( (inset, np.mean(signal[inset]), np.mean(signal[outset]), np.mean(signal[inset]) - np.mean(signal[outset])) )
 
 #segment(gra, 0.01, 37, scalespace, 2)
 
 
-def segmentSpace(net, sm_eps, t_eps, seed, msr, sig):
-    segList = [] # the inset
-    sigList = [] # the wavelet coefficients of the set
-    ranList = [] # the rank of the gene in the set
-    rawList = [] # the expression of the genes
-    for i in range(0,len(msr)):
-        res0 = segment(net, sm_eps, t_eps, seed, msr, sig, i)
-        segList.append(res0[0])
-        sigList.append(res0[1])
-        ranList.append(res0[2])
-        rawList.append(res0[3])
-    return( (segList, sigList, ranList, rawList) )
+def segmentSpace(net, eps, msr, n):
+
+    for scale in range(0,len(msr)): # for each scale
+
+        sig1 = copy.deepcopy(msr[scale, :]) # getting out the filtered values for lvl
+        sig2 = copy.deepcopy(msr[scale, :]) # getting out the filtered values for lvl
+        sig2.sort()
+        idxTop = np.where(sig1 >= sig2[len(sig2)-n])[0] # get the top n
+        idxBot = np.where(sig1 <= sig2[n])[0]           # get the bottom n
+
+        # get indices for the top and bot genes.
+        seed = idxTop[0]
+        res0 = segment(net, seed, msr, scale, eps) # get segments for this scale
 
 
-def seedSpace(net, sm_eps, t_eps, seed, msr, sig):
-    segList = [] # just the seeds
-    sigList = [] # the wavelet coefficient
-    ranList = [] # the rank of the expr
-    rawList = [] # the actual expression
-    for i in range(0,len(msr)):
-        res0 = msr[i,seed]
-        segList.append([seed])
-        sigList.append([res0])
-        ranList.append([stats.rankdata(sig)[seed]])
-        rawList.append([sig[seed]])
-    return( (segList, sigList, ranList, rawList) )
+    return()
 
 
 def gini(resList):
