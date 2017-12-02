@@ -69,13 +69,19 @@ net = ig.Graph.Weighted_Adjacency(list(mat), mode="undirected")
 
 # then we create a list of the filtered expression matrices
 filteredList = []
+setList = []
 for i in range(0,len(inputs)):
     msr = np.loadtxt(dirs + inputs[i], delimiter='\t')
-    filteredList.append(msr)
+    setTupleList = graphFun.segmentSpace(net, 0.25, msr)
+    filteredList.append(msr)      # the list of multi-scale-signals
+    setList.append(setTupleList)  # each input gets a list of set-tuples
 
+numScales = len((filteredList[0])[:,0])
 
-n = 2
-# seeds are going to be the top and bottom most expressed...
-# could have named genes too, but we want gene sets that contain
-# highly expressed (or all very low expressed).
-graphFun.segmentSpace(net, 0.25, msr, 10)
+# want output to be sets that overlap across scales, for each file.
+for i in range(0,len(inputs)):
+    thisSetList = setList[i]
+    # sets are connected if they are on the same level, or adjacent levels
+    # and they have at least two nodes in common.
+    setConnect = graphFun.connectSets(thisSetList)
+    # now sets can be coelesed.

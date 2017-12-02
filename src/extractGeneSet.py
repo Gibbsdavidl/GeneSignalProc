@@ -60,6 +60,7 @@ for i in range(0,len(inputs)):
 seti = (np.where([float(setname == setmat[i][0]) for i in range(0,len(setmat))]))[0][0]
 # and these are the indices into gene order.  0 here is 1 in the setmatrix.
 gidx = np.where( [ '1' == setmat[3][i] for i in range(1,len(setmat[0]))] )[0]
+# gene names
 
 
 # create a list of sub-matrices.
@@ -82,11 +83,10 @@ geneOrder = Q['leaves']
 
 # write out each sub-matrix
 # write it in tidy format.
-output.write("TimePt\tScale\tValue\n")
-for i,sm in enumerate(subMatrixList):
-    # then for each row
-    for ri in range(0, len(sm)):
-        for ci in range(0, len(sm[ri])):
-            output.write(str(i) +'\t' + str(ri) + '\t' + str(sm[ri,ci]) + '\n')
+output.write("TimePt\tScale\tGene\tValue\n")
+for i,sm in enumerate(subMatrixList):  # i is the time point
+    for ri in range(0, len(sm)):           # ri is the scale
+        for ci in range(0, len(sm[ri])):   # ci is the filtered value
+            output.write(str(i) +'\t' + str(ri) + '\t' + str(gidx[ci]) + '\t' + str(sm[ri,ci]) + '\n')
 
 print("done")

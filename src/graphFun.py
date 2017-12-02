@@ -47,10 +47,6 @@ def groupTest(inset, outset, eps):
         return(res0)
 
 
-def meanDiff(inset, outset):
-    return(np.mean(inset) - np.mean(outset))
-
-
 def segment(net, seed, scalespace, level, eps):
     # returns a local segmentation, based around the specified seed
     # net, an igraph network
@@ -69,15 +65,15 @@ def segment(net, seed, scalespace, level, eps):
     signal = scalespace[level,:]  # the signal at this level in the space
     meanList = [0.0] # the list of mean differences
     while (len(q) > 0):  # while we still have nodes in the queue
-        x = q[0]
+        x = q[0]          # dequeue the first node in the list
         testin = copy.deepcopy(inset) # our test list
-        testin.append(x)              # take one out
+        testin.append(x)              # add this neighbor
         testout_lists = ([net.neighbors(gi) for gi in testin])  # the neighbors for each node in the "IN-SET"
         testout = list(set([item for sublist in testout_lists for item in sublist])) # Take union... these are the "OUT-SET"
-        thisDiff = meanDiff(signal[testin], signal[testout])
+        thisDiff = meanDiff(signal[testin], signal[testout]) # abs value difference
         # what is the difference between the newly formed group (+x) and the new outside
-        if thisDiff - meanList[len(meanList)-1] > eps: # if the difference has improved beyond eps #
-            # then we want to keep it
+        if thisDiff - meanList[len(meanList)-1] > eps: # if the difference has NOT DROPPED beyond eps #
+            # then we want to keep it because it's close to the key pt.
             meanList.append(thisDiff)  # keep this difference to compare to later
             willadd.append(x)
             q.remove(x)
@@ -91,27 +87,106 @@ def segment(net, seed, scalespace, level, eps):
             # then we have some nodes to add
             inset += willadd
         willadd = []
-    return( (inset, np.mean(signal[inset]), np.mean(signal[outset]), np.mean(signal[inset]) - np.mean(signal[outset])) )
-
-#segment(gra, 0.01, 37, scalespace, 2)
+    return( (level, inset, np.mean(signal[inset]), np.mean(signal[outset]), np.mean(signal[inset]) - np.mean(signal[outset]), meanList ) )
 
 
-def segmentSpace(net, eps, msr, n):
+def meanDiff(inset, outset):
+    return(abs(np.mean(inset) - np.mean(outset)))
 
+
+def add1(inset, i):
+    x = copy.deepcopy(inset)
+    x.append(i)
+    return(x)
+
+
+def getNeighbors(net, inset):
+    allNeighbors = ([net.neighbors(gi) for gi in inset])  # the neighbors for each node in the "IN-SET"
+    allNeighbors = list(set([item for sublist in allNeighbors for item in sublist]))  # Take union...
+    [allNeighbors.remove(i) for i in inset]
+    return(allNeighbors)
+
+
+def bnb_segment(net, seed, scalespace, level, eps):
+    # branch and bound
+    # returns a local segmentation, based around the specified seed
+    # net, an igraph network
+    # sm_eps, the difference threshold, used before a t-test can
+    # t_eps, t-stat threshold
+    # seed, node index
+    # scale space
+    # the matrix with rows as scales and columns as genes, matches the gene order
+    # expr, the signal
+    # level, which scale, which is the row of the filtered data.
+    #
+    # start with simply finding the best pair node.
+    signal = scalespace[level,:]  # the signal at this level in the space
+    q = net.neighbors(seed)
+    best = 100000.0
+    keep = 0
+    while (len(q) > 0):  # while we still have nodes in the queue
+        qi = q.pop()
+        x = np.abs(signal[seed] - signal[qi])  # seed is a keypt ... want most similar.
+        if x < best : # then let's keep it.
+            keep = qi
+            best = x
+
+    bestSet = [seed, keep] # now we have a pair.
+    # need a queue of possible solutions.
+    # this would be a list of 'inset' .. a set of connected nodes in the *in-set*
+    # first group of possible solutions would be adding neighbors.
+    allNeighbors = getNeighbors(net, bestSet)
+    bestScore = meanDiff(signal[bestSet], signal[allNeighbors])
+    q = [add1(bestSet, i) for i in allNeighbors]
+
+    while (len(q) > 0):  # while we still have nodes in the queue
+        x = q.pop()          # dequeue the first node in the list
+        y = getNeighbors(net, x) # get the new surrounding neighbors
+        thisDiff = meanDiff(signal[x], signal[y]) # abs value difference
+        if thisDiff > bestScore:
+            # then we branch on this solution
+            print(str(thisDiff) + "    " + str(bestScore))
+            bestSet = x
+            bestScore = thisDiff
+            newq = [add1(x, i) for i in y] # try adding these neighbors
+            q += newq
+        # else we let that solution branch die
+
+    return( (bestScore, bestSet) )
+
+
+def getKeyPts(net, sig):
+    keypts = []
+    for i in range(0,len(sig)):
+        neighborVals = np.array([sig[j] for j in net.neighbors(i)])
+        if all(sig[i] < neighborVals) or all(sig[i] > neighborVals) :
+            keypts.append(i)
+    return(keypts)
+
+def segmentSpace(net, eps, msr):
+    setList = []
     for scale in range(0,len(msr)): # for each scale
-
         sig1 = copy.deepcopy(msr[scale, :]) # getting out the filtered values for lvl
-        sig2 = copy.deepcopy(msr[scale, :]) # getting out the filtered values for lvl
-        sig2.sort()
-        idxTop = np.where(sig1 >= sig2[len(sig2)-n])[0] # get the top n
-        idxBot = np.where(sig1 <= sig2[n])[0]           # get the bottom n
-
-        # get indices for the top and bot genes.
-        seed = idxTop[0]
-        res0 = segment(net, seed, msr, scale, eps) # get segments for this scale
+        keypts = getKeyPts(net, sig1)
+        for seed in keypts:  # for each keypoint, try to recover a set.
+            res0 = bnb_segment(net, seed, msr, scale, eps) # get segments for this scale
+            setList.append(res0)
+    return(setList)
 
 
-    return()
+def connectSets(thisSetList):
+    coupled = []
+    # for each scale
+    for si in range(0,len(thisSetList)):
+        for ti in range(0,len(thisSetList)):
+            s_tup = thisSetList[si]
+            t_tup = thisSetList[ti]
+            overlap = sum(np.in1d(s_tup[1], t_tup[1]))
+            if overlap > 1 and si != ti: # if there's any overlap.
+                if (s_tup[2] > 0 and  t_tup[2] > 0) or (s_tup[2] < 0 and  t_tup[2] < 0): # same direction
+                    if np.abs(s_tup[0] - t_tup[0]) < 2:
+                        coupled.append( (overlap, si, ti, s_tup[0], t_tup[0], s_tup[2], t_tup[2]) )
+    return(coupled)
 
 
 def gini(resList):
