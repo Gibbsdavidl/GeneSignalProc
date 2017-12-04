@@ -111,8 +111,7 @@ def bnb_segment(net, seed, scalespace, level, eps):
     # branch and bound
     # returns a local segmentation, based around the specified seed
     # net, an igraph network
-    # sm_eps, the difference threshold, used before a t-test can
-    # t_eps, t-stat threshold
+    # eps, 'close enough' threshold
     # seed, node index
     # scale space
     # the matrix with rows as scales and columns as genes, matches the gene order
@@ -140,19 +139,20 @@ def bnb_segment(net, seed, scalespace, level, eps):
     q = [add1(bestSet, i) for i in allNeighbors]
 
     while (len(q) > 0):  # while we still have nodes in the queue
+        print(len(q))
         x = q.pop()          # dequeue the first node in the list
-        y = getNeighbors(net, x) # get the new surrounding neighbors
-        thisDiff = meanDiff(signal[x], signal[y]) # abs value difference
-        if thisDiff > bestScore:
-            # then we branch on this solution
-            print(str(thisDiff) + "    " + str(bestScore))
-            bestSet = x
-            bestScore = thisDiff
-            newq = [add1(x, i) for i in y] # try adding these neighbors
-            q += newq
-        # else we let that solution branch die
-
-    return( (bestScore, bestSet) )
+        if len(x) < (len(signal) * 0.5): # can not have a set larger than half the size of the network!
+            y = getNeighbors(net, x) # get the new surrounding neighbors
+            thisDiff = meanDiff(signal[x], signal[y]) # abs value difference
+            if thisDiff > (bestScore-eps): # if it's 'close enough' to the best then we branch on this solution
+                newq = [add1(x, i) for i in y] # try adding these neighbors send off in parallel?
+                q += newq
+                if thisDiff > bestScore: # but only keep it if it's the best
+                    bestSet = x
+                    bestScore = thisDiff
+    inMean = np.mean(signal[bestSet])
+    outMean = np.mean(signal[getNeighbors(net, bestSet)])
+    return( (level, bestSet, inMean, outMean, bestScore) )
 
 
 def getKeyPts(net, sig):
@@ -162,6 +162,7 @@ def getKeyPts(net, sig):
         if all(sig[i] < neighborVals) or all(sig[i] > neighborVals) :
             keypts.append(i)
     return(keypts)
+
 
 def segmentSpace(net, eps, msr):
     setList = []
@@ -178,15 +179,41 @@ def connectSets(thisSetList):
     coupled = []
     # for each scale
     for si in range(0,len(thisSetList)):
-        for ti in range(0,len(thisSetList)):
+        for ti in range(si,len(thisSetList)): # get the upper triangle
             s_tup = thisSetList[si]
             t_tup = thisSetList[ti]
             overlap = sum(np.in1d(s_tup[1], t_tup[1]))
-            if overlap > 1 and si != ti: # if there's any overlap.
+            if overlap > 2 and si != ti: # if there's any overlap.
                 if (s_tup[2] > 0 and  t_tup[2] > 0) or (s_tup[2] < 0 and  t_tup[2] < 0): # same direction
-                    if np.abs(s_tup[0] - t_tup[0]) < 2:
+                    if np.abs(s_tup[0] - t_tup[0]) < 2:                                  # same or adj scale level
                         coupled.append( (overlap, si, ti, s_tup[0], t_tup[0], s_tup[2], t_tup[2]) )
     return(coupled)
+
+
+def checkGroups(couple, grps):
+    # check if one of the sets is already part of a group
+    t1 = (couple[3],couple[1])
+    t2 = (couple[4],couple[2])
+    chk = [ (t1 in x) or (t2 in x) for x in grps]
+    if len(chk) > 0:
+        return(np.where(chk)[0])
+    else:
+        return([])
+
+def groupCoupling(coupled, setList):
+    # start at the top
+    groups = []
+    for i in range(0,len(coupled)): # for each coupling
+        # if one of these sets is already part of a group
+        idx = checkGroups(coupled[i], groups)
+        if len(idx) > 0:
+            # add it to the group
+            groups[idx[0]].add( (coupled[i][3],coupled[i][1]) ) # tuple of scale-level and set ID
+            groups[idx[0]].add( (coupled[i][4],coupled[i][2]) )
+        # else create a new group.
+        else:
+            groups.append( set([ (coupled[i][3],coupled[i][1]), (coupled[i][4],coupled[i][2]) ]) )
+    return(groups)
 
 
 def gini(resList):
