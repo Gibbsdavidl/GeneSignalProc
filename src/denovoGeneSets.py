@@ -31,7 +31,7 @@ import graphFun
 
 from datetime import datetime, timedelta
 
-print("starting at:")
+print("denovo starting at:")
 started = datetime.now()
 print(started)
 
@@ -61,7 +61,7 @@ for opt, arg in opts:
 
 # get the input files, and where we will write the output file names
 inputs = open(dirs+filelist,'r').read().strip().split("\n")
-output = open(dirs+'extracted.txt', 'w')
+output = open(dirs+outputprefix+'.txt', 'w')
 
 # build the graph
 mat = np.loadtxt(dirs+adjmat, delimiter='\t')
@@ -70,21 +70,42 @@ net = ig.Graph.Weighted_Adjacency(list(mat), mode="undirected")
 # then we create a list of the filtered expression matrices
 filteredList = []
 setList = []
-#for i in range(0,len(inputs)):
-i = 0
-msr = np.loadtxt(dirs + inputs[i], delimiter='\t')
-setTupleList = graphFun.segmentSpace(net, 0.01, msr)
-filteredList.append(msr)      # the list of multi-scale-signals
-setList.append(setTupleList)  # each input gets a list of set-tuples
+allResults = []
 
-numScales = len((filteredList[0])[:,0])
+for i in range(0,len(inputs)):
+    print("segmenting file " + str(i))
+    msr = np.loadtxt(dirs + inputs[i], delimiter='\t')
+    setTupleList = graphFun.segmentSpace(net, 0.01, msr)
+    filteredList.append(msr)      # the list of multi-scale-signals
+    setList.append(setTupleList)  # each input gets a list of set-tuples
+
+#numScales = len((filteredList[0])[:,0])
 
 # want output to be sets that overlap across scales, for each file.
-#for i in range(0,len(inputs)):
-thisSetList = setList[i]
-# sets are connected if they are on the same level, or adjacent levels
-# and they have at least two nodes in common.
-setConnect = graphFun.connectSets(thisSetList)
-# now sets can be coelesed
-setGroups = graphFun.groupCoupling(setConnect, thisSetList)
-# groups come back as a list of sets of tuples (scale-level, set ID)
+for i in range(0,len(inputs)):
+    print("joining sets into groups " + str(i))
+    thisSetList = setList[i]
+    # sets are connected if they are on the same level, or adjacent levels
+    # and they have at least two nodes in common.
+    setConnect = graphFun.connectSets(thisSetList)
+    # now sets can be coelesed
+    setGroups = graphFun.groupCoupling(setConnect, thisSetList)
+    # groups come back as a list of sets of tuples (scale-level, set ID)
+    resultsList = graphFun.compileResults(i, thisSetList, setGroups, filteredList[i])
+    allResults.append(resultsList)
+
+#     [filenum, chainID, thisTuple[1], thisTuple[0], geneID, msr[ti[0]][gi], setMean]
+
+output.write("TimePt\tChainID\tSetID\tLevel\tGeneID\tFiltered\tMeanValue\n")
+for x in allResults:
+    for y in x:
+        z = map(str, y)
+        output.write('\t'.join(z)+'\n')
+output.close()
+
+finished = datetime.now()
+print(finished)
+print("done at")
+print(finished)
+print("took:")
+print(finished-started)

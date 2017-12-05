@@ -2,19 +2,23 @@
 
 
 # first filter each file
-filterSignal.py -m scorematrix.tsv -d /Users/davidlgibbs/Data/SimWaves -i filelist.txt -o exprtest1 -n 10
-
 # the first job writes out
 # filtered data
 # a list of the filtered files
+filterSignal.py -m scorematrix.tsv -d /Users/davidlgibbs/Data/SimWaves -i filelist.txt -o exprtest1 -n 10
+
 
 # extract a gene set from each file
 # the named gene set must be found in the setmatrix.
-extractGeneSet.py -d /Users/davidlgibbs/Data/SimWaves -i filtered_files_list.txt -o extracted_gs_ -m setmatrix.tsv -g rmlah
-
 # the extract step writes out
 # tidy list of extracted values for each scale and each input file for a named gene set.
+extractGeneSet.py -d /Users/davidgibbs/Data/SimWaveDat/ -i filtered_files_list.txt -o extracted_ -m setmatrix.tsv -g edpew
+
 
 # denovo gene sets
-
 denovoGeneSets.py -d /Users/davidlgibbs/Data/SimWaves -i filtered_files_list.txt -o denovo_gs_ -m scorematrix.tsv
+
+
+# extract a denovo set from the filtered files:
+extractDenovoGeneSet.py -d /Users/davidgibbs/Data/SimWaveDat/ -i filtered_files_list.txt -o extracted_denovo -f denovo_genesets.txt -t 1 -c 0
+

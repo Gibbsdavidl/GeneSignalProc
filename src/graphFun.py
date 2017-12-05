@@ -119,7 +119,7 @@ def bnb_segment(net, seed, scalespace, level, eps):
     # level, which scale, which is the row of the filtered data.
     #
     # start with simply finding the best pair node.
-    signal = scalespace[level,:]  # the signal at this level in the space
+    signal = scalespace[level]  # the signal at this level in the space
     q = net.neighbors(seed)
     best = 100000.0
     keep = 0
@@ -139,7 +139,6 @@ def bnb_segment(net, seed, scalespace, level, eps):
     q = [add1(bestSet, i) for i in allNeighbors]
 
     while (len(q) > 0):  # while we still have nodes in the queue
-        print(len(q))
         x = q.pop()          # dequeue the first node in the list
         if len(x) < (len(signal) * 0.5): # can not have a set larger than half the size of the network!
             y = getNeighbors(net, x) # get the new surrounding neighbors
@@ -229,6 +228,19 @@ def gini(resList):
         bot = 2*n*sum(resList[0][li])
         giniList.append( (top/bot) )
     return(giniList)
+
+
+def compileResults(filenum, thisSetList, setGroups, msr):
+    # thisSetList is a list of tuples, (level, gene_idx_list, mean_val, ...)
+    # setGroups is a list of lists of tuples (level, set ID)
+    res1 = []
+    for chainID in range(0,len(setGroups)): # which chain ID
+        for thisTuple in setGroups[chainID]: # ti will be a list of tuples
+            setMean = thisSetList[thisTuple[1]][2]
+            for geneID in thisSetList[thisTuple[1]][1]:
+                res0 = [filenum, chainID, thisTuple[1], thisTuple[0], geneID, msr[thisTuple[0]][geneID], setMean]
+                res1.append(res0)
+    return(res1)
 
 
 #res1 = segmentSpace(net, 0.5, 10, sig)

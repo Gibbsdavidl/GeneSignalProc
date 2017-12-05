@@ -18,36 +18,44 @@ print("extraction starting at:")
 started = datetime.now()
 print(started)
 
+setid = '-1'
+chain = '-1'
+timept = '-1'
+
 try:
-    opts, args = getopt.getopt(sys.argv[1:],"hd:i:o:g:m:")
+    opts, args = getopt.getopt(sys.argv[1:],"hd:i:f:o:t:c:s:r:")
 except getopt.GetoptError:
-    print ('extractGeneSet.py -d <working dir> -i <filelist> -o <output_prefix> -m <gene set matrix> -g <gene set name>')
+    print ('extractDenovoGeneSet.py -d <working dir> -i <filelist> -f <denovo file> -o <output_prefix> -t <time pt> -c <chain> -s <set ID> -r <level filter>')
     sys.exit(2)
 if len(opts) == 0:
-    print ('extractGeneSet.py -d <working dir> -i <filelist> -o <output_prefix> -m <gene set matrix> -g <gene set name>')
+    print ('extractDenovoGeneSet.py -d <working dir> -i <filelist> -f <denovo file> -o <output_prefix> -t <time pt> -c <chain> -s <set ID')
     sys.exit(2)
 for opt, arg in opts:
     if opt == '-h':
-        print('extractGeneSet.py -d <working dir> -i <filelist> -o <output_prefix> -m <gene set matrix> -g <gene set name>')
+        print('extractDenovoGeneSet.py -d <working dir> -i <filelist> -f <denovo file> -o <output_prefix> -t <time pt> -c <chain> -s <set ID')
         sys.exit()
     elif opt in ("-i"):
         filelist = arg
+    elif opt in ("-f"):
+        denovofile = arg
     elif opt in ("-d"):
         dirs = arg
     elif opt in ("-o"):
         outputprefix = arg
-    elif opt in ("-g"):
-        setname = arg
-    elif opt in ("-m"):
-        setmatname = arg
+    elif opt in ("-t"):
+        timept = arg
+    elif opt in ("-c"):
+        chain = arg
+    elif opt in ("-s"):
+        setid = arg
+    elif opt in ("-r"):
+        lvlfilt = float(arg)
 
 
 # get the input files, and where we will write the output file names
 inputs = open(dirs+filelist,'r').read().strip().split("\n")
-output = open(dirs+'extracted.txt', 'w')
-
-# read in the set membership matrix
-setmat = np.loadtxt(dirs+setmatname, delimiter='\t', dtype='U128')
+denovos = open(dirs+denovofile,'r').read().strip().split('\n')
+output = open(dirs+outputprefix+'.txt', 'w')
 
 # then we create a list of the filtered expression matrices
 filteredList = []
@@ -56,30 +64,34 @@ for i in range(0,len(inputs)):
     filteredList.append(mat)
 
 # then we want the genes in the gene set specified.
-# this is the set
-seti = (np.where([float(setname == setmat[i][0]) for i in range(0,len(setmat))]))[0][0]
-# and these are the indices into gene order.  0 here is 1 in the setmatrix.
-gidx = np.where( [ '1' == setmat[3][i] for i in range(1,len(setmat[0]))] )[0]
-# gene names
+gidx = list()
+for line in denovos[1:]:
+    bits = line.strip().split('\t')
+    if bits[0] == timept and bits[1] == chain:
+        if setid == '-1': # did not set the set ID
+            gidx.append(bits[4])
+        elif setid == bits[2]:
+            gidx.append(bits[4])
+        # else don't keep this gene
 
+# take only genes that are found across levels
+gidx = np.array(gidx)
+hidx = [int(x) for x in gidx if sum(x == gidx) > lvlfilt]
+hidx = list(set(hidx))
 
 # create a list of sub-matrices.
 subMatrixList = []
 for fi in filteredList:
-    submat = np.zeros( (len(fi), len(gidx) ))
+    submat = np.zeros( (len(fi), len(hidx) ))
     for ri in range(0,len(fi)):  # for each row in the matrix
-        submat[ri, :] = fi[ri, gidx] # copy over the values for this gene set
+        submat[ri, :] = fi[ri, hidx] # copy over the values for this gene set
     subMatrixList.append(submat)
 
 # cluster one of them, and get the ordering.
 #ward = cluster.ward_tree(subMatrixList[4])
-Z = linkage(np.transpose(subMatrixList[4]), 'ward')
-Q = dendrogram(Z, get_leaves=True, distance_sort=True)
-geneOrder = Q['leaves']
-
-# reorder each sub-matrix
-# make a cool viz of each one.
-
+#Z = linkage(np.transpose(subMatrixList[4]), 'ward')
+#Q = dendrogram(Z, get_leaves=True, distance_sort=True)
+#geneOrder = Q['leaves']
 
 # write out each sub-matrix
 # write it in tidy format.

@@ -250,6 +250,7 @@ for si in range(1,7):
     expr_file_names.append('exprdat_'+str(si)+'.tsv')
     (set_means, set_sds) = gen_means_and_sds(sets, 1, si, 3)
     (gexpr,nbexpr) = gen_expression(gord, sets, set_means, set_sds)
+    np.savetxt(X=np.transpose([set_means, set_sds]), fmt='%s', delimiter='\t', fname='set_means_'+str(si)+'.tsv')
     np.savetxt(X=np.transpose([gord, gexpr,nbexpr]),  fmt='%s', delimiter='\t', fname='exprdat_'+str(si)+'.tsv')
 np.savetxt(X=expr_file_names, fmt='%s', delimiter='\t', fname="filelist.tsv")
 
