@@ -138,17 +138,19 @@ def bnb_segment(net, seed, scalespace, level, eps):
     bestScore = meanDiff(signal[bestSet], signal[allNeighbors])
     q = [add1(bestSet, i) for i in allNeighbors]
 
+    ## STUCK HERE ##
     while (len(q) > 0):  # while we still have nodes in the queue
+        #print(len(q))
         x = q.pop()          # dequeue the first node in the list
-        if len(x) < (len(signal) * 0.5): # can not have a set larger than half the size of the network!
-            y = getNeighbors(net, x) # get the new surrounding neighbors
-            thisDiff = meanDiff(signal[x], signal[y]) # abs value difference
-            if thisDiff > (bestScore-eps): # if it's 'close enough' to the best then we branch on this solution
-                newq = [add1(x, i) for i in y] # try adding these neighbors send off in parallel?
-                q += newq
-                if thisDiff > bestScore: # but only keep it if it's the best
-                    bestSet = x
-                    bestScore = thisDiff
+        #if len(x) < (len(signal) * 0.5): # can not have a set larger than half the size of the network!
+        y = getNeighbors(net, x) # get the new surrounding neighbors
+        thisDiff = meanDiff(signal[x], signal[y]) # abs value difference
+        if thisDiff > (bestScore-eps): # if it's 'close enough' to the best then we branch on this solution
+            newq = [add1(x, i) for i in y] # try adding these neighbors send off in parallel?
+            q += newq
+            if thisDiff > bestScore: # but only keep it if it's the best
+                bestSet = x
+                bestScore = thisDiff
     inMean = np.mean(signal[bestSet])
     outMean = np.mean(signal[getNeighbors(net, bestSet)])
     return( (level, bestSet, inMean, outMean, bestScore) )

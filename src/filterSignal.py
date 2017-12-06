@@ -54,7 +54,7 @@ for i in range(0,len(inputs)):
     genes = graphFun.loadGenes(dirs+inputs[i], 0)
     msr = waveletFun.waveletFilter(net, sig, Nf)
     # the filtered signal is in shape (Nf, num_nodes)
-    np.savetxt(outputprefix+"_"+str(i)+".txt", msr, delimiter='\t')
+    np.savetxt(dirs+outputprefix+"_"+str(i)+".txt", msr, delimiter='\t')
     outputlist.write(outputprefix+'_'+str(i)+'.txt'+'\n')
     print("******************************************")
 
