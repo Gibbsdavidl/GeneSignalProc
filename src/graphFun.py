@@ -103,7 +103,8 @@ def add1(inset, i):
 def getNeighbors(net, inset):
     allNeighbors = ([net.neighbors(gi) for gi in inset])  # the neighbors for each node in the "IN-SET"
     allNeighbors = list(set([item for sublist in allNeighbors for item in sublist]))  # Take union...
-    [allNeighbors.remove(i) for i in inset]
+    if len(allNeighbors) > 0:
+        [allNeighbors.remove(i) for i in inset]
     return(allNeighbors)
 
 
@@ -122,7 +123,7 @@ def bnb_segment(net, seed, scalespace, level, eps):
     signal = scalespace[level]  # the signal at this level in the space
     q = net.neighbors(seed)
     best = 100000.0
-    keep = 0
+    keep = -1
     while (len(q) > 0):  # while we still have nodes in the queue
         qi = q.pop()
         x = np.abs(signal[seed] - signal[qi])  # seed is a keypt ... want most similar.
@@ -130,7 +131,10 @@ def bnb_segment(net, seed, scalespace, level, eps):
             keep = qi
             best = x
 
-    bestSet = [seed, keep] # now we have a pair.
+    if keep > -1:
+        bestSet = [seed, keep] # now we have a pair.
+    else:
+        bestSet = [seed]
     # need a queue of possible solutions.
     # this would be a list of 'inset' .. a set of connected nodes in the *in-set*
     # first group of possible solutions would be adding neighbors.
