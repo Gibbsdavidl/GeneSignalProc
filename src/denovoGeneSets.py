@@ -80,8 +80,8 @@ allResults = []
 for i in range(0,len(inputs)):
     print("segmenting file " + str(i))
     msr = np.loadtxt(dirs + inputs[i], delimiter='\t')
-    setTupleList = graphFun.segmentSpace(net, 0.01, msr)
     filteredList.append(msr)      # the list of multi-scale-signals
+    setTupleList = graphFun.segmentSpace(net, 5, msr, 3)
     setList.append(setTupleList)  # each input gets a list of set-tuples
 
 #numScales = len((filteredList[0])[:,0])
@@ -90,16 +90,15 @@ for i in range(0,len(inputs)):
 for i in range(0,len(inputs)):
     print("joining sets into groups " + str(i))
     thisSetList = setList[i]
-    # sets are connected if they are on the same level, or adjacent levels
-    # and they have at least two nodes in common.
-    setConnect = graphFun.connectSets(thisSetList)
-    # now sets can be coelesed
-    setGroups = graphFun.groupCoupling(setConnect, thisSetList)
+
+    # now sets can be joined across scale-levels
+    setGroups = graphFun.joinSets(thisSetList)
+
     # groups come back as a list of sets of tuples (scale-level, set ID)
     resultsList = graphFun.compileResults(i, thisSetList, setGroups, filteredList[i])
+
     allResults.append(resultsList)
 
-#     [filenum, chainID, thisTuple[1], thisTuple[0], geneID, msr[ti[0]][gi], setMean]
 
 output.write("TimePt\tChainID\tSetID\tLevel\tGeneID\tFiltered\tMeanValue\n")
 for x in allResults:

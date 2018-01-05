@@ -160,39 +160,87 @@ def bnb_segment(net, seed, scalespace, level, eps):
     return( (level, bestSet, inMean, outMean, bestScore) )
 
 
-def getKeyPts(net, sig):
-    keypts = []
-    for i in range(0,len(sig)):
-        neighborVals = np.array([sig[j] for j in net.neighbors(i)])
-        if all(sig[i] < neighborVals) or all(sig[i] > neighborVals) :
-            keypts.append(i)
-    return(keypts)
+def connectedComponentLabeling(net, scalespace, level, bins, minsetsize):
+    #
+    # returns graph components, that include the specified seed
+    # net, an igraph network
+    # bins, number of bins to quantize
+    # seed, node index
+    # scale space
+    # the matrix with rows as scales and columns as genes, matches the gene order
+    # expr, the signal
+    # level, which scale, which is the row of the filtered data.
+    #
+    # start with simply finding the best pair node.
+    signal = scalespace[level]  # the signal at this level in the space
+    linbins = np.linspace(np.min(signal), np.max(signal), bins) # could get adaptive cuts here !!!!!
+    # then we quantize the values.
+    qsig = np.digitize(x=signal, bins=linbins)
+    # we have labels for each node.
+    labels = np.array([-1 for x in range(0,len(qsig))])  # start out with each node having
+
+    # for each node
+    currlabel = 1
+    for ni in range(0,len(qsig)):
+        # if this node is not already labeled.
+        if labels[ni] == -1:
+            # then give this node the current label
+            labels[ni] = currlabel
+            #   start a queue, add this node to the queue
+            nodequeue = [ni]
+            #   while the queue is not empty
+            while len(nodequeue) > 0:
+                # pop off a node
+                p = nodequeue.pop()
+                # get the neighborhood of this node.
+                nbors = np.array(net.neighbors(p))
+                if len(nbors) > 0:
+                    # and select the ones that don't have labels
+                    nborlabels = labels[nbors]
+                    nbors = nbors[nborlabels == -1]
+                    # if there are some neighbors without labels
+                    if len(nbors) > 0:
+                        nborqsig = qsig[nbors]
+                        # get list of neighbors in the same quantized level value
+                        matched = nbors[nborqsig == qsig[p]]
+                        # if there are neighbors in the same quant level
+                        if len(matched) > 0:
+                            # set the node labels to the smallest label.
+                            labels[matched] = currlabel
+                            # add those nodes to the queue
+                            for mi in matched:
+                                nodequeue.append(mi)
+        # update the current label
+        currlabel +=1
 
 
-def segmentSpace(net, eps, msr):
+    # then sort out the components that have set sizes greater than minsetsize
+    components = set()
+    for li in labels:
+        if sum(labels == li) > minsetsize:
+            components.add(li)
+
+    #   get the mean levels, the set of nodes, etc.
+    setidxs = []
+    sigvals = []
+    meanval = []
+    deviati = []
+    for ci in list(components):
+        idx = np.where(labels == ci)
+        setidxs.append(idx)
+        sigvals.append(signal[idx])
+        meanval.append(np.mean(signal[idx]))
+        deviati.append(signal[idx] - np.mean(signal[idx]))
+
+    return( (level, components, setidxs, sigvals, meanval, deviati) )
+
+
+def segmentSpace(net, bins, msr, minsetsize):
     setList = []
     for scale in range(0,len(msr)): # for each scale
-        sig1 = copy.deepcopy(msr[scale, :]) # getting out the filtered values for lvl
-        keypts = getKeyPts(net, sig1)
-        for seed in keypts:  # for each keypoint, try to recover a set.
-            res0 = bnb_segment(net, seed, msr, scale, eps) # get segments for this scale
-            setList.append(res0)
-    return(setList)
-
-
-def connectSets(thisSetList):
-    coupled = []
-    # for each scale
-    for si in range(0,len(thisSetList)):
-        for ti in range(si,len(thisSetList)): # get the upper triangle
-            s_tup = thisSetList[si]
-            t_tup = thisSetList[ti]
-            overlap = sum(np.in1d(s_tup[1], t_tup[1]))
-            if overlap > 2 and si != ti: # if there's any overlap.
-                if (s_tup[2] > 0 and  t_tup[2] > 0) or (s_tup[2] < 0 and  t_tup[2] < 0): # same direction
-                    if np.abs(s_tup[0] - t_tup[0]) < 2:                                  # same or adj scale level
-                        coupled.append( (overlap, si, ti, s_tup[0], t_tup[0], s_tup[2], t_tup[2]) )
-    return(coupled)
+        res0 = connectedComponentLabeling(net, msr, scale, bins, minsetsize)  # get components that have keypts.
+        setList.append(res0)
+    return(setList)  # so every level will have some sets of nodes.
 
 
 def checkGroups(couple, grps):
@@ -205,10 +253,10 @@ def checkGroups(couple, grps):
     else:
         return([])
 
-def groupCoupling(coupled, setList):
+def joinSets(setList):
     # start at the top
     groups = []
-    for i in range(0,len(coupled)): # for each coupling
+    for i in range(0,len(setList)): # for each level
         # if one of these sets is already part of a group
         idx = checkGroups(coupled[i], groups)
         if len(idx) > 0:
@@ -219,21 +267,6 @@ def groupCoupling(coupled, setList):
         else:
             groups.append( set([ (coupled[i][3],coupled[i][1]), (coupled[i][4],coupled[i][2]) ]) )
     return(groups)
-
-
-def gini(resList):
-    giniList = []
-    levs = len(resList[1])
-    for li in range(0,levs):
-        diffList = []
-        n = len(resList[0][li])
-        for i in range(0,n):
-            for j in range(i,n):
-                diffList.append(np.abs(resList[1][li][i] - resList[1][li][j]))
-        top = sum(diffList)
-        bot = 2*n*sum(resList[0][li])
-        giniList.append( (top/bot) )
-    return(giniList)
 
 
 def compileResults(filenum, thisSetList, setGroups, msr):
