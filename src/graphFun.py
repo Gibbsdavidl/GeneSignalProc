@@ -226,7 +226,7 @@ def connectedComponentLabeling(net, scalespace, level, bins, minsetsize):
     meanval = []
     deviati = []
     for ci in list(components):
-        idx = np.where(labels == ci)
+        idx = np.where(labels == ci)[0]
         setidxs.append(idx)
         sigvals.append(signal[idx])
         meanval.append(np.mean(signal[idx]))
@@ -243,29 +243,56 @@ def segmentSpace(net, bins, msr, minsetsize):
     return(setList)  # so every level will have some sets of nodes.
 
 
+def connectSets(thisSetList, overlapSize):
+    # here we find set overlaps across the scale-levels
+    # and call them 'coupled'
+    coupled = []
+    for si in range(0, len(thisSetList)):     # for each scale
+        for ti in range(si, len(thisSetList)):  # get the upper triangle
+            s_tup = thisSetList[si]               # the tuple from CCL
+            t_tup = thisSetList[ti]
+            for i in range(0,len(s_tup[1])):          # each tuple can have a list of components
+                for j in range(0,len(t_tup[1])):
+                    overlap = sum(np.in1d(s_tup[2][i], t_tup[2][j])) # if there's overlap in the nodes
+                    if overlap > overlapSize and si != ti:  # if there's any overlap.
+                        if (s_tup[4][i] > 0 and t_tup[4][j] > 0) or (s_tup[4][i] < 0 and t_tup[4][j] < 0):  # same direction
+                            if np.abs(s_tup[0] - t_tup[0]) < 2:  # same or adj scale level
+                                coupled.append((overlap, si, ti, i, j, s_tup[2][i], t_tup[2][j], s_tup[3][i], t_tup[3][j]))
+    return (coupled)
+
+
 def checkGroups(couple, grps):
     # check if one of the sets is already part of a group
-    t1 = (couple[3],couple[1])
-    t2 = (couple[4],couple[2])
-    chk = [ (t1 in x) or (t2 in x) for x in grps]
+    t1 = (couple[1], tuple(couple[5])) # level, set
+    t2 = (couple[2], tuple(couple[6])) # level, set
+    chk = [ (t1 in x) or (t2 in x) for x in grps] # CHECK HERE
     if len(chk) > 0:
         return(np.where(chk)[0])
     else:
         return([])
 
-def joinSets(setList):
-    # start at the top
+
+def joinSets(coupled, setList):
+    # then we create groups of unique nodes
+    # that are connected or coupled across levels
+    # groups are a list of lists
+    # the lists being lists of tuples (level, set)
     groups = []
-    for i in range(0,len(setList)): # for each level
+
+    for i in range(0,len(coupled)): # for each level
+
         # if one of these sets is already part of a group
         idx = checkGroups(coupled[i], groups)
+
         if len(idx) > 0:
             # add it to the group
-            groups[idx[0]].add( (coupled[i][3],coupled[i][1]) ) # tuple of scale-level and set ID
-            groups[idx[0]].add( (coupled[i][4],coupled[i][2]) )
+            groups[idx[0]].add( (coupled[i][1], tuple(coupled[i][5])) ) # tuple of scale-level and set ID
+            groups[idx[0]].add( (coupled[i][2], tuple(coupled[i][6])) )
+
         # else create a new group.
         else:
-            groups.append( set([ (coupled[i][3],coupled[i][1]), (coupled[i][4],coupled[i][2]) ]) )
+            groups.append( set([ (coupled[i][1],tuple(coupled[i][5])), (coupled[i][2],tuple(coupled[i][6])) ]) ) # set of tuples
+
     return(groups)
 
 
@@ -275,12 +302,10 @@ def compileResults(filenum, thisSetList, setGroups, msr):
     res1 = []
     for chainID in range(0,len(setGroups)): # which chain ID
         for thisTuple in setGroups[chainID]: # ti will be a list of tuples
-            setMean = thisSetList[thisTuple[1]][2]
-            for geneID in thisSetList[thisTuple[1]][1]:
-                res0 = [filenum, chainID, thisTuple[1], thisTuple[0], geneID, msr[thisTuple[0]][geneID], setMean]
+            #setMean = thisSetList[thisTuple[1]][2]
+            for geneID in thisTuple[1]:
+                res0 = [filenum, chainID, thisTuple[0], geneID, msr[thisTuple[0]][geneID]] #, setMean]
                 res1.append(res0)
     return(res1)
 
 
-#res1 = segmentSpace(net, 0.5, 10, sig)
-#resGini = gini(res1)

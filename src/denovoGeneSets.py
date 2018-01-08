@@ -58,6 +58,7 @@ for opt, arg in opts:
     elif opt in ("-m"):
         adjmat = arg
 
+overlapSize = 2
 
 # get the input files, and where we will write the output file names
 inputs = open(dirs+filelist,'r').read().strip().split("\n")
@@ -92,7 +93,8 @@ for i in range(0,len(inputs)):
     thisSetList = setList[i]
 
     # now sets can be joined across scale-levels
-    setGroups = graphFun.joinSets(thisSetList)
+    coupledSets = graphFun.connectSets(thisSetList, overlapSize)
+    setGroups = graphFun.joinSets(coupledSets, thisSetList)
 
     # groups come back as a list of sets of tuples (scale-level, set ID)
     resultsList = graphFun.compileResults(i, thisSetList, setGroups, filteredList[i])
@@ -100,7 +102,7 @@ for i in range(0,len(inputs)):
     allResults.append(resultsList)
 
 
-output.write("TimePt\tChainID\tSetID\tLevel\tGeneID\tFiltered\tMeanValue\n")
+output.write("TimePt\tChainID\tLevel\tGeneID\tFiltered\n")
 for x in allResults:
     for y in x:
         z = map(str, y)
