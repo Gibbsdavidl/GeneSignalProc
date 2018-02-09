@@ -22,8 +22,9 @@ def normi(x):
 def waveletFilter(net, signal, Nf):
     mexhat = g.filters.MexicanHat(net, Nf)
     sighat = mexhat.analyze(signal)
-    sighat = sighat.reshape( (Nf, int(sighat.size / Nf)) )
-    return(sighat)
+    #sighat = sighat.reshape( (Nf, int(sighat.size / Nf)) )
+    sighat_transpose = sighat.transpose()
+    return(sighat_transpose)
 
 
 def imageFilteredSig(X):

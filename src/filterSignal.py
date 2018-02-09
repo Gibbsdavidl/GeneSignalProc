@@ -50,8 +50,8 @@ for i in range(0,len(inputs)):
     # compute wavelets
     print("working on file " + str(i))
     # process the data
-    sig = graphFun.loadSignal(dirs+inputs[i], 0, 1)  # log10 of value + 0.001
-    genes = graphFun.loadGenes(dirs+inputs[i], 0)
+    sig = graphFun.loadSignal(inputs[i], 0, 1)  # log10 of value + 0.001
+    genes = graphFun.loadGenes(inputs[i], 0)
     msr = waveletFun.waveletFilter(net, sig, Nf)
     # the filtered signal is in shape (Nf, num_nodes)
     np.savetxt(dirs+outputprefix+"_"+str(i)+".txt", msr, delimiter='\t')
