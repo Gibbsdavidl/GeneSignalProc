@@ -4,9 +4,9 @@
 # need a set of sets, to find an ordering over all.
 # related to contigs, but with repeated sets.
 
+import sys
 import numpy as np
 import string
-import copy
 import igraph
 
 # function to flatten lists
@@ -57,7 +57,7 @@ def createEvenPartsNetworks(genes, ngenes, nparts):
     return((netList, geneList) )
 
 
-def setmatrix(genes, sets, setnames):
+def setmatrix(genes, sets, setnames, nparts):
     m = np.empty( (sets+1, len(genes)+1), dtype='U128')
     partSize = int(len(genes) / nparts)
     curr = 0
@@ -109,68 +109,62 @@ def gen_expression(ngenes, sets, set_means, sigma):
     return(gexpr)
 
 
+def runMain(homedir):
+    # first simulate the gene and gene sets
+    ngenes = 100
+    nparts = 5
+    ntime = 10
+    genes = [''.join([string.ascii_lowercase[i] for i in np.random.randint(low=0, high=26, size=5)]) for j in range(0, ngenes)]
+    setnames = [''.join([string.ascii_lowercase[i] for i in np.random.randint(low=0, high=26, size=5)]) for j in range(0, nparts)]
+
+    # create a list of networks.
+    (netList, geneList) = createEvenPartsNetworks(genes, ngenes, nparts)
+
+    # then generate the set matrix (sema)
+    sema = setmatrix(genes, nparts, setnames, nparts)
+    # can insert gene names into rows, but have to have binary values as strings
+    np.savetxt(X=sema, fmt='%s', delimiter='\t', fname=homedir+"setmatrix.tsv")
+
+    # then print out the adj matrix
+    g  = connectnetwork(netList, genes, geneList)
+    gesc2 = g.get_adjacency(attribute='weight')
+    # replace the Nones with 0s
+    for i in range(0,len(gesc2.data)):
+        for j in range(0,len(gesc2.data)):
+            if gesc2[i,j] is None:
+                gesc2[i,j] = 0
+    np.savetxt(X=gesc2.data, fmt='%s', delimiter='\t', fname=homedir+"scorematrix.tsv")
+
+    # need symmetric adjacency matrix with weights
+    # then 'condition' the matrix
+    for i in range(0,len(gesc2.data)):
+         sumres = sum(filter(None, gesc2.data[i])) + 1.0  # Some NoneTypes in there
+         gesc2[i,i] = sumres
 
 
-#####################
-# Going to generate:#
-# 1. number of sets, and number of genes
-# 2. network for each set
-# 3. set matrix for each set.
-# 4. connect the networks
-# 5. get the adjacency matrix.
-# 6.
-# 7.
-############################################################
+    # then can generate random expression data from network
+    # add function to random expression.
 
-# first simulate the gene and gene sets
-ngenes = 100
-nparts = 5
-ntime = 10
-genes = [''.join([string.ascii_lowercase[i] for i in np.random.randint(low=0, high=26, size=5)]) for j in range(0, ngenes)]
-setnames = [''.join([string.ascii_lowercase[i] for i in np.random.randint(low=0, high=26, size=5)]) for j in range(0, nparts)]
+    # generate the set-based expression levels
+    expr_file_names = []
+    for si in range(1,ntime):
+        expr_file_names.append(homedir+'exprdat_'+str(si)+'.tsv')
+        # get the means for each set
+        set_means = gen_means_and_sds(setnames, 1, si, 3)  # set 1 (second set) will follow linear trend with slope 3
+        # then simulate the expression
+        gexpr = gen_expression(ngenes, geneList, set_means, np.array(gesc2.data))
+        # write out the set means for each time point
+        np.savetxt(X=np.transpose([set_means]), fmt='%s', delimiter='\t', fname=homedir+'set_means_'+str(si)+'.tsv')
+        # and write out the simulated gene expression
+        np.savetxt(X=np.transpose([genes, gexpr]),  fmt='%s', delimiter='\t', fname=homedir+'exprdat_'+str(si)+'.tsv')
+    # keep a list of all the files
+    np.savetxt(X=expr_file_names, fmt='%s', delimiter='\t', fname=homedir+"filelist.tsv")
 
-# create a list of networks.
-(netList, geneList) = createEvenPartsNetworks(genes, ngenes, nparts)
+    # done
+    print("done")
 
-# then generate the set matrix (sema)
-sema = setmatrix(genes, nparts, setnames)
-# can insert gene names into rows, but have to have binary values as strings
-np.savetxt(X=sema, fmt='%s', delimiter='\t', fname="/Users/davidgibbs/Data/SimWaveDat/Go4/setmatrix.tsv")
 
-# then print out the adj matrix
-g  = connectnetwork(netList, genes, geneList)
-gesc2 = g.get_adjacency(attribute='weight')
-np.savetxt(X=gesc2.data, fmt='%s', delimiter='\t', fname="/Users/davidgibbs/Data/SimWaveDat/Go4/scorematrix.tsv")
-
-# need symmetric adjacency matrix with weights
-# then 'condition' the matrix
-for i in range(0,len(gesc2.data)):
-     sumres = sum(filter(None, gesc2.data[i])) + 1.0  # Some NoneTypes in there
-     gesc2[i,i] = sumres
-
-# replace the Nones with 0s
-for i in range(0,len(gesc2.data)):
-    for j in range(0,len(gesc2.data)):
-        if gesc2[i,j] is None:
-            gesc2[i,j] = 0
-
-# then can generate random expression data from network
-# add function to random expression.
-
-# generate the set-based expression levels
-expr_file_names = []
-for si in range(1,ntime):
-    expr_file_names.append('/Users/davidgibbs/Data/SimWaveDat/Go4/exprdat_'+str(si)+'.tsv')
-    # get the means for each set
-    set_means = gen_means_and_sds(setnames, 1, si, 3)  # set 1 (second set) will follow linear trend with slope 3
-    # then simulate the expression
-    gexpr = gen_expression(ngenes, geneList, set_means, np.array(gesc2.data))
-    # write out the set means for each time point
-    np.savetxt(X=np.transpose([set_means]), fmt='%s', delimiter='\t', fname='/Users/davidgibbs/Data/SimWaveDat/Go4/set_means_'+str(si)+'.tsv')
-    # and write out the simulated gene expression
-    np.savetxt(X=np.transpose([genes, gexpr]),  fmt='%s', delimiter='\t', fname='/Users/davidgibbs/Data/SimWaveDat/Go4/exprdat_'+str(si)+'.tsv')
-# keep a list of all the files
-np.savetxt(X=expr_file_names, fmt='%s', delimiter='\t', fname="/Users/davidgibbs/Data/SimWaveDat/Go4/filelist.tsv")
-
-# done
-print("done")
+if __name__ == '__main__':
+    homedir = sys.argv[1]
+    #"/Users/davidgibbs/Data/SimWaveDat/Go4/"
+    runMain(homedir)

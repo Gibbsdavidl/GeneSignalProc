@@ -38,14 +38,14 @@ print(started)
 try:
     opts, args = getopt.getopt(sys.argv[1:],"hd:i:o:g:m:")
 except getopt.GetoptError:
-    print ('denovoGeneSets.py -d <working dir> -i <filelist> -o <output_prefix> -m <score matrix> -g <gene set name>')
+    print ('denovoGeneSets.py -d <working dir> -i <filelist> -o <output_prefix> -m <score matrix>')
     sys.exit(2)
 if len(opts) == 0:
-    print ('denovoGeneSets.py -d <working dir> -i <filelist> -o <output_prefix> -m <score matrix> -g <gene set name>')
+    print ('denovoGeneSets.py -d <working dir> -i <filelist> -o <output_prefix> -m <score matrix> ')
     sys.exit(2)
 for opt, arg in opts:
     if opt == '-h':
-        print('denovoGeneSets.py -d <working dir> -i <filelist> -o <output_prefix> -m <score matrix> -g <gene set name>')
+        print('denovoGeneSets.py -d <working dir> -i <filelist> -o <output_prefix> -m <score matrix> ')
         sys.exit()
     elif opt in ("-i"):
         filelist = arg
@@ -53,8 +53,6 @@ for opt, arg in opts:
         dirs = arg
     elif opt in ("-o"):
         outputprefix = arg
-    elif opt in ("-g"):
-        setname = arg
     elif opt in ("-m"):
         adjmat = arg
 
@@ -66,11 +64,12 @@ output = open(dirs+outputprefix+'.txt', 'w')
 
 # build the graph
 mat = np.loadtxt(dirs+adjmat, delimiter='\t')
-#net = ig.Graph.Weighted_Adjacency(mat.tolist(), mode="undirected")
-net = ig.Graph.Adjacency(mat.tolist(), mode="undirected")
-net.es['weight'] = mat[mat.nonzero()]
+net = ig.Graph.Weighted_Adjacency(mat.tolist(), mode="undirected")
+#net = ig.Graph.Adjacency(mat.tolist(), mode="undirected")
+#net.es['weight'] = mat[mat.nonzero()]
+net = net.simplify(combine_edges=max, multiple=True, loops=False)
 
-net.write_edgelist("edges.txt")
+net.write_edgelist(dirs+"edges.txt")
 #net = ig.Read_Adjacency(dirs+adjmat)
 
 # then we create a list of the filtered expression matrices
@@ -82,10 +81,8 @@ for i in range(0,len(inputs)):
     print("segmenting file " + str(i))
     msr = np.loadtxt(dirs + inputs[i], delimiter='\t')
     filteredList.append(msr)      # the list of multi-scale-signals
-    setTupleList = graphFun.segmentSpace(net, 5, msr, 3)
+    setTupleList = graphFun.segmentSpace (net=net, bins=5, msr=msr, minsetsize=3)
     setList.append(setTupleList)  # each input gets a list of set-tuples
-
-#numScales = len((filteredList[0])[:,0])
 
 # want output to be sets that overlap across scales, for each file.
 for i in range(0,len(inputs)):
