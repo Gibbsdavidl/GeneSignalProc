@@ -4,6 +4,7 @@ import numpy as np
 import igraph as ig
 import copy
 from scipy import stats
+from sklearn.cluster import KMeans
 
 def loadSignal(filename, header=1, column=1):
     signal = []
@@ -173,10 +174,14 @@ def connectedComponentLabeling(net, scalespace, level, bins, minsetsize):
     #
     # start with simply finding the best pair node.
     signal = scalespace[level]  # the signal at this level in the space
-    linbins = np.linspace(np.min(signal), np.max(signal), bins) # could get adaptive cuts here !!!!!
+    #linbins = np.linspace(np.min(signal), np.max(signal), bins) # could get adaptive cuts here !!!!!
     # then we quantize the values.
-    qsig = np.digitize(x=signal, bins=linbins)
+    #qsig = np.digitize(x=signal, bins=linbins)
     # we have labels for each node.
+    km = KMeans(n_clusters=bins, max_iter=500, n_init=21)
+    km.fit(signal.reshape(-1, 1))
+    qsig = km.labels_
+
     labels = np.array([-1 for x in range(0,len(qsig))])  # start out with each node having
 
     # for each node
@@ -248,16 +253,16 @@ def connectSets(thisSetList, overlapSize):
     # and call them 'coupled'
     coupled = []
     for si in range(0, len(thisSetList)):     # for each scale
-        for ti in range(si, len(thisSetList)):  # get the upper triangle
-            s_tup = thisSetList[si]               # the tuple from CCL
+        ti = si+1                        # and the adjacent scale
+        if ti < len(thisSetList):         # don't go past the stack.
+            s_tup = thisSetList[si]       # the tuple from segmentation
             t_tup = thisSetList[ti]
-            for i in range(0,len(s_tup[1])):          # each tuple can have a list of components
+            for i in range(0,len(s_tup[1])):          # for each component in the scale-level tuple
                 for j in range(0,len(t_tup[1])):
-                    overlap = sum(np.in1d(s_tup[2][i], t_tup[2][j])) # if there's overlap in the nodes
-                    if overlap > overlapSize and si != ti:  # if there's any overlap.
+                    overlap = sum(np.in1d(s_tup[2][i], t_tup[2][j]))   # if there's overlap in the nodes
+                    if overlap > overlapSize:                           # above some threshold
                         if (s_tup[4][i] > 0 and t_tup[4][j] > 0) or (s_tup[4][i] < 0 and t_tup[4][j] < 0):  # same direction
-                            if np.abs(s_tup[0] - t_tup[0]) < 2:  # same or adj scale level
-                                coupled.append((overlap, si, ti, i, j, s_tup[2][i], t_tup[2][j], s_tup[3][i], t_tup[3][j]))
+                            coupled.append((overlap, si, ti, i, j, s_tup[2][i], t_tup[2][j], s_tup[3][i], t_tup[3][j]))
     return (coupled)
 
 

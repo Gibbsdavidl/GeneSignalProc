@@ -64,12 +64,12 @@ output = open(dirs+outputprefix+'.txt', 'w')
 
 # build the graph
 mat = np.loadtxt(dirs+adjmat, delimiter='\t')
-net = ig.Graph.Weighted_Adjacency(mat.tolist(), mode="undirected")
+net = ig.Graph.Weighted_Adjacency(mat.tolist(), mode="UNDIRECTED")
 #net = ig.Graph.Adjacency(mat.tolist(), mode="undirected")
 #net.es['weight'] = mat[mat.nonzero()]
 net = net.simplify(combine_edges=max, multiple=True, loops=False)
 
-net.write_edgelist(dirs+"edges.txt")
+#net.write_edgelist(dirs+"edges.txt")
 #net = ig.Read_Adjacency(dirs+adjmat)
 
 # then we create a list of the filtered expression matrices
