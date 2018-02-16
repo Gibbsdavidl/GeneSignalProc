@@ -109,11 +109,11 @@ def gen_expression(ngenes, sets, set_means, sigma):
     return(gexpr)
 
 
-def runMain(homedir):
+def runSim(homedir, ngenes, nparts, ntime):
     # first simulate the gene and gene sets
-    ngenes = 100
-    nparts = 5
-    ntime = 10
+    #ngenes = 100
+    #nparts = 5
+    #ntime = 10
     genes = [''.join([string.ascii_lowercase[i] for i in np.random.randint(low=0, high=26, size=5)]) for j in range(0, ngenes)]
     setnames = [''.join([string.ascii_lowercase[i] for i in np.random.randint(low=0, high=26, size=5)]) for j in range(0, nparts)]
 
@@ -161,10 +161,5 @@ def runMain(homedir):
     np.savetxt(X=expr_file_names, fmt='%s', delimiter='\t', fname=homedir+"filelist.tsv")
 
     # done
-    print("done")
-
-
-if __name__ == '__main__':
-    homedir = sys.argv[1]
-    #"/Users/davidgibbs/Data/SimWaveDat/Go4/"
-    runMain(homedir)
+    print("done with data simulation")
+    return(["filelist.tsv",homedir,"scorematrix.tsv"])

@@ -31,84 +31,57 @@ import graphFun
 
 from datetime import datetime, timedelta
 
-print("denovo starting at:")
-started = datetime.now()
-print(started)
+def denovoGeneSets(filelist, dirs, outputprefix, adjmat):
 
-try:
-    opts, args = getopt.getopt(sys.argv[1:],"hd:i:o:g:m:")
-except getopt.GetoptError:
-    print ('denovoGeneSets.py -d <working dir> -i <filelist> -o <output_prefix> -m <score matrix>')
-    sys.exit(2)
-if len(opts) == 0:
-    print ('denovoGeneSets.py -d <working dir> -i <filelist> -o <output_prefix> -m <score matrix> ')
-    sys.exit(2)
-for opt, arg in opts:
-    if opt == '-h':
-        print('denovoGeneSets.py -d <working dir> -i <filelist> -o <output_prefix> -m <score matrix> ')
-        sys.exit()
-    elif opt in ("-i"):
-        filelist = arg
-    elif opt in ("-d"):
-        dirs = arg
-    elif opt in ("-o"):
-        outputprefix = arg
-    elif opt in ("-m"):
-        adjmat = arg
+    overlapSize = 2
 
-overlapSize = 2
+    # get the input files, and where we will write the output file names
+    inputs = open(dirs+filelist,'r').read().strip().split("\n")
+    output = open(dirs+outputprefix+'file.txt', 'w')
 
-# get the input files, and where we will write the output file names
-inputs = open(dirs+filelist,'r').read().strip().split("\n")
-output = open(dirs+outputprefix+'.txt', 'w')
+    # build the graph
+    mat = np.loadtxt(dirs+adjmat, delimiter='\t')
+    net = ig.Graph.Weighted_Adjacency(mat.tolist(), mode="UNDIRECTED")
+    #net = ig.Graph.Adjacency(mat.tolist(), mode="undirected")
+    #net.es['weight'] = mat[mat.nonzero()]
+    net = net.simplify(combine_edges=max, multiple=True, loops=False)
 
-# build the graph
-mat = np.loadtxt(dirs+adjmat, delimiter='\t')
-net = ig.Graph.Weighted_Adjacency(mat.tolist(), mode="UNDIRECTED")
-#net = ig.Graph.Adjacency(mat.tolist(), mode="undirected")
-#net.es['weight'] = mat[mat.nonzero()]
-net = net.simplify(combine_edges=max, multiple=True, loops=False)
+    #net.write_edgelist(dirs+"edges.txt")
+    #net = ig.Read_Adjacency(dirs+adjmat)
 
-#net.write_edgelist(dirs+"edges.txt")
-#net = ig.Read_Adjacency(dirs+adjmat)
+    # then we create a list of the filtered expression matrices
+    filteredList = []
+    setList = []
+    allResults = []
 
-# then we create a list of the filtered expression matrices
-filteredList = []
-setList = []
-allResults = []
+    for i in range(0,len(inputs)):
+        print("segmenting file " + str(i))
+        msr = np.loadtxt(dirs + inputs[i], delimiter='\t')
+        filteredList.append(msr)      # the list of multi-scale-signals
+        setTupleList = graphFun.segmentSpace (net=net, bins=5, msr=msr, minsetsize=3)
+        setList.append(setTupleList)  # each input gets a list of set-tuples
 
-for i in range(0,len(inputs)):
-    print("segmenting file " + str(i))
-    msr = np.loadtxt(dirs + inputs[i], delimiter='\t')
-    filteredList.append(msr)      # the list of multi-scale-signals
-    setTupleList = graphFun.segmentSpace (net=net, bins=5, msr=msr, minsetsize=3)
-    setList.append(setTupleList)  # each input gets a list of set-tuples
+    # want output to be sets that overlap across scales, for each file.
+    for i in range(0,len(inputs)):
+        print("joining sets into groups " + str(i))
+        thisSetList = setList[i]
 
-# want output to be sets that overlap across scales, for each file.
-for i in range(0,len(inputs)):
-    print("joining sets into groups " + str(i))
-    thisSetList = setList[i]
+        # now sets can be joined across scale-levels
+        coupledSets = graphFun.connectSets(thisSetList, overlapSize)
+        setGroups = graphFun.joinSets(coupledSets, thisSetList)
 
-    # now sets can be joined across scale-levels
-    coupledSets = graphFun.connectSets(thisSetList, overlapSize)
-    setGroups = graphFun.joinSets(coupledSets, thisSetList)
+        # groups come back as a list of sets of tuples (scale-level, set ID)
+        resultsList = graphFun.compileResults(i, thisSetList, setGroups, filteredList[i])
 
-    # groups come back as a list of sets of tuples (scale-level, set ID)
-    resultsList = graphFun.compileResults(i, thisSetList, setGroups, filteredList[i])
-
-    allResults.append(resultsList)
+        allResults.append(resultsList)
 
 
-output.write("TimePt\tChainID\tLevel\tGeneID\tFiltered\n")
-for x in allResults:
-    for y in x:
-        z = map(str, y)
-        output.write('\t'.join(z)+'\n')
-output.close()
+    output.write("TimePt\tChainID\tLevel\tGeneID\tFiltered\n")
+    for x in allResults:
+        for y in x:
+            z = map(str, y)
+            output.write('\t'.join(z)+'\n')
+    output.close()
 
-finished = datetime.now()
-print(finished)
-print("done at")
-print(finished)
-print("took:")
-print(finished-started)
+    print("done with denovo extraction")
+    return( [dirs+outputprefix+'file.txt'] )

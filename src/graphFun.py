@@ -314,3 +314,6 @@ def compileResults(filenum, thisSetList, setGroups, msr):
     return(res1)
 
 
+def testfun():
+    return("asdf")
+
