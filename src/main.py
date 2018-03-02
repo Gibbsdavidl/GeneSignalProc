@@ -37,7 +37,7 @@
 
 
 import sys, getopt
-import simsets2 as ss
+import simGroups as ss
 import filterSignal as fs
 import denovoGeneSets as dg
 import chainFilterAndExtration as cf
@@ -80,13 +80,13 @@ def main():
     print('\nworking in ' + datadir)
 
     # first simulate the data
-    x = ss.runSim(datadir, ngenes=ngenes, nparts=nparts, ntime=ntime)
+    x = ss.runSim(datadir, ngenes=ngenes, nparts=nparts, nsamples=ntime)
 
     # filter the data
-    y = fs.filterData(filelist=x[0], dirs=x[1], outputprefix=filteredPrefix, Nf=Nf, adjmat=x[2])
+    y = fs.filterData(exprfile=x[2], dirs=x[0], outputprefix=filteredPrefix, Nf=Nf, adjmat=x[1])
 
     # recover the chains
-    z = dg.denovoGeneSets(filelist=y[0], dirs=x[1], outputprefix=denovoPrefix, adjmat=x[2])
+    z = dg.denovoGeneSets(filelist=y[0], dirs=x[0], outputprefix=denovoPrefix, adjmat=x[1])
 
     # filter chains and extract data for modeling
     w = cf.chainFilterAndEx(dirs=x[1], chainfile=z[0], filterfiles=y[0], levelThresh=levelThresh)

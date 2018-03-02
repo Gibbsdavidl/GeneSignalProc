@@ -59,8 +59,9 @@ def denovoGeneSets(filelist, dirs, outputprefix, adjmat):
         print("segmenting file " + str(i))
         msr = np.loadtxt(dirs + inputs[i], delimiter='\t')
         filteredList.append(msr)      # the list of multi-scale-signals
-        setTupleList = graphFun.segmentSpace (net=net, bins=5, msr=msr, minsetsize=3)
-        setList.append(setTupleList)  # each input gets a list of set-tuples
+
+    # segment the graphs using all the MSRs
+    setTupleList = graphFun.segmentSpaceGroup(net=net, bins=5, msr=filteredList, minsetsize=3)
 
     # want output to be sets that overlap across scales, for each file.
     for i in range(0,len(inputs)):

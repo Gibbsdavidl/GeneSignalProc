@@ -8,23 +8,23 @@ import csv
 
 def chainFilterAndEx(dirs, filterfiles, chainfile, levelThresh):
 
-    input = open('dirs'+chainfile)
+    #input = open(chainfile,'r')
 
-    timePt = []
-    chainID = []
-    level = []
-    geneID = []
-    filtered = []
+    timePtList = []
+    chainIDList = []
+    levelList = []
+    geneIDList = []
+    filteredList = []
 
-    with open('data.csv', 'r') as f:
+    with open(chainfile, 'r') as f:
         next(f)  # skip headings
         reader = csv.reader(f, delimiter='\t')
         for timePt, chainID, level, geneID, filtered in reader:
-            timePt.append(name)
-            chainID.append(age)
-            level.append(level)
-            geneID.append(geneID)
-            filtered.append(filtered)
+            timePtList.append(timePt)
+            chainIDList.append(chainID)
+            levelList.append(level)
+            geneIDList.append(geneID)
+            filteredList.append(filtered)
 
 
 
