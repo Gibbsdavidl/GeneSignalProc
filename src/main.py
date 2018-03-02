@@ -39,7 +39,7 @@
 import sys, getopt
 import simGroups as ss
 import filterSignal as fs
-import denovoGeneSets as dg
+import denovoGroupGeneSets as dg
 import chainFilterAndExtration as cf
 
 def main():
