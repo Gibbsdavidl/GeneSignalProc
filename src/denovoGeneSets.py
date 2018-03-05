@@ -37,7 +37,7 @@ def denovoGeneSets(filelist, dirs, outputprefix, adjmat):
 
     # get the input files, and where we will write the output file names
     inputs = open(dirs+filelist,'r').read().strip().split("\n")
-    output = open(dirs+outputprefix+'file.txt', 'w')
+    output = open(dirs+outputprefix+'trees_file.txt', 'w')
 
     # build the graph
     mat = np.loadtxt(dirs+adjmat, delimiter='\t')
@@ -77,7 +77,7 @@ def denovoGeneSets(filelist, dirs, outputprefix, adjmat):
         allResults.append(resultsList)
 
 
-    output.write("TimePt\tChainID\tLevel\tGeneID\tFiltered\n")
+    output.write("SampleID\tTreeID\tLevel\tGeneID\tFiltered\n")
     for x in allResults:
         for y in x:
             z = map(str, y)

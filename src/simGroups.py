@@ -124,7 +124,7 @@ def runSim(homedir, ngenes, nparts, nsamples):
     #ntime = 10
     genes = [''.join([string.ascii_lowercase[i] for i in np.random.randint(low=0, high=26, size=5)]) for j in range(0, ngenes)]
     setnames = [''.join([string.ascii_lowercase[i] for i in np.random.randint(low=0, high=26, size=5)]) for j in range(0, nparts)]
-    samplenames = ['sample_'.join([string.ascii_lowercase[i] for i in np.random.randint(low=0, high=26, size=5)]) for j in range(0, nsamples)]
+    samplenames = ['sample_'.join([string.ascii_lowercase[i] for i in np.random.randint(low=0, high=26, size=2)]) for j in range(0, nsamples)]
 
     # create a list of networks.
     (netList, geneList) = createEvenPartsNetworks(genes, ngenes, nparts)
@@ -157,7 +157,7 @@ def runSim(homedir, ngenes, nparts, nsamples):
     pheno = [(np.random.choice([0,1], size=1))[0] for i in range(0,nsamples)]
     # get the means for each set
     set_means = gen_means_and_sds(setnames, 1, 5)  # set 1 (second set) will follow linear trend with slope 3
-    for si in range(1,nsamples):
+    for si in range(0,nsamples):
         # then simulate the expression
         expr_profiles.append(gen_expression(ngenes, geneList, set_means, pheno, np.array(gesc2.data), si, samplenames))
 
@@ -165,7 +165,8 @@ def runSim(homedir, ngenes, nparts, nsamples):
     np.savetxt(X=np.transpose(set_means), fmt='%s', delimiter='\t', fname=homedir + 'set_means' + '.tsv')
     # and write out the simulated gene expression
     np.savetxt(X=expr_profiles, fmt='%s', delimiter='\t', fname=homedir + 'exprdat' + '.tsv')
-
+    # and phenotype
+    np.savetxt(X=np.transpose(pheno), fmt='%s', delimiter='\t', fname=homedir + 'phenotype' + '.tsv')
     # done
     print("done with data simulation")
     return([homedir,"scorematrix.tsv", 'exprdat.tsv'])

@@ -4,6 +4,20 @@ TODO
 
 1. new expr file format, numeric matrix, first row is header, first column is sample ID.
 
+2. changed mind.
+   by taking trees from each sample, a much larger diversity of trees is possible.
+   then this forest can be filtered and sorted, taking the 'best' trees (high abs value).
+
+3. ...so .... need to complete the tree filtering and output function.
+
+4. then can model each potential tree, and rank the results...
+
+5. looking at pymc3... bayesian logistic mixed effect modeling???? see test in model.py
+
+
+
+**************************
+
 2. ready to fix the denovo group gene sets.
 
     - provide pheno vector

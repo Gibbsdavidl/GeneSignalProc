@@ -20,7 +20,8 @@ def filterData(exprfile, dirs, outputprefix, Nf, adjmat):
 
     # for each input file
     inputs = open(dirs+exprfile,'r').read().strip().split("\n")  ###########!!!!!!!!!!!!!! NEW FORMAT!!!!!!!!!!!!!!!!!
-    outputlist = open(dirs+'filtered_expr.txt', 'w')
+    outputlist = open(dirs+'filtered_files_list.txt', 'w')
+    samplelist = open(dirs+'filtered_sample_list.txt', 'w')
 
     filteredSignal = []
 
@@ -32,10 +33,12 @@ def filterData(exprfile, dirs, outputprefix, Nf, adjmat):
         sig = np.array([float(x) for x in vals[1:len(vals)]])
         msr = waveletFun.waveletFilter(net, sig, Nf) # list of filtered signal for each sample
         # the filtered signal is in shape (Nf, num_nodes)
-        np.savetxt(dirs+outputprefix+"_"+str(i)+".txt", msr, delimiter='\t')
-        outputlist.write(outputprefix+'_'+str(i)+'.txt'+'\n')
+        np.savetxt(dirs+outputprefix+str(i)+".txt", msr, delimiter='\t')
+        outputlist.write(outputprefix+str(i)+'.txt'+'\n')
+        samplelist.write(vals[0] + '\n')
         print("******************************************")
 
     outputlist.close()
+    samplelist.close()
     print("finished filtering data")
     return(['filtered_files_list.txt'])

@@ -12,11 +12,11 @@
 
 # run denovo gene sets
 
-   # outputs a list of chains.
+   # outputs a list of trees.
 
 # run denovo extractor
 
-   # output a filtered expr for each chain passing a filter
+   # output a filtered expr for each tree passing a filter
 
 # run statistical modeller.
 
@@ -29,7 +29,7 @@
 
 # run denovo extractor
 
-   # output a filtered expr for each chain passing a filter
+   # output a filtered expr for each tree passing a filter
 
 # run statistical modeller.
 
@@ -39,8 +39,10 @@
 import sys, getopt
 import simGroups as ss
 import filterSignal as fs
-import denovoGroupGeneSets as dg
-import chainFilterAndExtration as cf
+#import denovoGroupGeneSets as dg
+import denovoGeneSets as dg
+import treeFilterAndExtration as cf
+import model as mm
 
 def main():
 
@@ -48,7 +50,7 @@ def main():
     Nf = 10
     ngenes = 100
     nparts=5
-    ntime=10
+    nsamples=20
     filteredPrefix = "filtered_"
     denovoPrefix = "denovo_"
     levelThresh = 3
@@ -80,19 +82,19 @@ def main():
     print('\nworking in ' + datadir)
 
     # first simulate the data
-    x = ss.runSim(datadir, ngenes=ngenes, nparts=nparts, nsamples=ntime)
+    x = ss.runSim(datadir, ngenes=ngenes, nparts=nparts, nsamples=nsamples)
 
     # filter the data
     y = fs.filterData(exprfile=x[2], dirs=x[0], outputprefix=filteredPrefix, Nf=Nf, adjmat=x[1])
 
-    # recover the chains
+    # recover the trees
     z = dg.denovoGeneSets(filelist=y[0], dirs=x[0], outputprefix=denovoPrefix, adjmat=x[1])
 
-    # filter chains and extract data for modeling
-    w = cf.chainFilterAndEx(dirs=x[1], chainfile=z[0], filterfiles=y[0], levelThresh=levelThresh)
-
+    # filter trees and extract data for modeling
+    w = cf.treeFilterAndEx(dirs=x[1], treefile=z[0], filterfiles=y[0], levelThresh=levelThresh)
 
     # run models
+    m = mm.testModel()
 
     return(1)
 
