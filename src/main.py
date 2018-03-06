@@ -54,6 +54,7 @@ def main():
     filteredPrefix = "filtered_"
     denovoPrefix = "denovo_"
     levelThresh = 3
+    topNTrees = 10
 
     # parse command line options
     mode = 'x'
@@ -91,10 +92,14 @@ def main():
     z = dg.denovoGeneSets(filelist=y[0], dirs=x[0], outputprefix=denovoPrefix, adjmat=x[1])
 
     # filter trees and extract data for modeling
-    w = cf.treeFilterAndEx(dirs=x[1], treefile=z[0], filterfiles=y[0], levelThresh=levelThresh)
+    trees, genes = cf.treeFilterAndEx(dirs=x[1], treefile=z[0], filterfiles=y[0], levelThresh=levelThresh, topNTrees=topNTrees)
 
     # run models
-    m = mm.testModel()
+    m = mm.rfModelTest(dirs=x[0], exprfile=x[2], genes=genes)
+
+    # compare model results to simulation.
+
+    # print out comparison and results.
 
     return(1)
 

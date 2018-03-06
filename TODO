@@ -2,19 +2,21 @@
 
 TODO
 
-1. new expr file format, numeric matrix, first row is header, first column is sample ID.
+1.DONE new expr file format, numeric matrix, first row is header, first column is sample ID.
 
-2. changed mind.
+2.DONE changed mind.
    by taking trees from each sample, a much larger diversity of trees is possible.
    then this forest can be filtered and sorted, taking the 'best' trees (high abs value).
 
-3. ...so .... need to complete the tree filtering and output function.
+3.DONE ...so .... need to complete the tree filtering and output function.
 
 4. then can model each potential tree, and rank the results...
 
-5. looking at pymc3... bayesian logistic mixed effect modeling???? see test in model.py
+5. added example random forest predictor with cross validation.
 
+6. print out final result and comparison to simulated set 
 
+??? Will the top ranked gene set match the ground truth ???
 
 **************************
 
