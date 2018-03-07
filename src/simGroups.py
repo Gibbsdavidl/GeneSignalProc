@@ -169,4 +169,4 @@ def runSim(homedir, ngenes, nparts, nsamples):
     np.savetxt(X=np.transpose(pheno), fmt='%s', delimiter='\t', fname=homedir + 'phenotype' + '.tsv')
     # done
     print("done with data simulation")
-    return([homedir,"scorematrix.tsv", 'exprdat.tsv'])
+    return([homedir,"scorematrix.tsv", 'exprdat.tsv', 'phenotype.tsv'])

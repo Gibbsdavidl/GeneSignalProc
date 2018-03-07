@@ -95,7 +95,7 @@ def main():
     trees, genes = cf.treeFilterAndEx(dirs=x[1], treefile=z[0], filterfiles=y[0], levelThresh=levelThresh, topNTrees=topNTrees)
 
     # run models
-    m = mm.rfModelTest(dirs=x[0], exprfile=x[2], genes=genes)
+    m = mm.rfModel(dirs=x[0], exprfile=x[2], pheno=x[3], genes=genes)
 
     # compare model results to simulation.
 

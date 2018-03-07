@@ -14,7 +14,7 @@ TODO
 
 5. added example random forest predictor with cross validation.
 
-6. print out final result and comparison to simulated set 
+6. print out final result and comparison to simulated set
 
 ??? Will the top ranked gene set match the ground truth ???
 
