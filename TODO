@@ -10,13 +10,14 @@ TODO
 
 3.DONE ...so .... need to complete the tree filtering and output function.
 
-4. then can model each potential tree, and rank the results...
+4. DONE... then can model each potential tree, and rank the results...
 
-5. added example random forest predictor with cross validation.
+5. DONE ...added example random forest predictor with cross validation.
 
 6. print out final result and comparison to simulated set
 
 ??? Will the top ranked gene set match the ground truth ???
+   YES!!!
 
 **************************
 
