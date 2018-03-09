@@ -35,7 +35,7 @@
 
    # output model results... predicted output, and summary
 
-
+import numpy, time
 import sys, getopt
 import simGroups as ss
 import filterSignal as fs
@@ -43,18 +43,21 @@ import filterSignal as fs
 import denovoGeneSets as dg
 import treeFilterAndExtration as cf
 import model as mm
+import analysis as an
 
 def main():
 
     # defaults
     Nf = 10
-    ngenes = 100
-    nparts=5
+    ngenes = 120
+    nparts=6
     nsamples=20
     filteredPrefix = "filtered_"
     denovoPrefix = "denovo_"
     levelThresh = 3
-    topNTrees = 10
+    topNTrees = 20
+    crossVal = 5
+    deltad = 4
 
     # parse command line options
     mode = 'x'
@@ -82,8 +85,10 @@ def main():
 
     print('\nworking in ' + datadir)
 
+    numpy.random.seed(seed=int(time.time()))
+
     # first simulate the data
-    x = ss.runSim(datadir, ngenes=ngenes, nparts=nparts, nsamples=nsamples)
+    x = ss.runSim_DisjointSets(datadir, ngenes=ngenes, nparts=nparts, nsamples=nsamples, deltad=deltad)
 
     # filter the data
     y = fs.filterData(exprfile=x[2], dirs=x[0], outputprefix=filteredPrefix, Nf=Nf, adjmat=x[1])
@@ -92,14 +97,13 @@ def main():
     z = dg.denovoGeneSets(filelist=y[0], dirs=x[0], outputprefix=denovoPrefix, adjmat=x[1])
 
     # filter trees and extract data for modeling
-    trees, genes = cf.treeFilterAndEx(dirs=x[1], treefile=z[0], filterfiles=y[0], levelThresh=levelThresh, topNTrees=topNTrees)
+    trees, genes, means = cf.treeFilterAndEx(dirs=x[1], treefile=z[0], filterfiles=y[0], levelThresh=levelThresh, topNTrees=topNTrees)
 
     # run models
-    m = mm.rfModel(dirs=x[0], exprfile=x[2], pheno=x[3], genes=genes)
+    m = mm.rfModel(dirs=x[0], exprfile=x[2], pheno=x[3], genes=genes, cvs=crossVal)
 
     # compare model results to simulation.
-
-    # print out comparison and results.
+    an.analysis(predacc=m, genes=genes, trees=trees, means=means, dirs=x[0], setfile=x[4])
 
     return(1)
 

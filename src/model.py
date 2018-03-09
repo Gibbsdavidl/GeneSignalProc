@@ -14,7 +14,7 @@ def rfModelTest():
 
 
 
-def rfModel(dirs, exprfile, pheno, genes):
+def rfModel(dirs, exprfile, pheno, genes, cvs):
     ys = [int(yi) for yi in open(dirs + pheno,'r').read().strip().split('\n')]
     inputs = open(dirs + exprfile, 'r').read().strip().split("\n")
     inputHeader = inputs.pop(0)
@@ -31,7 +31,7 @@ def rfModel(dirs, exprfile, pheno, genes):
             xs.append(numj)
         #    run cross validation on this gene set
         clf = RandomForestClassifier(max_depth=2)
-        scores = cross_val_score(clf, xs, ys, cv=10)
+        scores = cross_val_score(clf, xs, ys, cv=cvs)
         scoreList.append(np.mean(scores))
     #    take the mean for CV score
     print(scoreList)

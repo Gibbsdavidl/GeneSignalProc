@@ -5,6 +5,7 @@
 # for modeling.
 
 import csv
+import numpy as np
 
 
 def filterTrees(sampleList, treeIDList, levelList, geneIDList, filteredList, levelThresh, topNTrees):
@@ -13,6 +14,7 @@ def filterTrees(sampleList, treeIDList, levelList, geneIDList, filteredList, lev
     trees = []
     genes = []
     maxabs = []
+    means = []
     ina = 0
     outa = 1
     for i in range(2,len(sampleList)):
@@ -27,6 +29,7 @@ def filterTrees(sampleList, treeIDList, levelList, geneIDList, filteredList, lev
                 trees.append( (ina, (outa+1)) )
                 genes.append( set(geneIDList[ina:outa+1]) )
                 maxabs.append( max([abs(x) for x in filteredList[ina:outa+1]]) )
+                means.append(np.mean([abs(x) for x in filteredList[ina:outa+1]]) )
             ina = i
             outa = i+1
 
@@ -35,11 +38,13 @@ def filterTrees(sampleList, treeIDList, levelList, geneIDList, filteredList, lev
     cutval = maxabs[topNTrees]
     tree2 = []
     gene2 = []
+    vals2 = []
     for i in range(0,len(trees)):
         if maxabs[i] >= cutval:
             tree2.append(trees[i])
             gene2.append(genes[i])
-    return(tree2, gene2)
+            vals2.append(means[i])
+    return(tree2, gene2, vals2)
 
 
 def treeFilterAndEx(dirs, filterfiles, treefile, levelThresh, topNTrees):
@@ -62,6 +67,6 @@ def treeFilterAndEx(dirs, filterfiles, treefile, levelThresh, topNTrees):
             geneIDList.append(int(geneID))
             filteredList.append(float(filtered))
 
-    trees, genes = filterTrees(sampleList, treeIDList, levelList, geneIDList, filteredList, levelThresh, topNTrees)
+    trees, genes, vals = filterTrees(sampleList, treeIDList, levelList, geneIDList, filteredList, levelThresh, topNTrees)
 
-    return(trees, genes)
+    return(trees, genes, vals)

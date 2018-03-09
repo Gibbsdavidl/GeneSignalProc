@@ -41,7 +41,7 @@ def setmat_to_numeric(setmat):
 
 
 def createEvenPartsNetworks(genes, ngenes, nparts):
-    # we have gene
+    # we have
     # the number of genes
     # and the number of parts we want
     partSize = int(ngenes/nparts)  # number of genes per part
@@ -61,9 +61,13 @@ def setmatrix(genes, sets, setnames, nparts):
     m = np.empty( (sets+1, len(genes)+1), dtype='U128')
     partSize = int(len(genes) / nparts)
     curr = 0
+    # for each set
     for si in range(0,sets):
+        # get the set name
         m[si,0] = setnames[si]
+        # then for each gene
         for gi in range(1,len(genes)+1):
+            # if it's in the set, mark it with a '1'
             if gi > curr and gi < curr+partSize:
                 m[si,gi] = '1'
             else:
@@ -100,8 +104,11 @@ def connectnetwork(netList, genes, geneList):
 def gen_means_and_sds(sets, idx, delta):
     # the idx gene set will be following a linear trend.
     # then there are two set means, one for each phenotype group.
-    set_means = [ [np.random.lognormal(mean=1, sigma=0.25, size=1)[0], np.random.lognormal(mean=1, sigma=0.25, size=1)[0]] for si in sets] # [np.random.sample() * 1 for si in sets]
+    # set_means = [ [np.random.lognormal(mean=1, sigma=0.25, size=1)[0], np.random.lognormal(mean=1, sigma=0.25, size=1)[0]] for si in sets] # [np.random.sample() * 1 for si in sets]
     # then for
+    set_means = [
+        [1, 1] for si
+        in sets]
     set_means[idx][1] *= delta
     return(set_means)
 
@@ -117,7 +124,7 @@ def gen_expression(ngenes, sets, set_means, pheno, sigma, si, samplenames):
     return(gexpr)
 
 
-def runSim(homedir, ngenes, nparts, nsamples):
+def runSim_DisjointSets(homedir, ngenes, nparts, nsamples, deltad):
     # first simulate the gene and gene sets
     #ngenes = 100
     #nparts = 5
@@ -156,7 +163,7 @@ def runSim(homedir, ngenes, nparts, nsamples):
     # generate the phenotype as binary variable.
     pheno = [(np.random.choice([0,1], size=1))[0] for i in range(0,nsamples)]
     # get the means for each set
-    set_means = gen_means_and_sds(setnames, 1, 5)  # set 1 (second set) will follow linear trend with slope 3
+    set_means = gen_means_and_sds(setnames, 1, deltad)  # set 1 (second set) will follow linear trend with slope x
     for si in range(0,nsamples):
         # then simulate the expression
         expr_profiles.append(gen_expression(ngenes, geneList, set_means, pheno, np.array(gesc2.data), si, samplenames))
@@ -169,4 +176,4 @@ def runSim(homedir, ngenes, nparts, nsamples):
     np.savetxt(X=np.transpose(pheno), fmt='%s', delimiter='\t', fname=homedir + 'phenotype' + '.tsv')
     # done
     print("done with data simulation")
-    return([homedir,"scorematrix.tsv", 'exprdat.tsv', 'phenotype.tsv'])
+    return([homedir,"scorematrix.tsv", 'exprdat.tsv', 'phenotype.tsv', "setmatrix.tsv"])
