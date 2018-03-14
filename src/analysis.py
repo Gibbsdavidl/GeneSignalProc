@@ -39,5 +39,6 @@ def analysis(predacc, genes, trees, means, dirs, setfile):
         d = str(trees[i])
         e = str(corrJI[i])
         fout.write('\t'.join([a,b,c,e,d])+'\n')
+        print('\t'.join([a,b,c,e,d]))
 
     return(0)

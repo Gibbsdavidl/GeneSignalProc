@@ -1,34 +1,13 @@
 
 
+Reconfigured the functions, now it's run with one call to main:
+
 # home computer: /Users/davidlgibbs/Data/SimWaves
 
 
-# simulating the data
-python3 src/simsets2.py /Users/davidgibbs/Data/SimWaveDat/Go4/
+python3.6 GeneSignalProc/src/main.py -m sim -d /Users/davidgibbs/Data/SimWaveDat/Go5/
+
 
 # get the names of the sim-sets
 cat /Users/davidgibbs/Data/SimWaveDat/Go4/setmatrix.tsv | cut -f 1
-
-# first filter each file
-# the first job writes out
-# filtered data
-# a list of the filtered files
-python3 src/filterSignal.py -m scorematrix.tsv -d /Users/davidgibbs/Data/SimWaveDat/Go4/ -i filelist.tsv -o filterout -n 10
-
-# extract a gene set from each file
-# the named gene set must be found in the setmatrix.
-# the extract step writes out
-# tidy list of extracted values for each scale and each input file for a named gene set.
-python3 src/extractGeneSet.py -d /Users/davidgibbs/Data/SimWaveDat/Go4/ -i filtered_files_list.txt -o extracted_ -m setmatrix.tsv -g sypyh
-
-# denovo gene sets
-python3 src/denovoGeneSets.py -d /Users/davidgibbs/Data/SimWaveDat/Go4/ -i filtered_files_list.txt -o denovo_gs -m scorematrix.tsv
-
-# group lasso
-
-
-
-
-# extract a super-chain from the filtered files:
-python3 src/extractDenovoGeneSet.py -d /Users/davidgibbs/Data/SimWaveDat/Go4/ -i filtered_files_list.txt -o extracted_denovo_ -f denovo_gs.txt -t 1 -c 0
 

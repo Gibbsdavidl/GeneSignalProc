@@ -39,33 +39,12 @@ import numpy, time
 import sys, getopt
 import simGroups as ss
 import filterSignal as fs
-#import denovoGroupGeneSets as dg
 import denovoGeneSets as dg
 import treeFilterAndExtration as cf
 import model as mm
 import analysis as an
 
-def main():
-
-    # defaults
-    Nf = 10
-    ngenes = 120
-    nparts=6
-    nsamples=20
-    filteredPrefix = "filtered_"
-    denovoPrefix = "denovo_"
-    levelThresh = 3
-    topNTrees = 20
-    crossVal = 5
-    deltad = 4
-
-    # parse command line options
-    mode = 'x'
-    try:
-        opts, args = getopt.getopt(sys.argv[1:], "hm:d:", ["help"])
-    except:
-        print("for help use --help")
-        sys.exit(2)
+def argProc(args, opts, Nf):
     # process options
     for o, a in opts:
         if o in ("-h", "--help"):
@@ -82,6 +61,31 @@ def main():
             datadir = arg
         elif opt in ('-nf'):
             Nf = arg
+    return(mode, datadir, Nf)
+
+
+def main():
+
+    # defaults
+    Nf = 10
+    ngenes = 120
+    nparts=6
+    nsamples=20
+    filteredPrefix = "filtered_"
+    denovoPrefix = "denovo_trees"
+    levelThresh = 3
+    topNTrees = 20
+    crossVal = 5
+    deltad = 3.0
+
+    try:
+        opts, args = getopt.getopt(sys.argv[1:], "hm:d:", ["help"])
+    except:
+        print("for help use --help")
+        sys.exit(2)
+
+    mode, datadir, Nf = argProc(args,opts, Nf)
+
 
     print('\nworking in ' + datadir)
 

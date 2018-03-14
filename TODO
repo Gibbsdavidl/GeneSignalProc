@@ -12,31 +12,11 @@ TODO
 
 4. DONE... then can model each potential tree, and rank the results...
 
-5. DONE ...added example random forest predictor with cross validation.
+5. DONE ... added example random forest predictor with cross validation.
 
-6. print out final result and comparison to simulated set
+6. DONE ... print out final result and comparison to simulated set  used Jaccard Index
 
-??? Will the top ranked gene set match the ground truth ???
-   YES!!!
+   ??? Will the top ranked gene set match the ground truth ???
 
-**************************
+      YES!!!
 
-2. ready to fix the denovo group gene sets.
-
-    - provide pheno vector
-    - and file pointing to MSRs
-    - going to need all MSRs in memory
-        - for each level,
-            - for each group
-                - run watershed segmentation
-                - do T-test between connected nodes.
-
-     This is going to produce a component labeling per group, and per level.
-
-     Then build MSR-trees across levels, connecting the components within groups. Can filter here.
-
-     Write out the resulting trees.
-
-     Use trees as features for GROUP LASSO ... will pick out denovo gene sets that best predict the groups.
-
-     OR use mixed effect regression, per tree, and rank the resulting models.

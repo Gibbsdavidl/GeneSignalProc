@@ -5,6 +5,7 @@ import igraph as ig
 import copy
 from scipy import stats
 from sklearn.cluster import KMeans
+from sklearn.cluster import MiniBatchKMeans
 
 def loadSignal(filename, header=1, column=1):
     signal = []
@@ -178,7 +179,9 @@ def connectedComponentLabeling(net, scalespace, level, bins, minsetsize):
     # then we quantize the values.
     #qsig = np.digitize(x=signal, bins=linbins)
     # we have labels for each node.
-    km = KMeans(n_clusters=bins, max_iter=500, n_init=21)
+    #km = KMeans(n_clusters=bins, max_iter=500, n_init=21)
+    abatch = int(len(scalespace[0])/bins)
+    km = MiniBatchKMeans(n_clusters=bins, batch_size=abatch)
     km.fit(signal.reshape(-1, 1))
     qsig = km.labels_
 

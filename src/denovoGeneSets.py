@@ -37,7 +37,7 @@ def denovoGeneSets(filelist, dirs, outputprefix, adjmat):
 
     # get the input files, and where we will write the output file names
     inputs = open(dirs+filelist,'r').read().strip().split("\n")
-    output = open(dirs+outputprefix+'trees_file.txt', 'w')
+    output = open(dirs+outputprefix+'.tsv', 'w')
 
     # build the graph
     mat = np.loadtxt(dirs+adjmat, delimiter='\t')
@@ -85,4 +85,4 @@ def denovoGeneSets(filelist, dirs, outputprefix, adjmat):
     output.close()
 
     print("done with denovo extraction")
-    return( [dirs+outputprefix+'file.txt'] )
+    return( [dirs+outputprefix+'.tsv'] )
