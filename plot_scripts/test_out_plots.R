@@ -1,17 +1,24 @@
 library(readr)
 library(ggplot2)
-#dat <- read_tsv("egr2_test_out.txt")
-dat <- read_tsv("lamp1_test_out.txt")
-dat <- t(dat)
-dat <- data.frame(dat, stringsAsFactors=F)
-dat$X1 <- as.numeric(dat$X1)
-dat$X2 <- as.numeric(dat$X2)
-dat$X3 <- as.numeric(dat$X3)
-dat$X4 <- as.numeric(dat$X4)
-dat$X5 <- as.numeric(dat$X5)
-dat$X6 <- as.numeric(dat$X6)
-dat <- dat[dat$X5 > 0,]
+library(igraph)
 
-png("lamp1_set_plot.png")
-qplot(dat[,1], dat[,6], col=factor(dat[,5]), geom="line", xlab="time point", ylab="mean rank within segment")
-dev.off()
+setmat <- read_tsv("setmatrix.tsv", col_names=F)
+refset <- which(setmat[2,] == 1)-2
+
+scrmat <- as.matrix(read_tsv("scorematrix.tsv", col_names=F))
+
+g <- igraph::graph_from_adjacency_matrix(adjmatrix=scrmat, mode='undirected', weighted=T, diag=F)
+
+res0 <- read_tsv("analyout.tsv")
+set1 <- (res0$genes)[length(res0$genes)]
+set1 <- str_sub(set1, start=2, end=str_length(set1)-1)
+set1 <- sapply(str_split(set1, ',')[[1]], as.numeric)
+
+
+nodeCols <- rep(1,120)
+nodeCols[refset] <- 2
+nodeCols[set1] <- 3
+nodeCols[intersect(set1, refset)] <- 4
+
+ggraph(g) + geom_node_point(aes(col=as.factor(nodeCols))) + geom_edge_fan()
+

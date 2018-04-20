@@ -17,7 +17,7 @@ def filterTrees(sampleList, treeIDList, levelList, geneIDList, filteredList, lev
     means = []
     ina = 0
     outa = 1
-    for i in range(2,len(sampleList)):
+    for i in range(2,len(sampleList)): # for each row in the tree table.
         if sampleList[outa] == sampleList[i] and treeIDList[outa] ==  treeIDList[i]:
             # keep expanding the tree
             outa = i

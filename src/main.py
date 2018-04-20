@@ -70,13 +70,13 @@ def main():
     Nf = 10
     ngenes = 120
     nparts=6
-    nsamples=20
+    nsamples=40
     filteredPrefix = "filtered_"
     denovoPrefix = "denovo_trees"
     levelThresh = 3
     topNTrees = 20
     crossVal = 5
-    deltad = 3.0
+    deltad = 6.0
 
     try:
         opts, args = getopt.getopt(sys.argv[1:], "hm:d:", ["help"])

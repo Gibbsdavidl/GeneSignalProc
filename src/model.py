@@ -30,7 +30,7 @@ def rfModel(dirs, exprfile, pheno, genes, cvs):
             numj = [float(jj) for ji,jj in enumerate(rowj) if ji in gs]
             xs.append(numj)
         #    run cross validation on this gene set
-        clf = RandomForestClassifier(max_depth=2)
+        clf = RandomForestClassifier(max_depth=5)
         scores = cross_val_score(clf, xs, ys, cv=cvs)
         scoreList.append(np.mean(scores))
     #    take the mean for CV score
