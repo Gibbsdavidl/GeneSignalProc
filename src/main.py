@@ -43,6 +43,7 @@ import denovoGeneSets as dg
 import treeFilterAndExtration as cf
 import model as mm
 import analysis as an
+import extractSubGraphs as es
 
 def argProc(args, opts, Nf):
     # process options
@@ -92,10 +93,15 @@ def main():
     numpy.random.seed(seed=int(time.time()))
 
     # first simulate the data
-    x = ss.runSim_DisjointSets(datadir, ngenes=ngenes, nparts=nparts, nsamples=nsamples, deltad=deltad)
+    #x = ss.runSim_DisjointSets(datadir, ngenes=ngenes, nparts=nparts, nsamples=nsamples, deltad=deltad)
+    x = [datadir,"scorematrix.tsv", 'exprdat.tsv', 'phenotype.tsv', "setmatrix.tsv"]
 
     # filter the data
-    y = fs.filterData(exprfile=x[2], dirs=x[0], outputprefix=filteredPrefix, Nf=Nf, adjmat=x[1])
+    #y = fs.filterData(exprfile=x[2], dirs=x[0], outputprefix=filteredPrefix, Nf=Nf, adjmat=x[1])
+    y = ['filtered_files_list.txt']
+
+    s = es.allSubgraphs(x[0],x[1],30,200)
+    return(1)
 
     # recover the trees
     z = dg.denovoGeneSets(filelist=y[0], dirs=x[0], outputprefix=denovoPrefix, adjmat=x[1])
