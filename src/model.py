@@ -1,4 +1,6 @@
 
+# discover if a gene set can predict a given phenotypes using randomForest
+
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.model_selection import cross_val_score
@@ -25,7 +27,7 @@ def rfModel(dirs, exprfile, pheno, genes, cvs):
         # subset the data into xs
         xs = []
         for j, rowj in enumerate(inputs):
-            rowj =  rowj.strip().split('\t')
+            rowj = rowj.strip().split('\t')
             rowj.pop(0)
             numj = [float(jj) for ji,jj in enumerate(rowj) if ji in gs]
             xs.append(numj)

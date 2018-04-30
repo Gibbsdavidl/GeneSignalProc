@@ -1,4 +1,8 @@
 
+# create a set of genes, set membership, a weighted network, and
+# create two groups of samples with simulated expression data.
+#  ... right now the sets are disjoint ...
+
 #simsets.py
 
 # need a set of sets, to find an ordering over all.

@@ -1,4 +1,5 @@
 
+# exporting the filtered expression data given the gene set
 
 # then take gene_sets_matrix, and a gene set name,
 # read each filtered file, from filtered file list

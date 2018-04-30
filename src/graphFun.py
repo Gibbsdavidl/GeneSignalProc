@@ -1,4 +1,6 @@
-# performing segmentation on the scale space
+
+
+# performing graph segmentation on the scale space
 
 import numpy as np
 import igraph as ig

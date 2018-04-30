@@ -46,12 +46,29 @@ def allSubgraphs(dirs, adjmat, maxSize, numGraphs):
     mat = np.loadtxt(dirs+adjmat, delimiter='\t')
     G = ig.Graph.Weighted_Adjacency(list(mat), mode="undirected")
     allSgs = [[] for i in range(0,maxSize)] # for each subgraph size
+    print("searching for subgraphs")
     for gsize in range(2, maxSize):
         inputs = [(i, G, gsize) for i in range(0,numGraphs)]  # gather the inputs
         with Pool(3) as p:
             sgs = p.map(oneSubgraph, inputs)             # find the subgraphs
         allSgs[gsize] = sgs
     writeAllSubgraphs(dirs,allSgs)                            # write them out
-    return(allSgs)
+    return('all_subgraphs.txt')
 
+
+def loadSubGraphs(dir, subgraphFile):
+    dat = open(dir+subgraphFile,'r').read().strip().split('\n')
+    sgdict = dict()
+
+    # get size of each subgraph
+    ms = np.array([len(di.split(',')) for di in dat])
+    nmax = max(ms)
+
+    for i in range(2,nmax): # for each size class of subgraph
+        idx = np.where(ms == i)[0]
+        sets = [dat[i] for i in idx]
+        splitsets = [ [int(y) for y in x] for x in map(lambda x: x.split(','), sets)]
+        sgdict[i] = splitsets
+
+    return(sgdict)
 

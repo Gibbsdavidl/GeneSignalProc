@@ -1,5 +1,7 @@
 
 
+# make a multi scale representation of the data via filtering
+
 import sys, getopt
 import graphFun
 import waveletFun

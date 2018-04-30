@@ -1,5 +1,8 @@
 
 
+
+# code to compare the ground truth to what's recovered from denovoGeneSets
+
 import numpy as np
 
 
