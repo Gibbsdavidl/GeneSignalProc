@@ -15,6 +15,7 @@ def setScoringDenovo(dir, Nf, exprfile, filterfiles, subgraphfile, genes):
     sample = 1  # skip the header
     zzzzz = inputs[sample].strip().split('\t')
     sgs = sg.loadSubGraphs(dir, subgraphfile)
+    zzzzzmax = len(zzzzz)
     allRes = []
 
     # for each denovo gene set in the trees,
@@ -29,15 +30,18 @@ def setScoringDenovo(dir, Nf, exprfile, filterfiles, subgraphfile, genes):
         # sum up ranks for sampled subgraphs mean(r_s).
         m = len(gs)
 
-        # same for scale levels, get subgraph sets, sum ranks
-        subGraphSums = [sum([exprRanks[j] for j in gx]) for gx in sgs[m]]
-        subGraphMean = np.mean(subGraphSums)
+        if m <= zzzzzmax:
+            # same for scale levels, get subgraph sets, sum ranks
+            subGraphSums = [sum([exprRanks[j] for j in gx]) for gx in sgs[m]]
+            subGraphMean = np.mean(subGraphSums)
 
-        # save r_e / r_s
-        res0 = sum([1.0 for x in subGraphSums if rankSum > x]) / float(len(subGraphSums))
-        res1 = rankSum / subGraphMean
+            # save r_e / r_s
+            res0 = sum([1.0 for x in subGraphSums if rankSum > x]) / float(len(subGraphSums))
+            res1 = rankSum / subGraphMean
 
-        allRes.append( (res0, res1) )
+            allRes.append( (res0, res1) )
+        else:
+            allRes.append((0.5, 1))  # should be a nan, maybe.
 
     return(allRes)
 

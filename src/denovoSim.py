@@ -116,13 +116,10 @@ def runDenovoSimReuseData(datadir, Nf):
     # run models
     m = mm.rfModel(dirs=x[0], exprfile=x[2], pheno=x[3], genes=genes, cvs=crossVal)
 
-    # compare model results to simulation.
-    an.analysis(predacc=m, genes=genes, trees=trees, means=means, dirs=x[0], setfile=x[4])
-
     # score the gene sets.
     out = scr.setScoringDenovo(dir=datadir, Nf=Nf, exprfile=x[2], subgraphfile=s, filterfiles=y[0], genes=genes)
 
-    for oi in out:
-        print(oi)
+    # compare model results to simulation.
+    g = an.analysis(predacc=m, genes=genes, trees=trees, means=means, dirs=x[0], setfile=x[4], setscores=out)
 
     return(out)

@@ -13,7 +13,7 @@ def jaccard(a,b):
 
 #
 # trees, (in, out) where those are pointers to the denovo_trees file.
-def analysis(predacc, genes, trees, means, dirs, setfile):
+def analysis(predacc, genes, trees, means, dirs, setfile, setscores):
 
     # open the set assignment matrix
     mat = open(dirs + setfile,'r').read().strip().split('\n')
@@ -42,6 +42,8 @@ def analysis(predacc, genes, trees, means, dirs, setfile):
         posb = (np.where(jiidx == i)[0])[0] # and item b?
         posSum.append(posa+posb)
 
+    orderedGenes = []
+
     for i in np.argsort(posSum):
         a = str(predacc[i])
         b = str(means[i])
@@ -49,7 +51,9 @@ def analysis(predacc, genes, trees, means, dirs, setfile):
         d = str(trees[i])
         e = str(corrJI[i])
         f = str(genes[i])
-        fout.write('\t'.join([a,b,c,e,d,f])+'\n')
-        print('\t'.join([a,b,c,e,d]))
+        g = str(setscores[i])
+        fout.write('\t'.join([a,b,c,e,d,f,g])+'\n')
+        print('\t'.join([a,b,c,e,d,g]))
 
-    return(0)
+    return(1)
+
