@@ -14,7 +14,9 @@ def filterTrees(sampleList, treeIDList, levelList, geneIDList, filteredList, lev
     trees = []
     genes = []
     maxabs = []
+    minabs = []
     means = []
+    meds = []
     ina = 0
     outa = 1
     for i in range(2,len(sampleList)): # for each row in the tree table.
@@ -29,21 +31,36 @@ def filterTrees(sampleList, treeIDList, levelList, geneIDList, filteredList, lev
                 trees.append( (ina, (outa+1)) )
                 genes.append( set(geneIDList[ina:outa+1]) )
                 maxabs.append( max([abs(x) for x in filteredList[ina:outa+1]]) )
+                minabs.append(min([x for x in filteredList[ina:outa + 1]]))
                 means.append(np.mean([abs(x) for x in filteredList[ina:outa+1]]) )
+                meds.append(np.median([abs(x) for x in filteredList[ina:outa+1]]) )
             ina = i
             outa = i+1
 
     # then take the tree with max abs values greater than the cutoff.
-    maxabs.sort(reverse=True)
-    cutval = maxabs[topNTrees]
+    #maxabs.sort(reverse=True)
+    #cutval = maxabs[topNTrees]
+
     tree2 = []
     gene2 = []
     vals2 = []
+
+    meds.sort(reverse=True)
+    cutval = meds[topNTrees]
     for i in range(0,len(trees)):
-        if maxabs[i] >= cutval:
+        if meds[i] >= cutval:
             tree2.append(trees[i])
             gene2.append(genes[i])
-            vals2.append(means[i])
+            vals2.append(meds[i])
+
+    meds.sort(reverse=False)
+    cutval = meds[topNTrees]
+    for i in range(0,len(trees)):
+        if meds[i] <= cutval:
+            tree2.append(trees[i])
+            gene2.append(genes[i])
+            vals2.append(meds[i])
+
     return(tree2, gene2, vals2)
 
 

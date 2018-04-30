@@ -23,7 +23,8 @@ def analysis(predacc, genes, trees, means, dirs, setfile, setscores):
     geneidx = [x - 1 for x in np.where(seti == '1')[0]]
 
     fout = open(dirs+'analyout.tsv','w')
-    fout.write("accr\tmean\tngenes\tJI\ttreeidx\tgenes\n")
+    fout.write("accr\tmean\tngenes\tJI\ttreeidx\tgenes\tPsub\tRatioSub\n")
+    print("accr\tmean\tngenes\tJI\ttreeidx\tPsub\tRatioSub\n")
 
     # geneList is the target set repeated, for comparison to each tree
     geneList = [list(geneidx) for i in range(0,len(genes))]

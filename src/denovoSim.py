@@ -41,14 +41,16 @@ def runDenovoSim(datadir, Nf):
     # defaults
     ngenes = 120
     nparts = 6
-    nsamples = 40
+    nsamples = 20
     filteredPrefix = "filtered_"
     denovoPrefix = "denovo_trees"
     levelThresh = 3
-    topNTrees = 20
+    topNTrees = 10
     crossVal = 5
-    deltad = 6.0
+    deltad = 5.0
+    Nf = int(Nf)
 
+    print('running full denovo sim')
     print('\nworking in ' + datadir)
 
     numpy.random.seed(seed=int(time.time()))
@@ -59,7 +61,7 @@ def runDenovoSim(datadir, Nf):
     # filter the data
     y = fs.filterData(exprfile=x[2], dirs=x[0], outputprefix=filteredPrefix, Nf=Nf, adjmat=x[1])
 
-    s = es.allSubgraphs(x[0],x[1],30,200)
+    s = es.allSubgraphs(x[0],x[1],40,200)
 
     # recover the trees
     z = dg.denovoGeneSets(filelist=y[0], dirs=x[0], outputprefix=denovoPrefix, adjmat=x[1])
@@ -70,9 +72,13 @@ def runDenovoSim(datadir, Nf):
     # run models
     m = mm.rfModel(dirs=x[0], exprfile=x[2], pheno=x[3], genes=genes, cvs=crossVal)
 
-    # compare model results to simulation.
-    an.analysis(predacc=m, genes=genes, trees=trees, means=means, dirs=x[0], setfile=x[4])
+    # score the gene sets.
+    out = scr.setScoringDenovo(dir=datadir, Nf=Nf, exprfile=x[2], subgraphfile=s, filterfiles=y[0], genes=genes)
 
+    # compare model results to simulation.
+    g = an.analysis(predacc=m, genes=genes, trees=trees, means=means, dirs=x[0], setfile=x[4], setscores=out)
+
+    return(out)
 
 
 def runDenovoSimReuseData(datadir, Nf):

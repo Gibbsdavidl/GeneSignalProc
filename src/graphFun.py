@@ -54,8 +54,7 @@ def groupTest(inset, outset, eps):
 def segment(net, seed, scalespace, level, eps):
     # returns a local segmentation, based around the specified seed
     # net, an igraph network
-    # sm_eps, the difference threshold, used before a t-test can
-    # t_eps, t-stat threshold
+    # eps, the difference threshold,
     # seed, node index
     # scale space
     # the matrix with rows as scales and columns as genes, matches the gene order
@@ -246,104 +245,10 @@ def connectedComponentLabeling(net, scalespace, level, bins, minsetsize):
 
 
 
-def connectedComponentLabelingGroup(net, scalespaceList, level, bins, minsetsize):
-    #
-    # returns graph components, that include the specified seed
-    # net, an igraph network
-    # bins, number of bins to quantize
-    # seed, node index
-    # scale space
-    # the matrix with rows as scales and columns as genes, matches the gene order
-    # expr, the signal
-    # level, which scale, which is the row of the filtered data.
-    #
-    # start with simply finding the best pair node.
-    signal = scalespace[level]  # the signal at this level in the space
-
-    # for each edge,
-    #   compute a t-test
-    #
-    # !!!!!!!! make qsig !!!!!!!!!!!!
-
-    #linbins = np.linspace(np.min(signal), np.max(signal), bins) # could get adaptive cuts here !!!!!
-    # then we quantize the values.
-    #qsig = np.digitize(x=signal, bins=linbins)
-    # we have labels for each node.
-    km = KMeans(n_clusters=bins, max_iter=500, n_init=21)
-    km.fit(signal.reshape(-1, 1))
-    qsig = km.labels_
-
-    labels = np.array([-1 for x in range(0,len(qsig))])  # start out with each node having
-
-    # for each node
-    currlabel = 1
-    for ni in range(0,len(qsig)):
-        # if this node is not already labeled.
-        if labels[ni] == -1:
-            # then give this node the current label
-            labels[ni] = currlabel
-            #   start a queue, add this node to the queue
-            nodequeue = [ni]
-            #   while the queue is not empty
-            while len(nodequeue) > 0:
-                # pop off a node
-                p = nodequeue.pop()
-                # get the neighborhood of this node.
-                nbors = np.array(net.neighbors(p))
-                if len(nbors) > 0:
-                    # and select the ones that don't have labels
-                    nborlabels = labels[nbors]
-                    nbors = nbors[nborlabels == -1]
-                    # if there are some neighbors without labels
-                    if len(nbors) > 0:
-                        nborqsig = qsig[nbors] #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-                        # get list of neighbors with T statistics above cutoff!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-                        matched = nbors[nborqsig == qsig[p]]
-                        # if there are neighbors that have same mean!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-                        if len(matched) > 0:
-                            # set the node labels to the smallest label.
-                            labels[matched] = currlabel
-                            # add those nodes to the queue
-                            for mi in matched:
-                                nodequeue.append(mi)
-        # update the current label
-        currlabel +=1
-
-
-    # then sort out the components that have set sizes greater than minsetsize
-    components = set()
-    for li in labels:
-        if sum(labels == li) > minsetsize:
-            components.add(li)
-
-    #   get the mean levels, the set of nodes, etc.
-    setidxs = []
-    sigvals = []
-    meanval = []
-    deviati = []
-    for ci in list(components):
-        idx = np.where(labels == ci)[0]
-        setidxs.append(idx)
-        sigvals.append(signal[idx])
-        meanval.append(np.mean(signal[idx]))
-        deviati.append(signal[idx] - np.mean(signal[idx]))
-
-    return( (level, components, setidxs, sigvals, meanval, deviati) )
-
-
 def segmentSpace(net, bins, msr, minsetsize):
     setList = []
     for scale in range(0,len(msr)): # for each scale
         res0 = connectedComponentLabeling(net, msr, scale, bins, minsetsize)  # get components that have keypts.
-        setList.append(res0)
-    return(setList)  # so every level will have some sets of nodes.
-
-
-def segmentSpaceGroup(net, bins, filteredList, minsetsize):
-    # going to segment each scale-level... using all the data.
-    setList = []
-    for scale in range(0,len(msr)): # for each scale
-        res0 = connectedComponentLabelingGroup(net, filteredList, scale, bins, minsetsize)  # get components that have keypts.
         setList.append(res0)
     return(setList)  # so every level will have some sets of nodes.
 

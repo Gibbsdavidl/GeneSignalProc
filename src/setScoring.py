@@ -15,7 +15,7 @@ def setScoringDenovo(dir, Nf, exprfile, filterfiles, subgraphfile, genes):
     sample = 1  # skip the header
     zzzzz = inputs[sample].strip().split('\t')
     sgs = sg.loadSubGraphs(dir, subgraphfile)
-    zzzzzmax = len(zzzzz)
+    zzzzzmax = len(sgs)
     allRes = []
 
     # for each denovo gene set in the trees,
