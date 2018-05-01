@@ -6,7 +6,7 @@
 #############
 
 import sys, getopt
-import denovoSim as rds
+import runDenovoSimulation as rds
 
 def argProc(args, opts):
     # process options

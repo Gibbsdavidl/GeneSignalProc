@@ -5,45 +5,56 @@
 
 import numpy as np
 import scipy as sp
+import scipy.stats
 import extractSubGraphs as sg
 
+
 def setScoringDenovo(dir, Nf, exprfile, filterfiles, subgraphfile, genes):
+    # dir: the working directory
+    # Nf: number of scales
+    # exprfile: the expression file, samples in rows.
+    # filterfiles: the list of filtered expression files
+    # subgraphfile: the file listing sampled subgraphs
+    # genes: the gene sets
+
+    # return a matrix of gene set scores (samples X gs)
 
     # rank each of the samples across gene sp
     inputs = open(dir + exprfile, 'r').read().strip().split("\n")
-
-    sample = 1  # skip the header
-    zzzzz = inputs[sample].strip().split('\t')
+    outputs = []
+    sampleList = []
     sgs = sg.loadSubGraphs(dir, subgraphfile)
-    zzzzzmax = len(sgs)
-    allRes = []
+    sizeMax = len(sgs)
 
-    # for each denovo gene set in the trees,
-    for i, gs in enumerate(genes):
-        print(i)
+    for sample in range(1,len(inputs)):
 
-        # sum up the ranks (r_e).
-        expr = [float(x) for j, x in enumerate(zzzzz) if j > 0]
-        exprRanks = sp.stats.rankdata(expr)
-        rankSum = sum([exprRanks[j] for j in gs])
+        exprMat = inputs[sample].strip().split('\t')
+        sampleList.append(exprMat[0])
+        allRes = []
 
-        # sum up ranks for sampled subgraphs mean(r_s).
-        m = len(gs)
+        # for each denovo gene set in the trees,
+        for i, gs in enumerate(genes):
 
-        if m <= zzzzzmax:
-            # same for scale levels, get subgraph sets, sum ranks
-            subGraphSums = [sum([exprRanks[j] for j in gx]) for gx in sgs[m]]
-            subGraphMean = np.mean(subGraphSums)
+            # sum up the ranks (r_e).
+            expr = [float(x) for j, x in enumerate(exprMat) if j > 0]
+            exprRanks = sp.stats.rankdata(expr)
+            rankSum = sum([exprRanks[j] for j in gs])
 
-            # save r_e / r_s
-            res0 = sum([1.0 for x in subGraphSums if rankSum > x]) / float(len(subGraphSums))
-            res1 = rankSum / subGraphMean
+            # sum up ranks for sampled subgraphs mean(r_s).
+            m = len(gs)
 
-            allRes.append( (res0, res1) )
-        else:
-            allRes.append((0.5, 1))  # should be a nan, maybe.
+            if m <= sizeMax:
+                # same for scale levels, get subgraph sets, sum ranks
+                subGraphSums = [sum([exprRanks[j] for j in gx]) for gx in sgs[m]]
+                # save r_e / r_s
+                res0 = sum([1.0 for x in subGraphSums if rankSum > x]) / float(len(subGraphSums))
 
-    return(allRes)
+                allRes.append(res0)
+            else:
+                allRes.append(np.nan)  # should be a nan, maybe.
+        outputs.append(allRes)
+
+    return( (outputs,sampleList) )
 
 
 

@@ -6,6 +6,20 @@
 import numpy as np
 
 
+
+def writeOutputs(dir,sampleList,outputs,idx):
+
+    fout = open(dir+'setscores.txt','w')
+    for i in range(0,len(outputs)):
+        outstr = []
+        for j in idx:
+            outstr.append(str(outputs[i][j]))
+        outstr = [sampleList[i]] + outstr
+        fout.write('\t'.join(outstr)+'\n')
+    fout.close()
+    return(1)
+
+
 def jaccard(a,b):
     top = len(np.intersect1d(a,b))
     bot = len(np.union1d(a,b))
@@ -13,7 +27,7 @@ def jaccard(a,b):
 
 #
 # trees, (in, out) where those are pointers to the denovo_trees file.
-def analysis(predacc, genes, trees, means, dirs, setfile, setscores):
+def analysis(predacc, genes, trees, means, dirs, setfile, setscores, setsamples):
 
     # open the set assignment matrix
     mat = open(dirs + setfile,'r').read().strip().split('\n')
@@ -43,18 +57,19 @@ def analysis(predacc, genes, trees, means, dirs, setfile, setscores):
         posb = (np.where(jiidx == i)[0])[0] # and item b?
         posSum.append(posa+posb)
 
-    orderedGenes = []
+    idx = [i for i in np.argsort(posSum)]
 
-    for i in np.argsort(posSum):
+    for i in idx:
         a = str(predacc[i])
         b = str(means[i])
         c = str(len(genes[i]))
         d = str(trees[i])
         e = str(corrJI[i])
         f = str(genes[i])
-        g = str(setscores[i])
-        fout.write('\t'.join([a,b,c,e,d,f,g])+'\n')
-        print('\t'.join([a,b,c,e,d,g]))
+        fout.write('\t'.join([a,b,c,e,d,f])+'\n')
+        print('\t'.join([a,b,c,e,d]))
+
+    writeOutputs(dirs, setsamples, setscores, idx)
 
     return(1)
 
