@@ -18,5 +18,39 @@ TODO
 
    ??? Will the top ranked gene set match the ground truth ???
 
-      YES!!!
+      YES!!! -- also jaccard index correlates with predictive quality
 
+Scores are produced with summed ranks. -- working well.
+Transformed to probabilities by using empirical distribution derived from rank-sums on subgraphs.
+
+* MSR only used in filtering trees right now *
+
+7.  Add MULTI-SCALE to the set scoring function.
+
+8.  Add ssGSEA code to produce a ssGSEA score matrix
+
+9.  RF model doesn't use MULTI-SCALE values yet.
+
+10. Add standard gene set scoring.
+
+11. Build GO set network, Cancer set network. Allow selection at run.
+
+12. Enumerating sub-graphs crashes sometimes... what's wrong?
+
+13. Write filter files to a directory
+
+14. need standard simulation.
+
+15. which needs a set matrix for C7 (and others).
+
+16. Function with minimal output to compare parameter settings.
+
+17. Need to catalog all parameters and get them into the cmd line.
+
+18. Move segmentation to parallel.  How to speedup?
+
+19. For final analysis:  What is jaccard index (with error?) for different parameters?
+                         What is predictive power (with MSR and without)?
+                         What is separability by set scores?
+                         Compare to ssGSEA for separability... depending on effect size.
+                         Compare with respect to set sizes and overlap.

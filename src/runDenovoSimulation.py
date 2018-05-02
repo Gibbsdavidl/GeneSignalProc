@@ -25,7 +25,6 @@
    # output model results... predicted output, and summary
 
 
-
 import numpy, time
 import simulateData_DisjointSets as ss
 import filterSignal as fs

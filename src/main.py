@@ -7,6 +7,7 @@
 
 import sys, getopt
 import runDenovoSimulation as rds
+import runStandardSimulation as std
 
 def argProc(args, opts):
     # process options
@@ -46,6 +47,9 @@ def main():
 
     elif mode == 'denovo_sim_reuse_data':
         rds.runDenovoSimReuseData(datadir, Nf)
+
+    elif mode == 'standard_sim':
+        std.runStandard(datadir, Nf)
 
     else:
         print("Modes: denovo_sim, denovo_sim_reuse_data ")
