@@ -2,13 +2,13 @@
 
 TODO
 
-1.DONE new expr file format, numeric matrix, first row is header, first column is sample ID.
+1. DONE new expr file format, numeric matrix, first row is header, first column is sample ID.
 
-2.DONE changed mind.
+2. DONE changed mind.
    by taking trees from each sample, a much larger diversity of trees is possible.
    then this forest can be filtered and sorted, taking the 'best' trees (high abs value).
 
-3.DONE ...so .... need to complete the tree filtering and output function.
+3. DONE ...so .... need to complete the tree filtering and output function.
 
 4. DONE... then can model each potential tree, and rank the results...
 
@@ -16,22 +16,19 @@ TODO
 
 6. DONE ... print out final result and comparison to simulated set  used Jaccard Index
 
-   ??? Will the top ranked gene set match the ground truth ???
-
-      YES!!! -- also jaccard index correlates with predictive quality
-
-Scores are produced with summed ranks. -- working well.
-Transformed to probabilities by using empirical distribution derived from rank-sums on subgraphs.
-
-* MSR only used in filtering trees right now *
+6.1  Read data once... pass it around.. setScoring randomForest, what else?
 
 7.  Add MULTI-SCALE to the set scoring function.
 
-8.  Add ssGSEA code to produce a ssGSEA score matrix
+19. When scoring, include genes in the set of interest?
+
+8.  Add ssGSEA code to produce a ssGSEA score matrix (added, not called)
 
 9.  RF model doesn't use MULTI-SCALE values yet.
 
-10. Add standard gene set scoring.
+10. DONE ... Add standard gene set scoring.
+
+14. DONE ... need standard simulation.
 
 11. Build GO set network, Cancer set network. Allow selection at run.
 
@@ -39,17 +36,19 @@ Transformed to probabilities by using empirical distribution derived from rank-s
 
 13. Write filter files to a directory
 
-14. need standard simulation.
-
-15. which needs a set matrix for C7 (and others).
+15. needs a set matrix for C7 (and others).
 
 16. Function with minimal output to compare parameter settings.
 
 17. Need to catalog all parameters and get them into the cmd line.
 
-18. Move segmentation to parallel.  How to speedup?
+18. Move segmentation to parallel function.  How to speedup?
 
-19. For final analysis:  What is jaccard index (with error?) for different parameters?
+20. SIMULATION WITH MIXED SETS!!  Maybe derive sets the usual way,
+    but then add a set-remix ... add a few more random links in the network,
+    and splice sets where the new links form.
+
+XX. For final analysis:  What is jaccard index (with error?) for different parameters?
                          What is predictive power (with MSR and without)?
                          What is separability by set scores?
                          Compare to ssGSEA for separability... depending on effect size.

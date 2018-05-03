@@ -56,8 +56,3 @@ def setScoringDenovo(dir, Nf, exprfile, filterfiles, subgraphfile, genes):
 
     return( (outputs,sampleList) )
 
-
-
-def setScoringStandard(exprFile, subraphFile, setFile):
-
-    return(1)
