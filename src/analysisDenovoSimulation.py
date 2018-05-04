@@ -28,7 +28,7 @@ def jaccard(a,b):
 #
 # trees, (in, out) where those are pointers to the denovo_trees file.
 def analysis(predacc, genes, trees, means, dirs, setfile, setscores, setsamples):
-
+    print("running analysis on results")
     # open the set assignment matrix
     mat = open(dirs + setfile,'r').read().strip().split('\n')
     seti = np.array(mat[1].split('\t'))
@@ -38,7 +38,6 @@ def analysis(predacc, genes, trees, means, dirs, setfile, setscores, setsamples)
 
     fout = open(dirs+'analyout.tsv','w')
     fout.write("accr\tmean\tngenes\tJI\ttreeidx\tgenes\tPsub\tRatioSub\n")
-    print("accr\tmean\tngenes\tJI\ttreeidx\tPsub\tRatioSub\n")
 
     # geneList is the target set repeated, for comparison to each tree
     geneList = [list(geneidx) for i in range(0,len(genes))]
@@ -67,7 +66,6 @@ def analysis(predacc, genes, trees, means, dirs, setfile, setscores, setsamples)
         e = str(corrJI[i])
         f = str(genes[i])
         fout.write('\t'.join([a,b,c,e,d,f])+'\n')
-        print('\t'.join([a,b,c,e,d]))
 
     writeOutputs(dirs, setsamples, setscores, idx)
 

@@ -17,13 +17,13 @@ def rfModelTest():
 
 
 def rfModel(dirs, exprfile, pheno, genes, cvs):
+    print("random forest")
     ys = [int(yi) for yi in open(dirs + pheno,'r').read().strip().split('\n')]
     inputs = open(dirs + exprfile, 'r').read().strip().split("\n")
     inputHeader = inputs.pop(0)
     scoreList = []
     # for each gene set
     for i, gs in enumerate(genes):
-        print(i)
         # subset the data into xs
         xs = []
         for j, rowj in enumerate(inputs):
@@ -36,7 +36,5 @@ def rfModel(dirs, exprfile, pheno, genes, cvs):
         scores = cross_val_score(clf, xs, ys, cv=cvs)
         scoreList.append(np.mean(scores))
     #    take the mean for CV score
-    print(scoreList)
     # return the results as a table, tree, gene-set, score
-
     return(scoreList)

@@ -19,20 +19,20 @@ def buildListOfGenesFromSetMat(datadir, filename):
     return(setlist)
 
 
-def runStandard(datadir, Nf):
+def runStandard(datadir, Nf, subgraphFile):
     # defaults
-    ngenes = 80
-    nparts = 4
-    nsamples = 10
-    filteredPrefix = "filtered_"
-    crossVal = 5
-    deltad = 5.0
-    Nf = int(Nf)
-    numberSubGraphs = 100
-    maxSubGraphSize = 25
+    ngenes = 80    # number of nodes in the network
+    nparts = 4     # number of sets in simulation
+    nsamples = 10  # number of samples simulated
+    filteredPrefix = "filtered_"  # file prefix for filtered files
+    crossVal = 5   # random forest cross validation folds
+    deltad = 5.0   # boost in the expression for target set
+    Nf = int(Nf)   # number of scale levels for filtering
+    numberSubGraphs = 100  # if generating subgraphs
+    maxSubGraphSize = 25   # max size of subgraphs
 
-    print('running full denovo sim')
-    print('\nworking in ' + datadir)
+    print('Running Standard Sim')
+    print('\n    working in ' + datadir)
 
     np.random.seed(seed=int(time.time()))
 
@@ -43,8 +43,10 @@ def runStandard(datadir, Nf):
     y = fs.filterData(exprfile=x[2], dirs=x[0], outputprefix=filteredPrefix, Nf=Nf, adjmat=x[1])
 
     # build the subgraph sets
-    # s = es.allSubgraphs(x[0],x[1],maxSubGraphSize,numberSubGraphs)
-    s = 'all_subgraphs.txt'
+    if subgraphFile == '':
+        s = es.allSubgraphs(x[0],x[1],maxSubGraphSize,numberSubGraphs)
+    else:
+        s = subgraphFile
 
     # get a list of genes for each set in the setmatrix
     genes = buildListOfGenesFromSetMat(datadir, 'setmatrix.tsv')
@@ -53,7 +55,7 @@ def runStandard(datadir, Nf):
     m = mm.rfModel(dirs=x[0], exprfile=x[2], pheno=x[3], genes=genes, cvs=crossVal)
 
     # score the gene sets.
-    out, samps = scr.setScoringDenovo(dir=datadir, Nf=Nf, exprfile=x[2], subgraphfile=s, filterfiles=y[0], genes=genes)
+    out, samps = scr.setScoringStandard(dir=datadir, Nf=Nf, exprfile=x[2], subgraphfile=s, filterfiles=y[0], genes=genes)
 
     # compare model results to simulation.
     g = an.analysis(predacc=m, genes=genes, dirs=x[0], setfile=x[4], setscores=out, setsamples=samps)

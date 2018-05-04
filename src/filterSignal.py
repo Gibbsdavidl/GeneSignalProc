@@ -11,8 +11,12 @@ import igraph as ig
 from datetime import datetime, timedelta
 
 def filterData(exprfile, dirs, outputprefix, Nf, adjmat):
+    # exprfile - matrix of gene expression
+    # dirs - the working directory
+    # outputprefix - the prefix put on filter file outputs
+    # Nf - number of scale levels
+    # adjmat - the file name for the adjacent matrix
 
-    #print ('filterSignal.py -m <adj matrix> -d <working dir> -i <filelist> -o <output_prefix> -n <number of scales>')
     # made the network in pygsp
     print("loading network")
     mat = np.loadtxt(dirs+adjmat, delimiter='\t')
@@ -27,16 +31,16 @@ def filterData(exprfile, dirs, outputprefix, Nf, adjmat):
 
     filteredSignal = []
 
+    # compute wavelets
+    # process the data
+    print("filtering data")
     for i in range(1,len(inputs)):  # skip header.
-        # compute wavelets
-        print("working on file " + str(i))
-        # process the data
         vals = inputs[i].split('\t')
         sig = np.array([float(x) for x in vals[1:len(vals)]])
         msr = waveletFun.waveletFilter(net, sig, Nf) # list of filtered signal for each sample
         # the filtered signal is in shape (Nf, num_nodes)
-        np.savetxt(dirs+outputprefix+str(i)+".txt", msr, delimiter='\t')
-        outputlist.write(outputprefix+str(i)+'.txt'+'\n')
+        np.savetxt('filtered_files/'+dirs+outputprefix+str(i)+".txt", msr, delimiter='\t')
+        outputlist.write('filtered_files/'+outputprefix+str(i)+'.txt'+'\n')
         samplelist.write(vals[0] + '\n')
         print("******************************************")
 

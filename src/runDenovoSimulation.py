@@ -28,7 +28,7 @@
 import numpy, time
 import simulateData_DisjointSets as ss
 import filterSignal as fs
-import findDenovoGeneSets as dg
+import denovoGeneSets as dg
 import treeFilterAndExtration as cf
 import randomForest_model as mm
 import analysisDenovoSimulation as an
@@ -36,18 +36,22 @@ import extractSubGraphs as es
 import setScoring as scr
 
 
-def runDenovoSim(datadir, Nf):
+def runDenovoSim(datadir, Nf, subgraphFile):
     # defaults
-    ngenes = 120
-    nparts = 6
-    nsamples = 20
-    filteredPrefix = "filtered_"
+
+    ngenes = 80    # number of nodes in the network
+    nparts = 4     # number of sets in simulation
+    nsamples = 10  # number of samples simulated
+    filteredPrefix = "filtered_"  # file prefix for filtered files
+    crossVal = 5   # random forest cross validation folds
+    deltad = 5.0   # boost in the expression for target set
+    Nf = int(Nf)   # number of scale levels for filtering
+    numberSubGraphs = 100  # if generating subgraphs
+    maxSubGraphSize = 25   # max size of subgraphs
     denovoPrefix = "denovo_trees"
-    levelThresh = 3
-    topNTrees = 10
-    crossVal = 5
-    deltad = 5.0
-    Nf = int(Nf)
+    levelThresh = 3 # number of scale levels to transverse
+    topNTrees = 20  # number of trees to return
+
 
     print('running full denovo sim')
     print('\nworking in ' + datadir)
@@ -60,7 +64,10 @@ def runDenovoSim(datadir, Nf):
     # filter the data
     y = fs.filterData(exprfile=x[2], dirs=x[0], outputprefix=filteredPrefix, Nf=Nf, adjmat=x[1])
 
-    s = es.allSubgraphs(x[0],x[1],40,200)
+    if subgraphFile == '':
+        s = es.allSubgraphs(x[0],x[1],maxSubGraphSize,numberSubGraphs)
+    else:
+        s = subgraphFile
 
     # recover the trees
     z = dg.denovoGeneSets(filelist=y[0], dirs=x[0], outputprefix=denovoPrefix, adjmat=x[1])
@@ -80,21 +87,23 @@ def runDenovoSim(datadir, Nf):
     return(out)
 
 
-def runDenovoSimReuseData(datadir, Nf):
+def runDenovoSimRerun(datadir, Nf, subgraphFile):
     #
     # here let's not rebuild the network and data.
     #
     # defaults
-    ngenes = 120
-    nparts = 6
-    nsamples = 10
-    filteredPrefix = "filtered_"
+    ngenes = 80    # number of nodes in the network
+    nparts = 4     # number of sets in simulation
+    nsamples = 10  # number of samples simulated
+    filteredPrefix = "filtered_"  # file prefix for filtered files
+    crossVal = 5   # random forest cross validation folds
+    deltad = 5.0   # boost in the expression for target set
+    Nf = int(Nf)   # number of scale levels for filtering
+    numberSubGraphs = 100  # if generating subgraphs
+    maxSubGraphSize = 25   # max size of subgraphs
     denovoPrefix = "denovo_trees"
-    levelThresh = 3
-    topNTrees = 20
-    crossVal = 5
-    deltad = 6.0
-    Nf = int(Nf)
+    levelThresh = 3 # number of scale levels to transverse
+    topNTrees = 20  # number of trees to return
 
     print('\nworking in ' + datadir)
 
@@ -110,19 +119,19 @@ def runDenovoSimReuseData(datadir, Nf):
 
     # building empirical subgraph distribution
     #s = es.allSubgraphs(x[0],x[1],60,200)
-    s = 'all_subgraphs.txt'
+    s = subgraphFile
 
     # recover the trees
     z = dg.denovoGeneSets(filelist=y[0], dirs=x[0], outputprefix=denovoPrefix, adjmat=x[1])
 
     # filter trees and extract data for modeling
-    trees, genes, means = cf.treeFilterAndEx(dirs=x[1], treefile=z[0], filterfiles=y[0], levelThresh=levelThresh, topNTrees=topNTrees)
+    trees, genes, means, levels = cf.treeFilterAndEx(dirs=x[1], treefile=z[0], filterfiles=y[0], levelThresh=levelThresh, topNTrees=topNTrees)
 
     # run models
     m = mm.rfModel(dirs=x[0], exprfile=x[2], pheno=x[3], genes=genes, cvs=crossVal)
 
     # score the gene sets.
-    out,samps = scr.setScoringDenovo(dir=datadir, Nf=Nf, exprfile=x[2], subgraphfile=s, filterfiles=y[0], genes=genes)
+    out,samps = scr.setScoringDenovoMultiScale(dir=datadir, Nf=Nf, exprfile=x[2], subgraphfile=s, filterfiles=y[0], genes=genes, levels=levels)
 
     # compare model results to simulation.
     g = an.analysis(predacc=m, genes=genes, trees=trees, means=means, dirs=x[0], setfile=x[4], setscores=out, setsamples=samps)

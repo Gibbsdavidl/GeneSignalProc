@@ -23,7 +23,14 @@ def writeOutputs(dir,sampleList,outputs,idx):
 
 
 # trees, (in, out) where those are pointers to the denovo_trees file.
-def analysis(predacc, genes,dirs, setfile, setscores, setsamples):
+def analysis(predacc, genes, dirs, setfile, setscores, setsamples):
+    # predacc - prediction accuracy from random forest
+    # genes - list of gene sets
+    # dirs - working directory
+    # setfile - the matrix of assignments to sets
+    # setscores - the file of set scores matrix
+    # setsamples - the sample names to write into the set score matrix.
+
 
     # open the set assignment matrix
     mat = open(dirs + setfile,'r').read().strip().split('\n')

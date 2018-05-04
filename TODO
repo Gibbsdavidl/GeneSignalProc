@@ -18,6 +18,8 @@ TODO
 
 6.1  Read data once... pass it around.. setScoring randomForest, what else?
 
+6.2  Add stand-alone function for building subgraphs
+
 7.  Add MULTI-SCALE to the set scoring function.
 
 19. When scoring, include genes in the set of interest?

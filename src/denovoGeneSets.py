@@ -42,12 +42,7 @@ def denovoGeneSets(filelist, dirs, outputprefix, adjmat):
     # build the graph
     mat = np.loadtxt(dirs+adjmat, delimiter='\t')
     net = ig.Graph.Weighted_Adjacency(mat.tolist(), mode="UNDIRECTED")
-    #net = ig.Graph.Adjacency(mat.tolist(), mode="undirected")
-    #net.es['weight'] = mat[mat.nonzero()]
     net = net.simplify(combine_edges=max, multiple=True, loops=False)
-
-    #net.write_edgelist(dirs+"edges.txt")
-    #net = ig.Read_Adjacency(dirs+adjmat)
 
     # then we create a list of the filtered expression matrices
     filteredList = []
@@ -55,25 +50,22 @@ def denovoGeneSets(filelist, dirs, outputprefix, adjmat):
     allResults = []
 
     # and filter each of the inputs
+    print("segmenting files")
     for i in range(0,len(inputs)):
-        print("segmenting file " + str(i))
         msr = np.loadtxt(dirs + inputs[i], delimiter='\t')
         filteredList.append(msr)      # the list of multi-scale-signals
         setTupleList = graphFun.segmentSpace (net=net, bins=5, msr=msr, minsetsize=3)
         setList.append(setTupleList)  # each input gets a list of set-tuples
 
     # want output to be sets that overlap across scales, for each file.
+    print("joining sets across scales")
     for i in range(0,len(inputs)):
-        print("joining sets into groups " + str(i))
         thisSetList = setList[i]
-
         # now sets can be joined across scale-levels
         coupledSets = graphFun.connectSets(thisSetList, overlapSize)
         setGroups = graphFun.joinSets(coupledSets, thisSetList)
-
         # groups come back as a list of sets of tuples (scale-level, set ID)
         resultsList = graphFun.compileResults(i, thisSetList, setGroups, filteredList[i])
-
         allResults.append(resultsList)
 
 

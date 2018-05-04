@@ -130,9 +130,9 @@ def gen_expression(ngenes, sets, set_means, pheno, sigma, si, samplenames):
 
 def runSim_DisjointSets(homedir, ngenes, nparts, nsamples, deltad):
     # first simulate the gene and gene sets
-    #ngenes = 100
-    #nparts = 5
-    #ntime = 10
+    print("generating data")
+
+    # first get gene names, set names, and sample names
     genes = [''.join([string.ascii_lowercase[i] for i in np.random.randint(low=0, high=26, size=5)]) for j in range(0, ngenes)]
     setnames = [''.join([string.ascii_lowercase[i] for i in np.random.randint(low=0, high=26, size=5)]) for j in range(0, nparts)]
     samplenames = ['sample_'.join([string.ascii_lowercase[i] for i in np.random.randint(low=0, high=26, size=2)]) for j in range(0, nsamples)]

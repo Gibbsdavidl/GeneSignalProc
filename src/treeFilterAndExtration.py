@@ -17,6 +17,7 @@ def filterTrees(sampleList, treeIDList, levelList, geneIDList, filteredList, lev
     minabs = []
     means = []
     meds = []
+    levs = []
     ina = 0
     outa = 1
     for i in range(2,len(sampleList)): # for each row in the tree table.
@@ -34,6 +35,7 @@ def filterTrees(sampleList, treeIDList, levelList, geneIDList, filteredList, lev
                 minabs.append(min([x for x in filteredList[ina:outa + 1]]))
                 means.append(np.mean([abs(x) for x in filteredList[ina:outa+1]]) )
                 meds.append(np.median([abs(x) for x in filteredList[ina:outa+1]]) )
+                levs.append(set(levelList[ina:outa+1]))
             ina = i
             outa = i+1
 
@@ -44,6 +46,7 @@ def filterTrees(sampleList, treeIDList, levelList, geneIDList, filteredList, lev
     tree2 = []
     gene2 = []
     vals2 = []
+    levs2 = []
 
     meds.sort(reverse=True)
     cutval = meds[topNTrees]
@@ -52,6 +55,7 @@ def filterTrees(sampleList, treeIDList, levelList, geneIDList, filteredList, lev
             tree2.append(trees[i])
             gene2.append(genes[i])
             vals2.append(meds[i])
+            levs2.append(levs[i])
 
     meds.sort(reverse=False)
     cutval = meds[topNTrees]
@@ -60,8 +64,9 @@ def filterTrees(sampleList, treeIDList, levelList, geneIDList, filteredList, lev
             tree2.append(trees[i])
             gene2.append(genes[i])
             vals2.append(meds[i])
+            levs2.append(levs[i])
 
-    return(tree2, gene2, vals2)
+    return(tree2, gene2, vals2, levs2)
 
 
 def treeFilterAndEx(dirs, filterfiles, treefile, levelThresh, topNTrees):
@@ -84,6 +89,6 @@ def treeFilterAndEx(dirs, filterfiles, treefile, levelThresh, topNTrees):
             geneIDList.append(int(geneID))
             filteredList.append(float(filtered))
 
-    trees, genes, vals = filterTrees(sampleList, treeIDList, levelList, geneIDList, filteredList, levelThresh, topNTrees)
+    trees, genes, vals, levs = filterTrees(sampleList, treeIDList, levelList, geneIDList, filteredList, levelThresh, topNTrees)
 
-    return(trees, genes, vals)
+    return(trees, genes, vals, levs)
