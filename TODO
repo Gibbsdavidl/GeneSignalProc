@@ -16,21 +16,21 @@ TODO
 
 6. DONE ... print out final result and comparison to simulated set  used Jaccard Index
 
+10. DONE ... Add standard gene set scoring.
+
+14. DONE ... need standard simulation.
+
+7.  DONE ... **NEEDS UPDATE... DIDN"T IMPROVE IT...**  Add MULTI-SCALE to the set scoring function. ***
+
 6.1  Read data once... pass it around.. setScoring randomForest, what else?
 
 6.2  Add stand-alone function for building subgraphs
-
-7.  Add MULTI-SCALE to the set scoring function.
 
 19. When scoring, include genes in the set of interest?
 
 8.  Add ssGSEA code to produce a ssGSEA score matrix (added, not called)
 
 9.  RF model doesn't use MULTI-SCALE values yet.
-
-10. DONE ... Add standard gene set scoring.
-
-14. DONE ... need standard simulation.
 
 11. Build GO set network, Cancer set network. Allow selection at run.
 

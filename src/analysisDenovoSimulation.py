@@ -14,7 +14,7 @@ def writeOutputs(dir,sampleList,outputs,idx):
         outstr = []
         for j in idx:
             outstr.append(str(outputs[i][j]))
-        outstr = [sampleList[i]] + outstr
+        outstr = [str(sampleList[i])] + outstr
         fout.write('\t'.join(outstr)+'\n')
     fout.close()
     return(1)
@@ -37,7 +37,7 @@ def analysis(predacc, genes, trees, means, dirs, setfile, setscores, setsamples)
     geneidx = [x - 1 for x in np.where(seti == '1')[0]]
 
     fout = open(dirs+'analyout.tsv','w')
-    fout.write("accr\tmean\tngenes\tJI\ttreeidx\tgenes\tPsub\tRatioSub\n")
+    fout.write("accr\tmean\tngenes\tJI\ttreeidx\tgenes\n")
 
     # geneList is the target set repeated, for comparison to each tree
     geneList = [list(geneidx) for i in range(0,len(genes))]
