@@ -38,3 +38,21 @@ def rfModel(dirs, exprfile, pheno, genes, cvs):
     #    take the mean for CV score
     # return the results as a table, tree, gene-set, score
     return(scoreList)
+
+
+
+def rfModelSetScores(dirs, inputs, pheno, genes, cvs):
+    print("random forest")
+    ys = [int(yi) for yi in open(dirs + pheno,'r').read().strip().split('\n')]
+    #inputs = open(dirs + exprfile, 'r').read().strip().split("\n")
+    #inputHeader = inputs.pop(0)
+    # use all reported gene sets for prediction
+    xs = np.array([ np.array(x) for x in inputs ])
+    clf = RandomForestClassifier(max_depth=5, n_estimators=100)
+    clf.fit(xs, ys)
+    #scores = cross_val_score(clf, xs, ys, cv=cvs)
+    featImp = clf.feature_importances_
+    scoreMean = clf.score(xs,ys)
+    #    take the mean for CV score
+    # return the results as a table, tree, gene-set, score
+    return(scoreMean, clf, featImp)

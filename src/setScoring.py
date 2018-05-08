@@ -96,7 +96,7 @@ def setScoringDenovoMultiScale(dir, Nf, exprfile, filterfiles, subgraphfile, gen
                     exprMat = inputs[li].strip().split('\t')
 
                     # sum up the ranks (r_e).
-                    expr = [float(x) for j, x in enumerate(exprMat)]  ############## IN FITLER FILE, yep
+                    expr = [float(x) for x in exprMat]  ############## IN FITLER FILE, yep
                     exprRanks = sp.stats.rankdata(expr)
                     rankSum += sum([exprRanks[j] for j in gs])
 
@@ -107,8 +107,8 @@ def setScoringDenovoMultiScale(dir, Nf, exprfile, filterfiles, subgraphfile, gen
                 # save r_e / r_s ### ACROSS LEVELS ####
                 res0 = sum([1.0 for x in subGraphSums if rankSum > x]) / float(len(subGraphSums))
                 sampRes.append(res0)
-        else:
-            sampRes.append(np.nan)
+            else:
+                sampRes.append(0.0)
             # end one gene set
         # end one sample
         outputs.append(sampRes)

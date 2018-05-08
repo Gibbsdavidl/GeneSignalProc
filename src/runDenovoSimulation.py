@@ -96,7 +96,7 @@ def runDenovoSimRerun(datadir, Nf, subgraphFile):
     nparts = 4     # number of sets in simulation
     nsamples = 10  # number of samples simulated
     filteredPrefix = "filtered_"  # file prefix for filtered files
-    crossVal = 5   # random forest cross validation folds
+    crossVal = 10   # random forest cross validation folds
     deltad = 5.0   # boost in the expression for target set
     Nf = int(Nf)   # number of scale levels for filtering
     numberSubGraphs = 100  # if generating subgraphs
@@ -127,13 +127,13 @@ def runDenovoSimRerun(datadir, Nf, subgraphFile):
     # filter trees and extract data for modeling
     trees, genes, means, levels = cf.treeFilterAndEx(dirs=x[1], treefile=z[0], filterfiles=y[0], levelThresh=levelThresh, topNTrees=topNTrees)
 
-    # run models
-    m = mm.rfModel(dirs=x[0], exprfile=x[2], pheno=x[3], genes=genes, cvs=crossVal)
-
     # score the gene sets.
     out,samps = scr.setScoringDenovoMultiScale(dir=datadir, Nf=Nf, exprfile=x[2], subgraphfile=s, filterfiles=y[0], genes=genes, levels=levels)
 
+    # run models
+    score, clf, featImp = mm.rfModelSetScores(dirs=x[0], inputs=out, pheno=x[3], genes=genes, cvs=crossVal)
+
     # compare model results to simulation.
-    g = an.analysis(predacc=m, genes=genes, trees=trees, means=means, dirs=x[0], setfile=x[4], setscores=out, setsamples=samps)
+    g = an.analysisDenovo(predacc=score, genes=genes, trees=trees, means=means, dirs=x[0], setfile=x[4], setscores=out, setsamples=samps, featureImp=featImp)
 
     return(out)

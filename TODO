@@ -26,6 +26,8 @@ TODO
 
 6.2  Add stand-alone function for building subgraphs
 
+6.3 ***** Move RandomForest to AFTER set scoring??? DO RANDOM FOREST ON SET SCORES!!! ***********
+
 19. When scoring, include genes in the set of interest?
 
 8.  Add ssGSEA code to produce a ssGSEA score matrix (added, not called)
