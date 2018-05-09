@@ -28,6 +28,7 @@ def mexFilterData(exprfile, dirs, outputprefix, Nf, adjmat):
     gra = ig.Graph.Weighted_Adjacency(list(mat), mode="undirected")
     net = gs.graphs.Graph(W=mat)
     net.directed = False
+    net.estimate_lmax()
 
     # for each input file
     inputs = open(dirs+exprfile,'r').read().strip().split("\n")  ###########!!!!!!!!!!!!!! NEW FORMAT!!!!!!!!!!!!!!!!!
@@ -70,6 +71,7 @@ def heatFilterData(exprfile, dirs, outputprefix, Nf, adjmat):
     gra = ig.Graph.Weighted_Adjacency(list(mat), mode="undirected")
     net = gs.graphs.Graph(W=mat)
     net.directed = False
+    net.estimate_lmax()
 
     # for each input file
     inputs = open(dirs+exprfile,'r').read().strip().split("\n")  ###########!!!!!!!!!!!!!! NEW FORMAT!!!!!!!!!!!!!!!!!

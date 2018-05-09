@@ -74,7 +74,7 @@ def analysis(predacc, genes, trees, means, dirs, setfile, setscores, setsamples,
 
 #
 # trees, (in, out) where those are pointers to the denovo_trees file.
-def analysisDenovo(predacc, genes, trees, means, dirs, setfile, setscores, setsamples, featureImp):
+def analysisDenovo(predacc, genes, levels, trees, means, dirs, setfile, setscores, setsamples, featureImp):
     print("running analysis on results")
     # open the set assignment matrix
     mat = open(dirs + setfile,'r').read().strip().split('\n')
@@ -84,7 +84,7 @@ def analysisDenovo(predacc, genes, trees, means, dirs, setfile, setscores, setsa
     geneidx = [x - 1 for x in np.where(seti == '1')[0]]
 
     fout = open(dirs+'analyout.tsv','w')
-    fout.write("accr\tfeatimp\tmean\tngenes\tJI\ttreeidx\tgenes\n")
+    fout.write("accr\tfeatimp\tmean\tngenes\tnscales\tJI\ttreeidx\tgenes\n")
 
     # geneList is the target set repeated, for comparison to each tree
     geneList = [list(geneidx) for i in range(0,len(genes))]
@@ -107,7 +107,8 @@ def analysisDenovo(predacc, genes, trees, means, dirs, setfile, setscores, setsa
         e = str(corrJI[i])
         f = str(genes[i])
         g = str(featureImp[i])
-        fout.write('\t'.join([a,g,b,c,e,d,f])+'\n')
+        h = str(levels[i])
+        fout.write('\t'.join([a,g,b,c,h,e,d,f])+'\n')
 
     writeOutputs(dirs, setsamples, setscores, predidx)
 

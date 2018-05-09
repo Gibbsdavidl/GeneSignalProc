@@ -45,7 +45,7 @@ def runDenovoSim(datadir, Nf, subgraphFile, filterType):
     filteredPrefix = "filtered_"  # file prefix for filtered files
     crossVal = 8   # random forest cross validation folds
     deltad = 25.0   # boost in the expression for target set
-    Nf = int(Nf)   # number of scale levels for filtering
+    Nf: int = int(Nf)   # number of scale levels for filtering
     numberSubGraphs = 100  # if generating subgraphs
     maxSubGraphSize = 25   # max size of subgraphs
     denovoPrefix = "denovo_trees"
@@ -67,6 +67,7 @@ def runDenovoSim(datadir, Nf, subgraphFile, filterType):
     else:
         y = fs.mexFilterData(exprfile=x[2], dirs=x[0], outputprefix=filteredPrefix, Nf=Nf, adjmat=x[1])
 
+    # load the subgraphs (or generate them)
     if subgraphFile == '':
         s = es.allSubgraphs(x[0],x[1],maxSubGraphSize,numberSubGraphs)
     else:
@@ -76,16 +77,16 @@ def runDenovoSim(datadir, Nf, subgraphFile, filterType):
     z = dg.denovoGeneSets(filelist=y[0], dirs=x[0], outputprefix=denovoPrefix, adjmat=x[1])
 
     # filter trees and extract data for modeling
-    trees, genes, means, levels = cf.treeFilterAndEx(dirs=x[1], treefile=z[0], filterfiles=y[0], levelThresh=levelThresh, topNTrees=topNTrees)
+    trees, genes, means, levels, nlevs = cf.treeFilterAndEx(dirs=x[1], treefile=z[0], filterfiles=y[0], levelThresh=levelThresh, topNTrees=topNTrees)
 
     # score the gene sets.
     out,samps = scr.setScoringDenovoMultiScale(dir=datadir, Nf=Nf, exprfile=x[2], subgraphfile=s, filterfiles=y[0], genes=genes, levels=levels)
 
-    # run models
+    # run random forest using gene set scores
     score, cvscores, clf, featImp = mm.rfModelSetScores(dirs=x[0], inputs=out, pheno=x[3], genes=genes, cvs=crossVal)
 
     # compare model results to simulation.
-    g = an.analysisDenovo(predacc=score, genes=genes, trees=trees, means=means, dirs=x[0], setfile=x[4], setscores=out, setsamples=samps, featureImp=featImp)
+    g = an.analysisDenovo(predacc=score, genes=genes, levels=nlevs, trees=trees, means=means, dirs=x[0], setfile=x[4], setscores=out, setsamples=samps, featureImp=featImp)
 
     return(out)
 

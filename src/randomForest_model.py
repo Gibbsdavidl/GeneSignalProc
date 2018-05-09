@@ -53,7 +53,7 @@ def rfModelSetScores(dirs, inputs, pheno, genes, cvs):
     clf.fit(xs, ys)
     cvscores = cross_val_score(clf, xs, ys, cv=cvs, n_jobs=4)
     featImp = clf.feature_importances_
-    scoreMean = mean(cvscores)
+    scoreMean = np.mean(cvscores)
     #    take the mean for CV score
     # return the results as a table, tree, gene-set, score
     return(scoreMean, cvscores, clf, featImp)
