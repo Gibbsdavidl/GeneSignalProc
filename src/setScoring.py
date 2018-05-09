@@ -88,9 +88,10 @@ def setScoringDenovoMultiScale(dir, Nf, exprfile, filterfiles, subgraphfile, gen
             # then, in the filtered file, do the rank sum for each level
             m = len(gs)
             rankSum = 0.0
-            subGraphSums = np.array([0.0 for gx in sgs[m]])
 
             if m <= sizeMax:
+                subGraphSums = np.array([0.0 for gx in sgs[m]])
+
                 for li in levelSet:
 
                     exprMat = inputs[li].strip().split('\t')

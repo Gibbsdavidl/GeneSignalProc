@@ -27,6 +27,14 @@ def waveletFilter(net, signal, Nf):
     return(sighat_transpose)
 
 
+def heatFilter(net, signal, Nf):
+    hf = g.filters.MexicanHat(net, Nf)
+    hfhat = hf.analyze(signal)
+    hfhat_transpose = hfhat.transpose()
+    return(hfhat_transpose)
+
+
+
 def imageFilteredSig(X):
     def format_coord(x, y):
         col = int(x + 0.5)

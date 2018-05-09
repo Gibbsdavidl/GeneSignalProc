@@ -22,38 +22,42 @@ TODO
 
 7.  DONE ... **NEEDS UPDATE... DIDN"T IMPROVE IT...**  Add MULTI-SCALE to the set scoring function. ***
 
+6.3 DONE ... Move RandomForest to AFTER set scoring??? DO RANDOM FOREST ON SET SCORES.
+
+9.  NA DONE ... RF model doesn't use MULTI-SCALE values yet.
+
+13. DONE ... Write filter files to a directory
+
+13.1 Add parameter to choose filter kernel
+
+13.2 Do a cross-val, maybe leave one out to get mean accuracy on hold-outs.
+
 6.1  Read data once... pass it around.. setScoring randomForest, what else?
 
 6.2  Add stand-alone function for building subgraphs
 
-6.3 ***** Move RandomForest to AFTER set scoring??? DO RANDOM FOREST ON SET SCORES!!! ***********
+19.  When scoring, include genes in the set of interest?
 
-19. When scoring, include genes in the set of interest?
+8.   Add ssGSEA code to produce a ssGSEA score matrix (added, not called)
 
-8.  Add ssGSEA code to produce a ssGSEA score matrix (added, not called)
+11.  Build GO set network, Cancer set network. Allow selection at run.
 
-9.  RF model doesn't use MULTI-SCALE values yet.
+12.  Enumerating sub-graphs crashes sometimes... what's wrong?
 
-11. Build GO set network, Cancer set network. Allow selection at run.
+15.  needs a set matrix for C7 (and others).
 
-12. Enumerating sub-graphs crashes sometimes... what's wrong?
+16.  Function with minimal output to compare parameter settings.
 
-13. Write filter files to a directory
+17.  Need to catalog all parameters and get them into the cmd line.
 
-15. needs a set matrix for C7 (and others).
+18.  Move segmentation to parallel function.  How to speedup?
 
-16. Function with minimal output to compare parameter settings.
+20.  SIMULATION WITH MIXED SETS!!  Maybe derive sets the usual way,
+     but then add a set-remix ... add a few more random links in the network,
+     and splice sets where the new links form.
 
-17. Need to catalog all parameters and get them into the cmd line.
-
-18. Move segmentation to parallel function.  How to speedup?
-
-20. SIMULATION WITH MIXED SETS!!  Maybe derive sets the usual way,
-    but then add a set-remix ... add a few more random links in the network,
-    and splice sets where the new links form.
-
-XX. For final analysis:  What is jaccard index (with error?) for different parameters?
-                         What is predictive power (with MSR and without)?
-                         What is separability by set scores?
-                         Compare to ssGSEA for separability... depending on effect size.
-                         Compare with respect to set sizes and overlap.
+XX.  For final analysis:  What is jaccard index (with error?) for different parameters?
+                          What is predictive power (with MSR and without)?
+                          What is separability by set scores?
+                          Compare to ssGSEA for separability... depending on effect size.
+                          Compare with respect to set sizes and overlap.
