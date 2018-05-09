@@ -21,6 +21,7 @@ def normi(x):
 
 def waveletFilter(net, signal, Nf):
     mexhat = g.filters.MexicanHat(net, Nf)
+    #mexhat.estimate_lmax() # or G.compute_fourier_basis()
     sighat = mexhat.analyze(signal)
     #sighat = sighat.reshape( (Nf, int(sighat.size / Nf)) )
     sighat_transpose = sighat.transpose()
@@ -29,6 +30,7 @@ def waveletFilter(net, signal, Nf):
 
 def heatFilter(net, signal, Nf):
     hf = g.filters.MexicanHat(net, Nf)
+    #hf.estimate_lmax() # or G.compute_fourier_basis()
     hfhat = hf.analyze(signal)
     hfhat_transpose = hfhat.transpose()
     return(hfhat_transpose)

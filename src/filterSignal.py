@@ -12,7 +12,7 @@ import os
 from datetime import datetime, timedelta
 
 
-def filterData(exprfile, dirs, outputprefix, Nf, adjmat):
+def mexFilterData(exprfile, dirs, outputprefix, Nf, adjmat):
     # exprfile - matrix of gene expression
     # dirs - the working directory
     # outputprefix - the prefix put on filter file outputs
@@ -47,7 +47,6 @@ def filterData(exprfile, dirs, outputprefix, Nf, adjmat):
         np.savetxt(dirs+'filtered_files/'+outputprefix+str(i)+".txt", msr, delimiter='\t')
         outputlist.write('filtered_files/'+outputprefix+str(i)+'.txt'+'\n')
         samplelist.write(vals[0] + '\n')
-        print("******************************************")
 
     outputlist.close()
     samplelist.close()
@@ -90,7 +89,6 @@ def heatFilterData(exprfile, dirs, outputprefix, Nf, adjmat):
         np.savetxt(dirs+'filtered_files/'+outputprefix+str(i)+".txt", msr, delimiter='\t')
         outputlist.write('filtered_files/'+outputprefix+str(i)+'.txt'+'\n')
         samplelist.write(vals[0] + '\n')
-        print("******************************************")
 
     outputlist.close()
     samplelist.close()

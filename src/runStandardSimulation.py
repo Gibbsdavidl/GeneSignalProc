@@ -19,7 +19,7 @@ def buildListOfGenesFromSetMat(datadir, filename):
     return(setlist)
 
 
-def runStandard(datadir, Nf, subgraphFile):
+def runStandard(datadir, Nf, subgraphFile, filterType):
     # defaults
     ngenes = 80    # number of nodes in the network
     nparts = 4     # number of sets in simulation
@@ -40,7 +40,10 @@ def runStandard(datadir, Nf, subgraphFile):
     x = ss.runSim_DisjointSets(datadir, ngenes=ngenes, nparts=nparts, nsamples=nsamples, deltad=deltad)
 
     # filter the data
-    y = fs.filterData(exprfile=x[2], dirs=x[0], outputprefix=filteredPrefix, Nf=Nf, adjmat=x[1])
+    if filterType == 'heat':
+        y = fs.heatFilterData(exprfile=x[2], dirs=x[0], outputprefix=filteredPrefix, Nf=Nf, adjmat=x[1])
+    else:
+        y = fs.mexFilterData(exprfile=x[2], dirs=x[0], outputprefix=filteredPrefix, Nf=Nf, adjmat=x[1])
 
     # build the subgraph sets
     if subgraphFile == '':

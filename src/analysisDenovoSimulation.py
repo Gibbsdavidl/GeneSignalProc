@@ -9,7 +9,7 @@ import numpy as np
 
 def writeOutputs(dir,sampleList,outputs,idx):
 
-    fout = open(dir+'setscores.txt','w')
+    fout = open(dir+'setscores.tsv','w')
     for i in range(0,len(outputs)):
         outstr = []
         for j in idx:

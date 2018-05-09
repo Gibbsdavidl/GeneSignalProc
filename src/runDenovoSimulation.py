@@ -36,14 +36,14 @@ import extractSubGraphs as es
 import setScoring as scr
 
 
-def runDenovoSim(datadir, Nf, subgraphFile):
+def runDenovoSim(datadir, Nf, subgraphFile, filterType):
     # defaults
 
     ngenes = 80    # number of nodes in the network
     nparts = 4     # number of sets in simulation
-    nsamples = 20  # number of samples simulated
+    nsamples = 48  # number of samples simulated
     filteredPrefix = "filtered_"  # file prefix for filtered files
-    crossVal = 5   # random forest cross validation folds
+    crossVal = 8   # random forest cross validation folds
     deltad = 25.0   # boost in the expression for target set
     Nf = int(Nf)   # number of scale levels for filtering
     numberSubGraphs = 100  # if generating subgraphs
@@ -62,7 +62,10 @@ def runDenovoSim(datadir, Nf, subgraphFile):
     x = ss.runSim_DisjointSets(datadir, ngenes=ngenes, nparts=nparts, nsamples=nsamples, deltad=deltad)
 
     # filter the data
-    y = fs.heatFilterData(exprfile=x[2], dirs=x[0], outputprefix=filteredPrefix, Nf=Nf, adjmat=x[1])
+    if filterType == 'heat':
+        y = fs.heatFilterData(exprfile=x[2], dirs=x[0], outputprefix=filteredPrefix, Nf=Nf, adjmat=x[1])
+    else:
+        y = fs.mexFilterData(exprfile=x[2], dirs=x[0], outputprefix=filteredPrefix, Nf=Nf, adjmat=x[1])
 
     if subgraphFile == '':
         s = es.allSubgraphs(x[0],x[1],maxSubGraphSize,numberSubGraphs)
@@ -79,7 +82,7 @@ def runDenovoSim(datadir, Nf, subgraphFile):
     out,samps = scr.setScoringDenovoMultiScale(dir=datadir, Nf=Nf, exprfile=x[2], subgraphfile=s, filterfiles=y[0], genes=genes, levels=levels)
 
     # run models
-    score, clf, featImp = mm.rfModelSetScores(dirs=x[0], inputs=out, pheno=x[3], genes=genes, cvs=crossVal)
+    score, cvscores, clf, featImp = mm.rfModelSetScores(dirs=x[0], inputs=out, pheno=x[3], genes=genes, cvs=crossVal)
 
     # compare model results to simulation.
     g = an.analysisDenovo(predacc=score, genes=genes, trees=trees, means=means, dirs=x[0], setfile=x[4], setscores=out, setsamples=samps, featureImp=featImp)
@@ -87,7 +90,7 @@ def runDenovoSim(datadir, Nf, subgraphFile):
     return(out)
 
 
-def runDenovoSimRerun(datadir, Nf, subgraphFile):
+def runDenovoSimRerun(datadir, Nf, subgraphFile, filterType):
     #
     # here let's not rebuild the network and data.
     #
@@ -131,7 +134,7 @@ def runDenovoSimRerun(datadir, Nf, subgraphFile):
     out,samps = scr.setScoringDenovoMultiScale(dir=datadir, Nf=Nf, exprfile=x[2], subgraphfile=s, filterfiles=y[0], genes=genes, levels=levels)
 
     # run models
-    score, clf, featImp = mm.rfModelSetScores(dirs=x[0], inputs=out, pheno=x[3], genes=genes, cvs=crossVal)
+    score, cvscores, clf, featImp = mm.rfModelSetScores(dirs=x[0], inputs=out, pheno=x[3], genes=genes, cvs=crossVal)
 
     # compare model results to simulation.
     g = an.analysisDenovo(predacc=score, genes=genes, trees=trees, means=means, dirs=x[0], setfile=x[4], setscores=out, setsamples=samps, featureImp=featImp)

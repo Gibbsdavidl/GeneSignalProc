@@ -5,6 +5,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.model_selection import cross_val_score
 from sklearn import datasets
+from sklearn.model_selection import LeaveOneOut
 
 import numpy as np
 
@@ -50,9 +51,9 @@ def rfModelSetScores(dirs, inputs, pheno, genes, cvs):
     xs = np.array([ np.array(x) for x in inputs ])
     clf = RandomForestClassifier(max_depth=5, n_estimators=100)
     clf.fit(xs, ys)
-    #scores = cross_val_score(clf, xs, ys, cv=cvs)
+    cvscores = cross_val_score(clf, xs, ys, cv=cvs, n_jobs=4)
     featImp = clf.feature_importances_
-    scoreMean = clf.score(xs,ys)
+    scoreMean = mean(cvscores)
     #    take the mean for CV score
     # return the results as a table, tree, gene-set, score
-    return(scoreMean, clf, featImp)
+    return(scoreMean, cvscores, clf, featImp)

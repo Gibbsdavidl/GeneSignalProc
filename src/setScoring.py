@@ -75,10 +75,9 @@ def setScoringDenovoMultiScale(dir, Nf, exprfile, filterfiles, subgraphfile, gen
     sizeMax = len(sgs)
 
     for sample in range(0,len(inputFiles)):
-
+        print(sample)
         # read in the filtered file for sample..
         inputs = open(dir + inputFiles[sample], 'r').read().strip().split("\n")
-        levelSet = levels[sample]
         sampleList.append(sample)
         sampRes = []
 
@@ -86,6 +85,7 @@ def setScoringDenovoMultiScale(dir, Nf, exprfile, filterfiles, subgraphfile, gen
         for i, gs in enumerate(genes):
             # each gene set starts with a rankSum of 0
             # then, in the filtered file, do the rank sum for each level
+            levelSet = levels[i]
             m = len(gs)
             rankSum = 0.0
 

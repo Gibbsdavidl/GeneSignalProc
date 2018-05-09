@@ -15,6 +15,7 @@ def argProc(args, opts):
     datadir = '' # the working directory
     subgraphs = ''  # the subgraphs file
     Nf = ''      # the number of scale-levels.
+    filterType = ''
 
     for o, a in opts:
         if o in ("-h", "--help"):
@@ -34,29 +35,31 @@ def argProc(args, opts):
             Nf = arg
         elif opt in ('-s'):
             subgraphs = arg
-    return(mode, datadir, Nf, subgraphs)
+        elif opt in ('-f'):
+            filterType = arg
+    return(mode, datadir, Nf, subgraphs, filterType)
 
 
 def main():
 
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "hm:d:n:s:", ["help"])
+        opts, args = getopt.getopt(sys.argv[1:], "hm:d:n:s:f:", ["help"])
     except:
         print("for help use --help")
         print("Modes available: denovo_sim, denovo_sim_reuse_data")
-        print("-m Mode  -d data dir  -n number of scale-levels")
+        print("-d data dir  -m Mode  -f filter name  -n number of scale-levels  -s subgraph file")
         sys.exit(2)
 
-    mode, datadir, Nf, subgraphs = argProc(args,opts)
+    mode, datadir, Nf, subgraphs, filterType = argProc(args,opts)
 
     if mode == 'denovo_sim':
-        rds.runDenovoSim(datadir, Nf, subgraphs)
+        rds.runDenovoSim(datadir, Nf, subgraphs, filterType)
 
     elif mode == 'denovo_sim_rerun':
-        rds.runDenovoSimRerun(datadir, Nf, subgraphs)
+        rds.runDenovoSimRerun(datadir, Nf, subgraphs, filterType)
 
     elif mode == 'standard_sim':
-        std.runStandard(datadir, Nf, subgraphs)
+        std.runStandard(datadir, Nf, subgraphs, filterType)
 
     else:
         print("Modes: denovo_sim, denovo_sim_reuse_data ")

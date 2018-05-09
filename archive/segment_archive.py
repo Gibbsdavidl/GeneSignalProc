@@ -101,3 +101,98 @@ def gini(resList):
         bot = 2*n*sum(resList[0][li])
         giniList.append( (top/bot) )
     return(giniList)
+
+
+def segment(net, seed, scalespace, level, eps):
+    # returns a local segmentation, based around the specified seed
+    # net, an igraph network
+    # eps, the difference threshold,
+    # seed, node index
+    # scale space
+    # the matrix with rows as scales and columns as genes, matches the gene order
+    # expr, the signal
+    # level, which scale, which is the row of the filtered data.
+    #
+    q = net.neighbors(seed) # can we get neighbors within a certain distance?
+    inset  = [seed]         # the inside of the segment
+    willadd = []            # list of nodes that passed the test
+    outset = []             # the outside of the segment
+    signal = scalespace[level,:]  # the signal at this level in the space
+    meanList = [0.0] # the list of mean differences
+    while (len(q) > 0):  # while we still have nodes in the queue
+        x = q[0]          # dequeue the first node in the list
+        testin = copy.deepcopy(inset) # our test list
+        testin.append(x)              # add this neighbor
+        testout_lists = ([net.neighbors(gi) for gi in testin])  # the neighbors for each node in the "IN-SET"
+        testout = list(set([item for sublist in testout_lists for item in sublist])) # Take union... these are the "OUT-SET"
+        thisDiff = meanDiff(signal[testin], signal[testout]) # abs value difference
+        # what is the difference between the newly formed group (+x) and the new outside
+        if thisDiff - meanList[len(meanList)-1] > eps: # if the difference has NOT DROPPED beyond eps #
+            # then we want to keep it because it's close to the key pt.
+            meanList.append(thisDiff)  # keep this difference to compare to later
+            willadd.append(x)
+            q.remove(x)
+            nx = [i for i in net.neighbors(x) if i not in inset + outset]
+            q += nx
+        else:
+            # add it to the outset
+            q.remove(x)
+            outset.append(x)
+        if len(willadd) > 0:
+            # then we have some nodes to add
+            inset += willadd
+        willadd = []
+    return( (level, inset, np.mean(signal[inset]), np.mean(signal[outset]), np.mean(signal[inset]) - np.mean(signal[outset]), meanList ) )
+
+
+def bnb_segment(net, seed, scalespace, level, eps):
+    # branch and bound
+    # returns a local segmentation, based around the specified seed
+    # net, an igraph network
+    # eps, 'close enough' threshold
+    # seed, node index
+    # scale space
+    # the matrix with rows as scales and columns as genes, matches the gene order
+    # expr, the signal
+    # level, which scale, which is the row of the filtered data.
+    #
+    # start with simply finding the best pair node.
+    signal = scalespace[level]  # the signal at this level in the space
+    q = net.neighbors(seed)
+    best = 100000.0
+    keep = -1
+    while (len(q) > 0):  # while we still have nodes in the queue
+        qi = q.pop()
+        x = np.abs(signal[seed] - signal[qi])  # seed is a keypt ... want most similar.
+        if x < best : # then let's keep it.
+            keep = qi
+            best = x
+
+    if keep > -1:
+        bestSet = [seed, keep] # now we have a pair.
+    else:
+        bestSet = [seed]
+    # need a queue of possible solutions.
+    # this would be a list of 'inset' .. a set of connected nodes in the *in-set*
+    # first group of possible solutions would be adding neighbors.
+    allNeighbors = getNeighbors(net, bestSet)
+    bestScore = meanDiff(signal[bestSet], signal[allNeighbors])
+    q = [add1(bestSet, i) for i in allNeighbors]
+
+    ## STUCK HERE ##
+    while (len(q) > 0):  # while we still have nodes in the queue
+        #print(len(q))
+        x = q.pop()          # dequeue the first node in the list
+        #if len(x) < (len(signal) * 0.5): # can not have a set larger than half the size of the network!
+        y = getNeighbors(net, x) # get the new surrounding neighbors
+        thisDiff = meanDiff(signal[x], signal[y]) # abs value difference
+        if thisDiff > (bestScore-eps): # if it's 'close enough' to the best then we branch on this solution
+            newq = [add1(x, i) for i in y] # try adding these neighbors send off in parallel?
+            q += newq
+            if thisDiff > bestScore: # but only keep it if it's the best
+                bestSet = x
+                bestScore = thisDiff
+    inMean = np.mean(signal[bestSet])
+    outMean = np.mean(signal[getNeighbors(net, bestSet)])
+    return( (level, bestSet, inMean, outMean, bestScore) )
+
