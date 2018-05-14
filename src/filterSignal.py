@@ -29,6 +29,7 @@ def mexFilterData(exprfile, dirs, outputprefix, Nf, adjmat):
     net = gs.graphs.Graph(W=mat)
     net.directed = False
     net.estimate_lmax()
+    net.compute_fourier_basis()
 
     # for each input file
     inputs = open(dirs+exprfile,'r').read().strip().split("\n")  ###########!!!!!!!!!!!!!! NEW FORMAT!!!!!!!!!!!!!!!!!
@@ -72,6 +73,7 @@ def heatFilterData(exprfile, dirs, outputprefix, Nf, adjmat):
     net = gs.graphs.Graph(W=mat)
     net.directed = False
     net.estimate_lmax()
+    net.compute_fourier_basis()
 
     # for each input file
     inputs = open(dirs+exprfile,'r').read().strip().split("\n")  ###########!!!!!!!!!!!!!! NEW FORMAT!!!!!!!!!!!!!!!!!

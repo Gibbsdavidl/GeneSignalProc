@@ -21,21 +21,17 @@ def normi(x):
 
 def waveletFilter(net, signal, Nf):
     mexhat = g.filters.MexicanHat(net, Nf)
-    #mexhat.estimate_lmax() # or G.compute_fourier_basis()
     sighat = mexhat.analyze(signal)
-    #sighat = sighat.reshape( (Nf, int(sighat.size / Nf)) )
     sighat_transpose = sighat.transpose()
     return(sighat_transpose)
 
 
 def heatFilter(net, signal, Nf):
-    hf = g.filters.MexicanHat(net, Nf)
-    #hf.estimate_lmax() # or G.compute_fourier_basis()
-    hfhat = hf.analyze(signal)
-    hfhat_transpose = hfhat.transpose()
-    return(hfhat_transpose)
-
-
+    tis = [ti for ti in range(10, Nf*20, 20)]
+    hf = g.filters.Heat(net, tau=tis, normalize=False)
+    sighat = hf.analyze(signal)
+    sighat_transpose = sighat.transpose()
+    return(sighat_transpose)
 
 def imageFilteredSig(X):
     def format_coord(x, y):

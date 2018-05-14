@@ -28,6 +28,7 @@ import sys, getopt
 import numpy as np
 import igraph as ig
 import graphFun
+import sys
 
 from datetime import datetime, timedelta
 
@@ -52,10 +53,12 @@ def denovoGeneSets(filelist, dirs, outputprefix, adjmat):
     # and filter each of the inputs
     print("segmenting files")
     for i in range(0,len(inputs)):
+        sys.stdout.write('.')
         msr = np.loadtxt(dirs + inputs[i], delimiter='\t')
         filteredList.append(msr)      # the list of multi-scale-signals
         setTupleList = graphFun.segmentSpace (net=net, bins=5, msr=msr, minsetsize=3)
         setList.append(setTupleList)  # each input gets a list of set-tuples
+    print("done")
 
     # want output to be sets that overlap across scales, for each file.
     print("joining sets across scales")

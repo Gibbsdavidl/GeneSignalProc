@@ -75,7 +75,6 @@ def setScoringDenovoMultiScale(dir, Nf, exprfile, filterfiles, subgraphfile, gen
     sizeMax = len(sgs)
 
     for sample in range(0,len(inputFiles)):
-        print(sample)
         # read in the filtered file for sample..
         inputs = open(dir + inputFiles[sample], 'r').read().strip().split("\n")
         sampleList.append(sample)
