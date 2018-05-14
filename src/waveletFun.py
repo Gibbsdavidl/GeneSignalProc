@@ -27,7 +27,7 @@ def waveletFilter(net, signal, Nf):
 
 
 def heatFilter(net, signal, Nf):
-    tis = [ti for ti in range(10, Nf*20, 20)]
+    tis = [ti for ti in range(10, Nf*50, 50)]
     hf = g.filters.Heat(net, tau=tis, normalize=False)
     sighat = hf.analyze(signal)
     sighat_transpose = sighat.transpose()

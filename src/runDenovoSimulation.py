@@ -41,10 +41,10 @@ def runDenovoSim(datadir, Nf, subgraphFile, filterType):
 
     ngenes = 80    # number of nodes in the network
     nparts = 4     # number of sets in simulation
-    nsamples = 32  # number of samples simulated
+    nsamples = 64  # number of samples simulated
     filteredPrefix = "filtered_"  # file prefix for filtered files
     crossVal = 8   # random forest cross validation folds
-    deltad = 5.0   # boost in the expression for target set
+    deltad = 2.0   # boost in the expression for target set
     Nf: int = int(Nf)   # number of scale levels for filtering
     numberSubGraphs = 100  # if generating subgraphs
     maxSubGraphSize = 25   # max size of subgraphs
@@ -62,10 +62,10 @@ def runDenovoSim(datadir, Nf, subgraphFile, filterType):
     x = ss.runSim_DisjointSets(datadir, ngenes=ngenes, nparts=nparts, nsamples=nsamples, deltad=deltad)
 
     # filter the data
-    if filterType == 'heat':
+    if filterType == 'heat' or filterType == '':
         print("applying heat filter")
         y = fs.heatFilterData(exprfile=x[2], dirs=x[0], outputprefix=filteredPrefix, Nf=Nf, adjmat=x[1])
-    else:
+    elif filterType == 'mexi':
         y = fs.mexFilterData(exprfile=x[2], dirs=x[0], outputprefix=filteredPrefix, Nf=Nf, adjmat=x[1])
 
     # load the subgraphs (or generate them)
