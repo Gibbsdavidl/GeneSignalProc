@@ -56,4 +56,23 @@ def calculate_enrichment_score(gene_set, expressions, omega):
         scores.append(P_GW() - P_NG())
         i += 1
 
-    return scores
+    return sum(scores)
+
+
+
+def buildExprDict(exprdat, geneNames):
+    edict = dict()
+    bits = exprdat.split('\t')
+    for ai, bi in enumerate(bits[1:]):
+        edict[ai] = float(bi)
+    return(edict)
+
+
+def scoreSets(dirs, geneSets, exprfile, omega):
+    inputs = open(dirs + exprfile, 'r').read().strip().split("\n")
+    geneNames = inputs[0].split('\t')
+    for i in inputs[1:]:
+        for g in geneSets:
+            di = buildExprDict(i, geneNames)
+            scr = calculate_enrichment_score(g, di, omega)
+    return(scr)

@@ -34,17 +34,17 @@ import randomForest_model as mm
 import analysisDenovoSimulation as an
 import extractSubGraphs as es
 import setScoring as scr
-
+import ssGSEA as gsea
 
 def runDenovoSim(datadir, Nf, subgraphFile, filterType):
     # defaults
 
     ngenes = 80    # number of nodes in the network
     nparts = 4     # number of sets in simulation
-    nsamples = 64  # number of samples simulated
+    nsamples = 24  # number of samples simulated
     filteredPrefix = "filtered_"  # file prefix for filtered files
     crossVal = 8   # random forest cross validation folds
-    deltad = 2.0   # boost in the expression for target set
+    deltad = 4.0   # boost in the expression for target set
     Nf: int = int(Nf)   # number of scale levels for filtering
     numberSubGraphs = 100  # if generating subgraphs
     maxSubGraphSize = 25   # max size of subgraphs
@@ -84,7 +84,10 @@ def runDenovoSim(datadir, Nf, subgraphFile, filterType):
     out,samps = scr.setScoringDenovoMultiScale(dir=datadir, Nf=Nf, exprfile=x[2], subgraphfile=s, filterfiles=y[0], genes=genes, levels=levels)
 
     # run random forest using gene set scores
-    score, cvscores, clf, featImp = mm.rfModelSetScores(dirs=x[0], inputs=out, pheno=x[3], genes=genes, cvs=crossVal)
+    score, cvscores, clf, featImp = mm.rfModelSetScores(dirs=datadir, inputs=out, pheno=x[3], genes=genes, cvs=crossVal)
+
+    # then run the ssGSEA code on the same data... add to the analysis
+    ssgsea = gsea.scoreSets(datadir, genes, x[2], 1.0)
 
     # compare model results to simulation.
     g = an.analysisDenovo(predacc=score, genes=genes, levels=nlevs, trees=trees, means=means, dirs=x[0], setfile=x[4], setscores=out, setsamples=samps, featureImp=featImp)
