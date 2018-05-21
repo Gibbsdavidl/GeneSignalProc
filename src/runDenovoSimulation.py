@@ -28,7 +28,7 @@
 import numpy, time
 import simulateData_DisjointSets as ss
 import filterSignal as fs
-import denovoGeneSets as dg
+import blobFinder as dg
 import treeFilterAndExtration as cf
 import randomForest_model as mm
 import analysisDenovoSimulation as an
@@ -49,7 +49,7 @@ def runDenovoSim(datadir, Nf, subgraphFile, filterType):
     numberSubGraphs = 100  # if generating subgraphs
     maxSubGraphSize = 25   # max size of subgraphs
     denovoPrefix = "denovo_trees"
-    levelThresh = 3 # number of scale levels to transverse
+    levelThresh = 4 # number of scale levels to transverse
     topNTrees = 20  # number of trees to return
 
 
@@ -75,7 +75,7 @@ def runDenovoSim(datadir, Nf, subgraphFile, filterType):
         s = subgraphFile
 
     # recover the trees
-    z = dg.denovoGeneSets(filelist=y[0], dirs=x[0], outputprefix=denovoPrefix, adjmat=x[1])
+    z = dg.blobs(filelist=y[0], dirs=x[0], outputprefix=denovoPrefix, adjmat=x[1])
 
     # filter trees and extract data for modeling
     trees, genes, means, levels, nlevs = cf.treeFilterAndEx(dirs=x[1], treefile=z[0], filterfiles=y[0], levelThresh=levelThresh, topNTrees=topNTrees)
@@ -87,7 +87,7 @@ def runDenovoSim(datadir, Nf, subgraphFile, filterType):
     score, cvscores, clf, featImp = mm.rfModelSetScores(dirs=datadir, inputs=out, pheno=x[3], genes=genes, cvs=crossVal)
 
     # then run the ssGSEA code on the same data... add to the analysis
-    ssgsea = gsea.scoreSets(datadir, genes, x[2], 1.0)
+    #ssgsea = gsea.scoreSets(datadir, genes, x[2], 1.0)
 
     # compare model results to simulation.
     g = an.analysisDenovo(predacc=score, genes=genes, levels=nlevs, trees=trees, means=means, dirs=x[0], setfile=x[4], setscores=out, setsamples=samps, featureImp=featImp)
