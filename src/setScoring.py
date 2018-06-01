@@ -162,3 +162,91 @@ def setScoringStandard(dir, Nf, exprfile, filterfiles, subgraphfile, genes):
 
     return( (outputs,sampleList) )
 
+
+
+def iciRule(genes, msr):
+
+    ciList = []
+    for i in range(0,len(msr)):
+        chrvals = (msr[i]).strip().split('\t')
+        vals = np.array([float(x) for i,x in enumerate(chrvals) if i in genes])
+        est = np.mean(vals)
+        sd  = np.std(vals)
+        lu = [est-sd, est+sd]
+        ciList.append(lu)
+
+    # algorithm
+    # goal: want largest window where max(L) <= min(U)
+    # start with full size window... satified?
+    # then trim window by one, and slide ... any location that's satisifed? take it.
+
+    windowLength = len(ciList) - 1
+    while windowLength > 1:
+        for loci in range(0,len(ciList)-windowLength): # move the starting point
+            window = [i for i in range(loci, loci+windowLength+1)]  # get the window
+            lbar = max([x[0] for i,x in enumerate(ciList) if i in window])
+            ubar = min([x[1] for i,x in enumerate(ciList) if i in window])
+            if lbar <= ubar:
+                return(window)
+        windowLength -= 1
+    return(-1)
+
+
+def setScoringStandardMultiScale(dir, Nf, filterfiles, subgraphfile, genes):
+    # dir: the working directory
+    # Nf: number of scales
+    # exprfile: the expression file, samples in rows.
+    # filterfiles: the list of filtered expression files
+    # subgraphfile: the file listing sampled subgraphs
+    # genes: the gene sets
+
+    # return a matrix of gene set scores (samples X gs)
+
+    # rank each of the samples across genes
+    #inputs = open(dir + exprfile, 'r').read().strip().split("\n")
+    inputFiles = open(dir+filterfiles, 'r').read().strip().split('\n')
+    outputs = []
+    sampleList = []
+    sgs = sg.loadSubGraphs(dir, subgraphfile)
+    sizeMax = len(sgs)
+
+    for sample in range(0,len(inputFiles)):
+        # read in the filtered file for sample..
+        inputs = open(dir + inputFiles[sample], 'r').read().strip().split("\n")
+        sampleList.append(sample)
+        sampRes = []
+
+        # for each gene set,
+        for i, gs in enumerate(genes):
+            # each gene set starts with a rankSum of 0
+            # then, in the filtered file, do the rank sum for
+            # each level returned by ICI
+            levelSet = iciRule(gs, inputs)
+            m = len(gs)
+            rankSum = 0.0
+
+            if m <= sizeMax:
+                subGraphSums = np.array([0.0 for gx in sgs[m]])
+
+                for li in levelSet:
+
+                    exprMat = inputs[li].strip().split('\t')  # not great name ... it's the filtered data
+
+                    # sum up the ranks (r_e).
+                    expr = [float(x) for x in exprMat]  ############## IN FITLER FILE, yep
+                    exprRanks = sp.stats.rankdata(expr)
+                    rankSum += sum([exprRanks[j] for j in gs])
+
+                    # sum up ranks for sampled subgraphs mean(r_s).
+                    # same for scale levels, get subgraph sets, sum ranks
+                    subGraphSums += np.array([sum([exprRanks[j] for j in gx]) for gx in sgs[m]]) ######### IN FITLER FILE, yep
+
+                # save r_e / r_s ### ACROSS LEVELS ####
+                res0 = sum([1.0 for x in subGraphSums if rankSum > x]) / float(len(subGraphSums))
+                sampRes.append(res0)
+            else:
+                sampRes.append(0.0)
+            # end one gene set
+        # end one sample
+        outputs.append(sampRes)
+    return( (outputs,sampleList) )

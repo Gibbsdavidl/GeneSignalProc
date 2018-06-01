@@ -21,9 +21,9 @@ def buildListOfGenesFromSetMat(datadir, filename):
 
 def runStandard(datadir, Nf, subgraphFile, filterType):
     # defaults
-    ngenes = 80    # number of nodes in the network
-    nparts = 4     # number of sets in simulation
-    nsamples = 10  # number of samples simulated
+    ngenes = 100    # number of nodes in the network
+    nparts = 5     # number of sets in simulation
+    nsamples = 32  # number of samples simulated
     filteredPrefix = "filtered_"  # file prefix for filtered files
     crossVal = 5   # random forest cross validation folds
     deltad = 5.0   # boost in the expression for target set
@@ -52,15 +52,23 @@ def runStandard(datadir, Nf, subgraphFile, filterType):
         s = subgraphFile
 
     # get a list of genes for each set in the setmatrix
-    genes = buildListOfGenesFromSetMat(datadir, 'setmatrix.tsv')
-
-    # run models
-    m = mm.rfModel(dirs=x[0], exprfile=x[2], pheno=x[3], genes=genes, cvs=crossVal)
+    genes = buildListOfGenesFromSetMat(datadir, 'setmatrix.tsv')  # also could specify what gene sets wanted...
+    # or proc a gmt file
 
     # score the gene sets.
-    out, samps = scr.setScoringStandard(dir=datadir, Nf=Nf, exprfile=x[2], subgraphfile=s, filterfiles=y[0], genes=genes)
+    out, samps = scr.setScoringStandardMultiScale(dir=datadir, Nf=Nf, subgraphfile=s, filterfiles=y[0], genes=genes)
+
+    # run models
+    score, cvscores, clf, featImp = mm.rfModelSetScores(dirs=x[0], inputs=out, pheno=x[3], genes=genes, cvs=crossVal)
 
     # compare model results to simulation.
-    g = an.analysis(predacc=m, genes=genes, dirs=x[0], setfile=x[4], setscores=out, setsamples=samps)
+    g = an.analysis(predacc=score, genes=genes, dirs=x[0], setfile=x[4], setscores=out, setsamples=samps, featureImp=featImp)
 
     return(out)
+
+
+    # score the gene sets.
+    # out,samps = scr.setScoringDenovoMultiScale(dir=datadir, Nf=Nf, exprfile=x[2], subgraphfile=s, filterfiles=y[0], genes=genes, levels=levels)
+
+    # run random forest using gene set scores
+    # score, cvscores, clf, featImp = mm.rfModelSetScores(dirs=datadir, inputs=out, pheno=x[3], genes=genes, cvs=crossVal)
