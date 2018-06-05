@@ -7,6 +7,7 @@ import randomForest_model as mm
 import analysisStandardSimulation as an
 import extractSubGraphs as es
 import setScoring as scr
+import ssGSEA as ssgsea
 
 
 def buildListOfGenesFromSetMat(datadir, filename):
@@ -28,7 +29,7 @@ def runStandard(datadir, Nf, subgraphFile, filterType):
     crossVal = 5   # random forest cross validation folds
     deltad = 5.0   # boost in the expression for target set
     Nf = int(Nf)   # number of scale levels for filtering
-    numberSubGraphs = 100  # if generating subgraphs
+    numberSubGraphs = 500  # if generating subgraphs
     maxSubGraphSize = 25   # max size of subgraphs
 
     print('Running Standard Sim')
@@ -54,6 +55,8 @@ def runStandard(datadir, Nf, subgraphFile, filterType):
     # get a list of genes for each set in the setmatrix
     genes = buildListOfGenesFromSetMat(datadir, 'setmatrix.tsv')  # also could specify what gene sets wanted...
     # or proc a gmt file
+
+    ssgseaScores = ssgsea.scoreSets(dirs=x[0], geneSets=genes, exprfile=x[2], omega=2)
 
     # score the gene sets.
     out, samps = scr.setScoringStandardMultiScale(dir=datadir, Nf=Nf, subgraphfile=s, filterfiles=y[0], genes=genes)

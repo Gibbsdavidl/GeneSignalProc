@@ -68,11 +68,24 @@ def buildExprDict(exprdat, geneNames):
     return(edict)
 
 
+def printSSGSEAResults(res0, dirs):
+    fout = open(dirs+'ssgsea_scores.tsv','w')
+    for lx in res0:
+        drddddd = [str(x) for x in lx]
+        fout.write('\t'.join(drddddd)+'\n')
+    return(0)
+
+
 def scoreSets(dirs, geneSets, exprfile, omega):
     inputs = open(dirs + exprfile, 'r').read().strip().split("\n")
     geneNames = inputs[0].split('\t')
+    allResults = []
     for i in inputs[1:]:
+        thisResult = []
         for g in geneSets:
             di = buildExprDict(i, geneNames)
             scr = calculate_enrichment_score(g, di, omega)
-    return(scr)
+            thisResult.append(scr)
+        allResults.append(thisResult)
+    printSSGSEAResults(allResults, dirs)
+    return(allResults)
