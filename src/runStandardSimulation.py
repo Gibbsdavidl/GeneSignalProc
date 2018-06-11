@@ -22,15 +22,15 @@ def buildListOfGenesFromSetMat(datadir, filename):
 
 def runStandard(datadir, Nf, subgraphFile, filterType):
     # defaults
-    ngenes = 100    # number of nodes in the network
+    ngenes = 100   # number of nodes in the network
     nparts = 5     # number of sets in simulation
     nsamples = 32  # number of samples simulated
     filteredPrefix = "filtered_"  # file prefix for filtered files
-    crossVal = 5   # random forest cross validation folds
+    crossVal = 8   # random forest cross validation folds
     deltad = 5.0   # boost in the expression for target set
     Nf = int(Nf)   # number of scale levels for filtering
-    numberSubGraphs = 200  # if generating subgraphs
-    maxSubGraphSize = 25   # max size of subgraphs
+    numberSubGraphs = 300  # if generating subgraphs
+    maxSubGraphSize = 30   # max size of subgraphs
 
     print('Running Standard Sim')
     print('\n    working in ' + datadir)
@@ -42,6 +42,7 @@ def runStandard(datadir, Nf, subgraphFile, filterType):
 
     # filter the data
     if filterType == 'heat':
+        print('running heat filter..')
         y = fs.heatFilterData(exprfile=x[2], dirs=x[0], outputprefix=filteredPrefix, Nf=Nf, adjmat=x[1])
     else:
         y = fs.mexFilterData(exprfile=x[2], dirs=x[0], outputprefix=filteredPrefix, Nf=Nf, adjmat=x[1])

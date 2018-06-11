@@ -71,6 +71,21 @@ def writeAllSubgraphs(dirs, allSgs):
     fout.close()
     return()
 
+# from https://www.peterbe.com/plog/uniqifiers-benchmark
+def f5(seq, idfun=None):
+   # order preserving
+   if idfun is None:
+       def idfun(x): return repr(x)
+   seen = {}
+   result = []
+   for item in seq:
+       item.sort()
+       marker = idfun(item)
+       if marker in seen: continue
+       seen[marker] = 1
+       result.append(item)
+   return result
+
 def allSubgraphs(dirs, adjmat, maxSize, numGraphs):
     print("loading network")
     mat = np.loadtxt(dirs+adjmat, delimiter='\t')
@@ -82,7 +97,8 @@ def allSubgraphs(dirs, adjmat, maxSize, numGraphs):
         with Pool(3) as p:
             #sgs = p.map(oneSubgraph, inputs)             # find the subgraphs
             sgs = p.map(forestFire, inputs)
-        allSgs[gsize] = sgs
+        sgsidx = f5(sgs)
+        allSgs[gsize] = sgsidx
     writeAllSubgraphs(dirs,allSgs)                            # write them out
     return('all_subgraphs.txt')
 
