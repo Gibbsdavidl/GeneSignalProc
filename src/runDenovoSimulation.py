@@ -32,7 +32,7 @@ import blobFinder as dg
 import treeFilterAndExtration as cf
 import randomForest_model as mm
 import analysisDenovoSimulation as an
-import extractSubGraphs as es
+import subGraphGenerator as es
 import setScoring as scr
 import ssGSEA as gsea
 

@@ -4,7 +4,7 @@
 import numpy as np
 import scipy as sp
 import scipy.stats
-import extractSubGraphs as sg
+import subGraphGenerator as sg
 
 
 
@@ -221,6 +221,9 @@ def setScoringStandardMultiScale(dir, Nf, filterfiles, subgraphfile, genes):
             # each gene set starts with a rankSum of 0
             # then, in the filtered file, do the rank sum for
             # each level returned by ICI
+
+            fout = open(dir+'scorelog_'+str(sample)+'_'+str(i)+'.tsv','w')
+
             levelSet = iciRule(gs, inputs)
             m = len(gs)
             rankSum = 0.0
@@ -242,10 +245,12 @@ def setScoringStandardMultiScale(dir, Nf, filterfiles, subgraphfile, genes):
                     subGraphSums += np.array([sum([exprRanks[j] for j in gx]) for gx in sgs[m]]) ######### IN FITLER FILE, yep
 
                 # save r_e / r_s ### ACROSS LEVELS ####
+                fout.write(str(rankSum)+'\t'+'\t'.join([str(z) for z in subGraphSums])+'\n')
                 res0 = sum([1.0 for x in subGraphSums if rankSum > x]) / float(len(subGraphSums))
                 sampRes.append(res0)
             else:
                 sampRes.append(0.0)
+            fout.close()
             # end one gene set
         # end one sample
         outputs.append(sampRes)

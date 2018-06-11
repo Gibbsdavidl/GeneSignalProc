@@ -5,7 +5,7 @@ import simulateData_DisjointSets as ss
 import filterSignal as fs
 import randomForest_model as mm
 import analysisStandardSimulation as an
-import extractSubGraphs as es
+import subGraphGenerator as es
 import setScoring as scr
 import ssGSEA as ssgsea
 
@@ -29,7 +29,7 @@ def runStandard(datadir, Nf, subgraphFile, filterType):
     crossVal = 5   # random forest cross validation folds
     deltad = 5.0   # boost in the expression for target set
     Nf = int(Nf)   # number of scale levels for filtering
-    numberSubGraphs = 500  # if generating subgraphs
+    numberSubGraphs = 200  # if generating subgraphs
     maxSubGraphSize = 25   # max size of subgraphs
 
     print('Running Standard Sim')
