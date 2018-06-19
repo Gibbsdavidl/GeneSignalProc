@@ -7,6 +7,7 @@
 import igraph as ig
 from multiprocessing import Pool
 import numpy as np
+import copy
 
 # first the function that returns subgraphs of a given size
 
@@ -32,34 +33,38 @@ def oneSubgraph( x ):
     return(np.where(used)[0])
 
 def forestFire( x ):
-    (i, G, size) = x
+    (i, G, size, seed) = x
+    np.random.seed(seed)
     p = 0.35 / (1.0-0.35)
     comp = G.components(mode=ig.STRONG)
     compSizes = [sum(i == np.array(comp.membership)) for i in set(comp.membership)]
     valid = [compSizes[i] > size for i in comp.membership]  # only sampling from components that are large enough
-    firstNode = np.random.choice(np.where(valid)[0], size=1)[0] # root of the subgraph
-    burning = [firstNode]                                       # node is burning
-    queue = [firstNode]                                                  # neighbors
-    while len(burning) < size and len(queue) > 0:
-        # get node
-        v = queue.pop(0)
-        # get non-burned edges of node
-        ws = [w for w in G.neighbors(v) if w not in burning]
-        # number of edges to sample ...
-        es = np.random.geometric(p=p, size=1)[0]
-        if len(ws) > 0 and es > len(ws):
-            sws = ws
-        elif len(ws) > 0:
-            sws = np.random.choice(a=ws, size=es, replace=False) # selected nodes to burn
-        else:
-            sws = []
-        for si in sws:
-            if len(burning) < size:
-                burning.append(si)
-                queue.append(si)
+    burning = []
+    while len(burning) < size:
+        firstNode = np.random.choice(np.where(valid)[0], size=1)[0] # root of the subgraph
+        burning = [firstNode]                                       # node is burning
+        queue = [firstNode]             # neighbors
+        while len(queue) > 0:
+            # get node
+            v = queue.pop(0)
+            # get non-burned edges of node
+            ws = [w for w in G.neighbors(v) if w not in burning]
+            # number of edges to sample ...
+            es = max(1, np.random.geometric(p=p, size=1)[0])
+            if len(ws) > 0 and es > len(ws):
+                sws = ws
+            elif len(ws) > 0:
+                sws = np.random.choice(a=ws, size=es, replace=False) # selected nodes to burn
             else:
-                break
-    return(burning)
+                sws = []
+            for si in sws:
+                if len(burning) < size:
+                    burning.append(si)
+                    queue.append(si)
+                else:
+                    break
+    bret = copy.deepcopy(burning)
+    return(bret)
 
 
 def writeAllSubgraphs(dirs, allSgs):
@@ -93,7 +98,7 @@ def allSubgraphs(dirs, adjmat, maxSize, numGraphs):
     allSgs = [[] for i in range(0,maxSize)] # for each subgraph size
     print("searching for subgraphs")
     for gsize in range(5, maxSize):
-        inputs = [(i, G, gsize) for i in range(0,numGraphs)]  # gather the inputs
+        inputs = [(i, G, gsize, np.random.randint(low=1, high=999999999)) for i in range(0,numGraphs)]  # gather the inputs
         with Pool(3) as p:
             #sgs = p.map(oneSubgraph, inputs)             # find the subgraphs
             sgs = p.map(forestFire, inputs)

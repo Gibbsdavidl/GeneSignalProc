@@ -202,6 +202,7 @@ def setScoringStandardMultiScale(dir, Nf, filterfiles, subgraphfile, genes):
 
     # return a matrix of gene set scores (samples X gs)
 
+    print("scoring sets")
     # rank each of the samples across genes
     #inputs = open(dir + exprfile, 'r').read().strip().split("\n")
     inputFiles = open(dir+filterfiles, 'r').read().strip().split('\n')
@@ -221,37 +222,43 @@ def setScoringStandardMultiScale(dir, Nf, filterfiles, subgraphfile, genes):
             # each gene set starts with a rankSum of 0
             # then, in the filtered file, do the rank sum for
             # each level returned by ICI
-
             #fout = open(dir+'scorelog_'+str(sample)+'_'+str(i)+'.tsv','w')
-
             levelSet = iciRule(gs, inputs)
             m = len(gs)
             rankSum = 0.0
-
+            dist = []
             if m <= sizeMax:
-                subGraphSums = np.array([0.0 for gx in sgs[m]])
-
+                #subGraphSums = np.array([0.0 for gx in sgs[m]])
+                #dist = np.array([0.0 for gx in sgs[m]])
                 for li in levelSet:
 
                     exprMat = inputs[li].strip().split('\t')  # not great name ... it's the filtered data
-
-                    # sum up the ranks (r_e).
                     expr = [float(x) for x in exprMat]  ############## IN FITLER FILE, yep
-                    exprRanks = sp.stats.rankdata(expr)
-                    rankSum += sum([exprRanks[j] for j in gs])
+                    #exprRanks = sp.stats.rankdata(expr)
 
+                    gsExpr = np.array([expr[j] for j in gs]) # for this scale-level
+
+                    #rankSum += sum([exprRanks[j] for j in gs])
                     # sum up ranks for sampled subgraphs mean(r_s).
                     # same for scale levels, get subgraph sets, sum ranks
-                    subGraphSums += np.array([sum([exprRanks[j] for j in gx]) for gx in sgs[m]]) ######### IN FITLER FILE, yep
+                    subGraphExpr = np.array([ [expr[j] for j in gx] for gx in sgs[m] ])
+                    #subGraphSums += np.array([sum([exprRanks[j] for j in gx]) for gx in sgs[m]])  ######### IN FITLER FILE, yep
+                    dist += [scipy.stats.ttest_rel(gsExpr, x) for x in subGraphExpr]
+                    #dist += [scipy.spatial.distance.cosine(gsExpr, x) for x in subGraphExpr]
 
                 # save r_e / r_s ### ACROSS LEVELS ####
                 #fout.write(str(rankSum)+'\t'+'\t'.join([str(z) for z in subGraphSums])+'\n')
-                res0 = sum([1.0 for x in subGraphSums if rankSum > x]) / float(len(subGraphSums))
+
+                #res0 = sum([1.0 for x in subGraphSums if rankSum > x]) / float(len(subGraphSums))
+                #res0 = sum([x[0] for x in dist] ) / float(len(dist))
+                res0 = np.mean(dist)
                 sampRes.append(res0)
             else:
                 sampRes.append(0.0)
             #fout.close()
             # end one gene set
         # end one sample
+        #totRes = sum(sampRes)
+        #sampRes = [x/totRes for x in sampRes]
         outputs.append(sampRes)
     return( (outputs,sampleList) )
