@@ -5,7 +5,7 @@ import numpy as np
 import scipy as sp
 import scipy.stats
 import subGraphGenerator as sg
-
+import sys
 
 
 def setScoringDenovo(dir, Nf, exprfile, filterfiles, subgraphfile, genes):
@@ -243,14 +243,24 @@ def setScoringStandardMultiScale(dir, Nf, filterfiles, subgraphfile, genes):
                     # same for scale levels, get subgraph sets, sum ranks
                     subGraphExpr = np.array([ [expr[j] for j in gx] for gx in sgs[m] ])
                     #subGraphSums += np.array([sum([exprRanks[j] for j in gx]) for gx in sgs[m]])  ######### IN FITLER FILE, yep
-                    dist += [scipy.stats.ttest_rel(gsExpr, x) for x in subGraphExpr]
+                    #dist += [scipy.stats.ttest_rel(gsExpr, x) for x in subGraphExpr]
                     #dist += [scipy.spatial.distance.cosine(gsExpr, x) for x in subGraphExpr]
-
+                    dist += [(np.mean(gsExpr) - np.mean(x))/np.std(x) for x in subGraphExpr]
+                    #try:
+                    #    u = np.mean(subGraphExpr, axis=0)
+                    #    z = np.vstack(subGraphExpr)
+                    #    c = np.cov(z.T)
+                    #    v = np.linalg.inv(c)  # might barf here
+                    #    d = scipy.spatial.distance.mahalanobis(u, gsExpr, v)
+                    #    dist += [d]
+                    #except:
+                    #    dist += [0.0]
                 # save r_e / r_s ### ACROSS LEVELS ####
                 #fout.write(str(rankSum)+'\t'+'\t'.join([str(z) for z in subGraphSums])+'\n')
 
                 #res0 = sum([1.0 for x in subGraphSums if rankSum > x]) / float(len(subGraphSums))
                 #res0 = sum([x[0] for x in dist] ) / float(len(dist))
+                #res0 = scipy.stats.ttest_1samp(dist,0.0)
                 res0 = np.mean(dist)
                 sampRes.append(res0)
             else:

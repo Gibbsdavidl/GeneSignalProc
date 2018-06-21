@@ -27,7 +27,7 @@ def runStandard(datadir, Nf, subgraphFile, filterType):
     nsamples = 32  # number of samples simulated
     filteredPrefix = "filtered_"  # file prefix for filtered files
     crossVal = 8   # random forest cross validation folds
-    deltad = 5.0   # boost in the expression for target set
+    deltad = 2.0   # boost in the expression for target set
     Nf = int(Nf)   # number of scale levels for filtering
     numberSubGraphs = 300  # if generating subgraphs
     maxSubGraphSize = 30   # max size of subgraphs
@@ -65,8 +65,11 @@ def runStandard(datadir, Nf, subgraphFile, filterType):
     # run models
     score, cvscores, clf, featImp = mm.rfModelSetScores(dirs=x[0], inputs=out, pheno=x[3], genes=genes, cvs=crossVal)
 
+    # run models
+    gseascore, gseacvscores, gseaclf, gseafeatImp = mm.rfModelSetScores(dirs=x[0], inputs=ssgseaScores, pheno=x[3], genes=genes, cvs=crossVal)
+
     # compare model results to simulation.
-    g = an.analysis(predacc=score, genes=genes, dirs=x[0], setfile=x[4], setscores=out, setsamples=samps, featureImp=featImp)
+    g = an.analysis(predacc=score, genes=genes, dirs=x[0], setfile=x[4], setscores=out, setsamples=samps, featureImp=featImp, gseaScore=gseascore)
 
     return(out)
 

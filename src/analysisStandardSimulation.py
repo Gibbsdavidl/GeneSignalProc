@@ -36,7 +36,7 @@ def writeOutputs(dir,sampleList,outputs,idx):
 
 
 # trees, (in, out) where those are pointers to the denovo_trees file.
-def analysis(predacc, genes, dirs, setfile, setscores, setsamples, featureImp):
+def analysis(predacc, genes, dirs, setfile, setscores, setsamples, featureImp, gseaScore):
     # predacc - prediction accuracy from random forest
     # genes - list of gene sets
     # dirs - working directory
@@ -52,8 +52,8 @@ def analysis(predacc, genes, dirs, setfile, setscores, setsamples, featureImp):
     means = (means[1]).split('\t')
 
     fout = open(dirs+'analyout.tsv','w')
-    fout.write("set\taccr\tfeatimp\tmean\tngenes\tgenes\n")
-    print("set\taccr\tmean\tngenes\n")
+    fout.write("set\taccr\tgsea\tfeatimp\tmean\tngenes\tgenes\n")
+    print("set\taccr\tgsea\tmean\tngenes\n")
 
     # put the sets in order of prediction ability
     predidx = np.argsort(featureImp)
@@ -61,12 +61,13 @@ def analysis(predacc, genes, dirs, setfile, setscores, setsamples, featureImp):
     for i in predidx:
         seti = str(i)
         a = str(predacc)
+        d = str(gseaScore)
         b = str(means[i])
         c = str(len(genes[i]))
         f = str(genes[i])
         g = str(featureImp[i])
-        fout.write('\t'.join([seti,a,g,b,c,f])+'\n')
-        print('\t'.join([seti,a,g,b,c]))
+        fout.write('\t'.join([seti,a,d,g,b,c,f])+'\n')
+        print('\t'.join([seti,a,d,g,b,c]))
 
     writeOutputs(dirs, setsamples, setscores, predidx)
 

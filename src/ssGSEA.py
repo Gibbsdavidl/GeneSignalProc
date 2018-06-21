@@ -77,6 +77,7 @@ def printSSGSEAResults(res0, dirs):
 
 
 def scoreSets(dirs, geneSets, exprfile, omega):
+    print("running ssGSEA")
     inputs = open(dirs + exprfile, 'r').read().strip().split("\n")
     geneNames = inputs[0].split('\t')
     allResults = []
