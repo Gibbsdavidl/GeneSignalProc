@@ -103,6 +103,13 @@ def connectnetwork(netList, genes, geneList):
             ewgt = np.random.exponential() ## the edge weight
             g.add_edge(targ, sour, weight = ewgt) # add a new edge into g
     g.vs['name'] = genes
+    for i in range(0,20):  # number of random edges to add
+        a = np.random.choice(allvs)  # sample one of last vs
+        b = np.random.choice(allvs)  # sample one of all vs
+        w = np.random.exponential()
+        if a != b:
+            g.add_edge(a, b, weight=w)  # make edge.
+
     return(g)
 
 

@@ -61,8 +61,8 @@ def runStandard(datadir, Nf, subgraphFile, filterType):
 
     # score the gene sets.
     #out, samps = scr.setScoringStandardMultiScaleTwoSampleTPooled(dir=datadir, Nf=Nf, subgraphfile=s, filterfiles=y[0], genes=genes)
-    out, samps = scr.setScoringStandardMultiScaleNumpyT(dir=datadir, Nf=Nf, subgraphfile=s, filterfiles=y[0], genes=genes)
-    #out, samps = scr.setScoringStandardMultiScale_median_diffs(dir=datadir, Nf=Nf, subgraphfile=s, filterfiles=y[0], genes=genes)
+    #out, samps = scr.setScoringStandardMultiScaleNumpyT(dir=datadir, Nf=Nf, subgraphfile=s, filterfiles=y[0], genes=genes)
+    out, samps = scr.setScoringStandardMultiScale_median_diffs(dir=datadir, Nf=Nf, subgraphfile=s, filterfiles=y[0], genes=genes)
     #out, samps = scr.setScoringStandardMultiScale_mahalanoibis(dir=datadir, Nf=Nf, subgraphfile=s, filterfiles=y[0], genes=genes)
     #out, samps = scr.setScoringStandardMultiScaleZscore(dir=datadir, Nf=Nf, subgraphfile=s, filterfiles=y[0], genes=genes)
 
