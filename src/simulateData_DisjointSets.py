@@ -54,6 +54,7 @@ def createEvenPartsNetworks(genes, ngenes, nparts):
     geneList = []
     for i in range(0,nparts):
         thesegenes = npgenes[(i*partSize):(i*partSize + partSize)] # get these genes in this part
+        # add some extra random genes here too.
         g = igraph.Graph.Tree(partSize, 3)                         # make a tree network
         g.vs["name"] = thesegenes                                  # name it
         netList.append(g)                                          # add this net-set to the list
@@ -111,9 +112,9 @@ def gen_means_and_sds(sets, idx, delta):
     # set_means = [ [np.random.lognormal(mean=1, sigma=0.25, size=1)[0], np.random.lognormal(mean=1, sigma=0.25, size=1)[0]] for si in sets] # [np.random.sample() * 1 for si in sets]
     # then for
     set_means = [
-        [1, 1] for si
+        [3, 3] for si
         in sets]
-    set_means[idx][1] *= delta
+    set_means[idx][1] += delta
     return(set_means)
 
 
@@ -123,8 +124,8 @@ def gen_expression(ngenes, sets, set_means, pheno, sigma, si, samplenames):
     gexpr = np.zeros(ngenes) # expr for each gene
     # need a vector of means with length equal to the number of nodes
     geneMeans = np.concatenate([np.repeat(set_means[i][pheno[si]], repeats=len(sets[i])) for i in range(0,len(set_means))])
-    #gexpr += (np.random.multivariate_normal(mean=geneMeans, cov=sigma))
-    gexpr += (np.random.normal(loc=geneMeans,scale=1 ))
+    gexpr += (np.random.multivariate_normal(mean=geneMeans, cov=sigma))
+    #gexpr += (np.random.normal(loc=geneMeans,scale=1 ))
     gexpr = [samplenames[si]] + [str(gi) for gi in gexpr]
     return(gexpr)
 

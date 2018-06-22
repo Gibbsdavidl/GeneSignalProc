@@ -29,7 +29,7 @@ def runStandard(datadir, Nf, subgraphFile, filterType):
     crossVal = 8   # random forest cross validation folds
     deltad = 2.0   # boost in the expression for target set
     Nf = int(Nf)   # number of scale levels for filtering
-    numberSubGraphs = 300  # if generating subgraphs
+    numberSubGraphs = 200  # if generating subgraphs
     maxSubGraphSize = 30   # max size of subgraphs
 
     print('Running Standard Sim')
@@ -60,7 +60,11 @@ def runStandard(datadir, Nf, subgraphFile, filterType):
     ssgseaScores = ssgsea.scoreSets(dirs=x[0], geneSets=genes, exprfile=x[2], omega=2)
 
     # score the gene sets.
-    out, samps = scr.setScoringStandardMultiScale(dir=datadir, Nf=Nf, subgraphfile=s, filterfiles=y[0], genes=genes)
+    #out, samps = scr.setScoringStandardMultiScaleTwoSampleTPooled(dir=datadir, Nf=Nf, subgraphfile=s, filterfiles=y[0], genes=genes)
+    out, samps = scr.setScoringStandardMultiScaleNumpyT(dir=datadir, Nf=Nf, subgraphfile=s, filterfiles=y[0], genes=genes)
+    #out, samps = scr.setScoringStandardMultiScale_median_diffs(dir=datadir, Nf=Nf, subgraphfile=s, filterfiles=y[0], genes=genes)
+    #out, samps = scr.setScoringStandardMultiScale_mahalanoibis(dir=datadir, Nf=Nf, subgraphfile=s, filterfiles=y[0], genes=genes)
+    #out, samps = scr.setScoringStandardMultiScaleZscore(dir=datadir, Nf=Nf, subgraphfile=s, filterfiles=y[0], genes=genes)
 
     # run models
     score, cvscores, clf, featImp = mm.rfModelSetScores(dirs=x[0], inputs=out, pheno=x[3], genes=genes, cvs=crossVal)
