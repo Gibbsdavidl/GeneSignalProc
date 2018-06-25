@@ -45,7 +45,7 @@ def runDenovoSim(datadir, Nf, subgraphFile, filterType):
     filteredPrefix = "filtered_"  # file prefix for filtered files
     crossVal = 8   # random forest cross validation folds
     deltad = 4.0   # boost in the expression for target set
-    Nf: int = int(Nf)   # number of scale levels for filtering
+    Nf = int(Nf)   # number of scale levels for filtering
     numberSubGraphs = 100  # if generating subgraphs
     maxSubGraphSize = 25   # max size of subgraphs
     denovoPrefix = "denovo_trees"

@@ -27,7 +27,7 @@ def runStandard(datadir, Nf, subgraphFile, filterType):
     nsamples = 32  # number of samples simulated
     filteredPrefix = "filtered_"  # file prefix for filtered files
     crossVal = 8   # random forest cross validation folds
-    deltad = 2.0   # boost in the expression for target set
+    deltad = 1.7   # boost in the expression for target set
     Nf = int(Nf)   # number of scale levels for filtering
     numberSubGraphs = 200  # if generating subgraphs
     maxSubGraphSize = 30   # max size of subgraphs
@@ -83,3 +83,76 @@ def runStandard(datadir, Nf, subgraphFile, filterType):
 
     # run random forest using gene set scores
     # score, cvscores, clf, featImp = mm.rfModelSetScores(dirs=datadir, inputs=out, pheno=x[3], genes=genes, cvs=crossVal)
+
+
+
+def runStandardTest(datadir, Nf, subgraphFile, filterType, reps):
+    # defaults
+    ngenes = 100   # number of nodes in the network
+    nparts = 5     # number of sets in simulation
+    nsamples = 32  # number of samples simulated
+    filteredPrefix = "filtered_"  # file prefix for filtered files
+    crossVal = 8   # random forest cross validation folds
+    deltad = 2.0  # boost in the expression for target set
+    Nf = int(Nf)   # number of scale levels for filtering
+    numberSubGraphs = 300  # if generating subgraphs
+    maxSubGraphSize = 30   # max size of subgraphs
+
+    print('Running Standard Sim')
+    print('\n    working in ' + datadir)
+
+    totalRes = []
+    fout = open(datadir+'test_results_median_diffs.tsv','w')
+
+    for ri in range(0,reps):
+
+        try:
+            print("Rep " + str(ri))
+
+            np.random.seed(seed=int(time.time()))
+
+            # first simulate the data
+            x = ss.runSim_DisjointSets(datadir, ngenes=ngenes, nparts=nparts, nsamples=nsamples, deltad=deltad)
+
+            # filter the data
+            if filterType == 'heat':
+                print('running heat filter..')
+                y = fs.heatFilterData(exprfile=x[2], dirs=x[0], outputprefix=filteredPrefix, Nf=Nf, adjmat=x[1])
+            else:
+                y = fs.mexFilterData(exprfile=x[2], dirs=x[0], outputprefix=filteredPrefix, Nf=Nf, adjmat=x[1])
+
+            # build the subgraph sets
+            if subgraphFile == '':
+                s = es.allSubgraphs(x[0],x[1],maxSubGraphSize,numberSubGraphs)
+            else:
+                s = subgraphFile
+
+            # get a list of genes for each set in the setmatrix
+            genes = buildListOfGenesFromSetMat(datadir, 'setmatrix.tsv')  # also could specify what gene sets wanted...
+            # or proc a gmt file
+
+            ssgseaScores = ssgsea.scoreSets(dirs=x[0], geneSets=genes, exprfile=x[2], omega=2)
+
+            # score the gene sets.
+            #out, samps = scr.setScoringStandardMultiScaleTwoSampleTPooled(dir=datadir, Nf=Nf, subgraphfile=s, filterfiles=y[0], genes=genes)
+            #out, samps = scr.setScoringStandardMultiScaleNumpyT(dir=datadir, Nf=Nf, subgraphfile=s, filterfiles=y[0], genes=genes)
+            out, samps = scr.setScoringStandardMultiScale_median_diffs(dir=datadir, Nf=Nf, subgraphfile=s, filterfiles=y[0], genes=genes)
+            #out, samps = scr.setScoringStandardMultiScale_mahalanoibis(dir=datadir, Nf=Nf, subgraphfile=s, filterfiles=y[0], genes=genes)
+            #out, samps = scr.setScoringStandardMultiScaleZscore(dir=datadir, Nf=Nf, subgraphfile=s, filterfiles=y[0], genes=genes)
+
+            # run models
+            score, cvscores, clf, featImp = mm.rfModelSetScores(dirs=x[0], inputs=out, pheno=x[3], genes=genes, cvs=crossVal)
+
+            # run models
+            gseascore, gseacvscores, gseaclf, gseafeatImp = mm.rfModelSetScores(dirs=x[0], inputs=ssgseaScores, pheno=x[3], genes=genes, cvs=crossVal)
+
+            # compare model results to simulation.
+            totalRes.append( (gseascore, score) )
+            fout.write(str(tr[0]) + '\t' + str(tr[1]) + '\n')
+        except:
+            print("Rep Failed...")
+            e = sys.exc_info()[0]
+            write_to_page("<p>Error: %s</p>" % e)
+
+    return(0)
+

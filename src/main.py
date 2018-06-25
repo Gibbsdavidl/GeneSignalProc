@@ -61,6 +61,9 @@ def main():
     elif mode == 'standard_sim':
         std.runStandard(datadir, Nf, subgraphs, filterType)
 
+    elif mode == 'standard_test':
+        std.runStandardTest(datadir, Nf, subgraphs, filterType, 200)
+
     else:
         print("Modes: denovo_sim, denovo_sim_reuse_data ")
 
