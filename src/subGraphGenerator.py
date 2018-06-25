@@ -91,7 +91,7 @@ def f5(seq, idfun=None):
        result.append(item)
    return result
 
-def allSubgraphs(dirs, adjmat, maxSize, numGraphs):
+def allSubgraphs(dirs, adjmat, maxSize, numGraphs, cores):
     print("loading network")
     mat = np.loadtxt(dirs+adjmat, delimiter='\t')
     G = ig.Graph.Weighted_Adjacency(list(mat), mode="undirected")
@@ -99,7 +99,7 @@ def allSubgraphs(dirs, adjmat, maxSize, numGraphs):
     print("searching for subgraphs")
     for gsize in range(5, maxSize):
         inputs = [(i, G, gsize, np.random.randint(low=1, high=999999999)) for i in range(0,numGraphs)]  # gather the inputs
-        with Pool(3) as p:
+        with Pool(cores) as p:
             #sgs = p.map(oneSubgraph, inputs)             # find the subgraphs
             sgs = p.map(forestFire, inputs)
         sgsidx = f5(sgs)

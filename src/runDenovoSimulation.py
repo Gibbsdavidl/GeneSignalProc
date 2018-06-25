@@ -36,7 +36,7 @@ import subGraphGenerator as es
 import setScoring as scr
 import ssGSEA as gsea
 
-def runDenovoSim(datadir, Nf, subgraphFile, filterType):
+def runDenovoSim(datadir, Nf, subgraphFile, filterType, cores):
     # defaults
 
     ngenes = 80    # number of nodes in the network
@@ -70,7 +70,7 @@ def runDenovoSim(datadir, Nf, subgraphFile, filterType):
 
     # load the subgraphs (or generate them)
     if subgraphFile == '':
-        s = es.allSubgraphs(x[0],x[1],maxSubGraphSize,numberSubGraphs)
+        s = es.allSubgraphs(x[0],x[1],maxSubGraphSize,numberSubGraphs, cores)
     else:
         s = subgraphFile
 
@@ -126,7 +126,7 @@ def runDenovoSimRerun(datadir, Nf, subgraphFile, filterType):
     y = ['filtered_files_list.txt']
 
     # building empirical subgraph distribution
-    #s = es.allSubgraphs(x[0],x[1],60,200)
+    #s = es.allSubgraphs(x[0],x[1],60,200,cores)
     s = subgraphFile
 
     # recover the trees

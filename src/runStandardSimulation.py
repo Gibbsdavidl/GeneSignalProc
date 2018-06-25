@@ -8,6 +8,7 @@ import analysisStandardSimulation as an
 import subGraphGenerator as es
 import setScoring as scr
 import ssGSEA as ssgsea
+import sys
 
 
 def buildListOfGenesFromSetMat(datadir, filename):
@@ -86,7 +87,7 @@ def runStandard(datadir, Nf, subgraphFile, filterType):
 
 
 
-def runStandardTest(datadir, Nf, subgraphFile, filterType, reps):
+def runStandardTest(datadir, Nf, subgraphFile, filterType, reps, cores, ):
     # defaults
     ngenes = 100   # number of nodes in the network
     nparts = 5     # number of sets in simulation
@@ -123,7 +124,7 @@ def runStandardTest(datadir, Nf, subgraphFile, filterType, reps):
 
             # build the subgraph sets
             if subgraphFile == '':
-                s = es.allSubgraphs(x[0],x[1],maxSubGraphSize,numberSubGraphs)
+                s = es.allSubgraphs(x[0],x[1],maxSubGraphSize,numberSubGraphs,int(cores))
             else:
                 s = subgraphFile
 
@@ -147,12 +148,11 @@ def runStandardTest(datadir, Nf, subgraphFile, filterType, reps):
             gseascore, gseacvscores, gseaclf, gseafeatImp = mm.rfModelSetScores(dirs=x[0], inputs=ssgseaScores, pheno=x[3], genes=genes, cvs=crossVal)
 
             # compare model results to simulation.
-            totalRes.append( (gseascore, score) )
-            fout.write(str(tr[0]) + '\t' + str(tr[1]) + '\n')
+            fout.write(str(gseascore) + '\t' + str(score) + '\n')
         except:
             print("Rep Failed...")
             e = sys.exc_info()[0]
-            write_to_page("<p>Error: %s</p>" % e)
+            print("<p>Error: %s</p>" % e)
 
     return(0)
 

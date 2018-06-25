@@ -238,7 +238,7 @@ def setScoringStandardMultiScale_median_diffs(dir, Nf, filterfiles, subgraphfile
         for i, gs in enumerate(genes):
             levelSet = iciRule(gs, inputs)
             m = len(gs)
-            if m <= sizeMax:
+            if len(levelSet) > 0 and m <= sizeMax:
                 dist = np.array([0.0 for gx in sgs[m]])
                 for li in levelSet:
 
