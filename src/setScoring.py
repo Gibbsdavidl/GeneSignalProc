@@ -33,7 +33,7 @@ def iciRule(genes, msr):
             if lbar <= ubar:
                 return(window)
         windowLength -= 1
-    return(-1)
+    return([])
 
 
 def tstat_twosample_pooled(gsExpr, x):
