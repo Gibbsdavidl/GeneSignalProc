@@ -94,16 +94,16 @@ def runStandardTest(datadir, Nf, subgraphFile, filterType, reps, cores, ):
     nsamples = 32  # number of samples simulated
     filteredPrefix = "filtered_"  # file prefix for filtered files
     crossVal = 8   # random forest cross validation folds
-    deltad = 2.0  # boost in the expression for target set
+    deltad = 1.5  # boost in the expression for target set
     Nf = int(Nf)   # number of scale levels for filtering
-    numberSubGraphs = 300  # if generating subgraphs
+    numberSubGraphs = 500  # if generating subgraphs
     maxSubGraphSize = 30   # max size of subgraphs
 
     print('Running Standard Sim')
     print('\n    working in ' + datadir)
 
     totalRes = []
-    fout = open(datadir+'test_results_median_diffs.tsv','w')
+    fout = open(datadir+'test_results_Z_scores.tsv','w')
 
     for ri in range(0,reps):
 
@@ -137,9 +137,9 @@ def runStandardTest(datadir, Nf, subgraphFile, filterType, reps, cores, ):
             # score the gene sets.
             #out, samps = scr.setScoringStandardMultiScaleTwoSampleTPooled(dir=datadir, Nf=Nf, subgraphfile=s, filterfiles=y[0], genes=genes)
             #out, samps = scr.setScoringStandardMultiScaleNumpyT(dir=datadir, Nf=Nf, subgraphfile=s, filterfiles=y[0], genes=genes)
-            out, samps = scr.setScoringStandardMultiScale_median_diffs_t(dir=datadir, Nf=Nf, subgraphfile=s, filterfiles=y[0], genes=genes)
+            #out, samps = scr.setScoringStandardMultiScale_median_diffs_t(dir=datadir, Nf=Nf, subgraphfile=s, filterfiles=y[0], genes=genes)
             #out, samps = scr.setScoringStandardMultiScale_mahalanoibis(dir=datadir, Nf=Nf, subgraphfile=s, filterfiles=y[0], genes=genes)
-            #out, samps = scr.setScoringStandardMultiScaleZscore(dir=datadir, Nf=Nf, subgraphfile=s, filterfiles=y[0], genes=genes)
+            out, samps = scr.setScoringStandardMultiScaleZscore(dir=datadir, Nf=Nf, subgraphfile=s, filterfiles=y[0], genes=genes)
 
             # run models
             score, cvscores, clf, featImp = mm.rfModelSetScores(dirs=x[0], inputs=out, pheno=x[3], genes=genes, cvs=crossVal)
