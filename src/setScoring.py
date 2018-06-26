@@ -89,6 +89,68 @@ def setScoringStandardMultiScale_median_diffs_t(dir, Nf, filterfiles, subgraphfi
     return ((outputs, sampleList))
 
 
+def zscore(gsExpr, x, sigma):
+    # assume gsExpr and x have same length
+    if len(gsExpr) != len(x):
+        print("ERROR: gene set size mismatch")
+        return(0.0)
+    top = (np.mean(gsExpr) - np.mean(x))
+    z = top / sigma
+    return(z)
+
+
+def setScoringStandardMultiScaleZscore(dir, Nf, filterfiles, subgraphfile, genes):
+    # dir: the working directory
+    # Nf: number of scales
+    # exprfile: the expression file, samples in rows.
+    # filterfiles: the list of filtered expression files
+    # subgraphfile: the file listing sampled subgraphs
+    # genes: the gene sets
+
+    # return a matrix of gene set scores (samples X gs)
+
+    print("scoring sets")
+    inputFiles = open(dir+filterfiles, 'r').read().strip().split('\n')
+    outputs = []
+    sampleList = []
+
+    for sample in range(0,len(inputFiles)):
+        # read in the filtered file for sample..
+        inputs = open(dir + inputFiles[sample], 'r').read().strip().split("\n")
+        sampleList.append(sample)
+        sampRes = []
+        sgs = sg.loadSubGraphs(dir, subgraphfile)
+        sizeMax = len(sgs)
+
+        for i, gs in enumerate(genes):  # for each gene set
+            levelSet = iciRule(gs, inputs)
+            m = len(gs)
+            dist = []
+
+            # compute sd across all sgs
+
+            if m <= sizeMax:
+                subgraphs = [sgi for sgi in sgs[m] if setoverlap(sgi, gs) < 1]
+                for li in levelSet:
+                    exprMat = inputs[li].strip().split('\t')  # the filtered data
+                    expr = [float(x) for x in exprMat]        # convert to floads
+                    gsExpr = np.array([expr[j] for j in gs])  # for this gene set
+                    subGraphExpr = np.array([[expr[j] for j in gx] for gx in subgraphs])
+                    sigma = np.mean( [np.std(x) for x in subGraphExpr] )
+                    # the subgraph means and sd depend on *this* sample and *this ICI* level set... hard to precompute that.
+
+                    dist += [zscore(gsExpr,x,sigma) for x in subGraphExpr]
+
+                res0 = np.mean(dist)
+                sampRes.append(res0)
+            else:
+                sampRes.append(0.0)
+
+        outputs.append(sampRes)
+    return( (outputs,sampleList) )
+
+
+
 def tstat_twosample_pooled(gsExpr, x):
     # assume gsExpr and x have same length
     if len(gsExpr) != len(x):
@@ -198,63 +260,6 @@ def setScoringStandardMultiScaleNumpyT(dir, Nf, filterfiles, subgraphfile, genes
 
 
 
-def zscore(gsExpr, x):
-    # assume gsExpr and x have same length
-    if len(gsExpr) != len(x):
-        print("ERROR: gene set size mismatch")
-        return(0.0)
-    top = (np.mean(gsExpr) - np.mean(x))
-    bot = np.std(gsExpr)
-    t = top / bot
-    return(t)
-
-
-def setScoringStandardMultiScaleZscore(dir, Nf, filterfiles, subgraphfile, genes):
-    # dir: the working directory
-    # Nf: number of scales
-    # exprfile: the expression file, samples in rows.
-    # filterfiles: the list of filtered expression files
-    # subgraphfile: the file listing sampled subgraphs
-    # genes: the gene sets
-
-    # return a matrix of gene set scores (samples X gs)
-
-    print("scoring sets")
-    inputFiles = open(dir+filterfiles, 'r').read().strip().split('\n')
-    outputs = []
-    sampleList = []
-
-    for sample in range(0,len(inputFiles)):
-        # read in the filtered file for sample..
-        inputs = open(dir + inputFiles[sample], 'r').read().strip().split("\n")
-        sampleList.append(sample)
-        sampRes = []
-        sgs = sg.loadSubGraphs(dir, subgraphfile)
-        sizeMax = len(sgs)
-
-        for i, gs in enumerate(genes):  # for each gene set
-            levelSet = iciRule(gs, inputs)
-            m = len(gs)
-            dist = []
-
-            # compute sd across all sgs
-
-            if m <= sizeMax:
-                for li in levelSet:
-                    exprMat = inputs[li].strip().split('\t')  # not great name ... it's the filtered data
-                    expr = [float(x) for x in exprMat]  ############## IN FITLER FILE, yep
-                    gsExpr = np.array([expr[j] for j in gs]) # for this scale-level
-                    # the subgraph means and sd depend on *this* sample and *this ICI* level set... hard to precompute that.
-                    subGraphExpr = np.array([ [expr[j] for j in gx] for gx in sgs[m] ])
-                    dist += [tstat_twosample_pooled(gsExpr,x) for x in subGraphExpr]
-
-                res0 = np.mean(dist)
-                sampRes.append(res0)
-            else:
-                sampRes.append(0.0)
-
-        outputs.append(sampRes)
-    return( (outputs,sampleList) )
 
 
 def mad(arr):
