@@ -62,7 +62,7 @@ def main():
         rds.runDenovoSimRerun(datadir, Nf, subgraphs, filterType)
 
     elif mode == 'standard_sim':
-        std.runStandard(datadir, Nf, subgraphs, filterType)
+        std.runStandard(datadir, Nf, subgraphs, filterType, numCores)
 
     elif mode == 'standard_test':
         std.runStandardTest(datadir, Nf, subgraphs, filterType, 4, numCores)

@@ -36,6 +36,58 @@ def iciRule(genes, msr):
     return([])
 
 
+def setoverlap(x,y):
+    return(sum([1 for xi in x if xi in y]))
+
+
+def setScoringStandardMultiScale_median_diffs_t(dir, Nf, filterfiles, subgraphfile, genes):
+    # dir: the working directory
+    # Nf: number of scales
+    # exprfile: the expression file, samples in rows.
+    # filterfiles: the list of filtered expression files
+    # subgraphfile: the file listing sampled subgraphs
+    # genes: the gene sets
+
+    # return a matrix of gene set scores (samples X gs)
+
+    print("scoring sets")
+    inputFiles = open(dir + filterfiles, 'r').read().strip().split('\n')
+    outputs = []
+    sampleList = []
+    sgs = sg.loadSubGraphs(dir, subgraphfile)
+    sizeMax = len(sgs)
+
+    for sample in range(0, len(inputFiles)):
+        # read in the filtered file for sample..
+        inputs = open(dir + inputFiles[sample], 'r').read().strip().split("\n")
+        sampleList.append(sample)
+        sampRes = []
+
+        # for each gene set,
+        for i, gs in enumerate(genes):
+            levelSet = iciRule(gs, inputs)
+            m = len(gs)
+            if len(levelSet) > 0 and m <= sizeMax:
+                subgraphs = [sgi for sgi in sgs[m] if setoverlap(sgi,gs) < 1]
+                dist = np.array([0.0 for gx in sgs[m]])
+                for li in levelSet:
+                    exprMat = inputs[li].strip().split('\t')  # not great name ... it's the filtered data
+                    expr = [float(x) for x in exprMat]  ############## IN FITLER FILE, yep
+                    gsExpr = np.array([expr[j] for j in gs])  # for this scale-level
+
+                    subGraphVal = np.array([np.median([expr[j] for j in gx]) for gx in subgraphs])
+                    gsVal = np.median(gsExpr)
+                    dist += [gsVal - x for x in subGraphVal]
+
+                #res0 = np.median(dist)  # / mad(dist)
+                res0 = scipy.stats.ttest_1samp(dist,0.0)
+                sampRes.append(res0[0])
+            else:
+                sampRes.append(0.0)
+        outputs.append(sampRes)
+    return ((outputs, sampleList))
+
+
 def tstat_twosample_pooled(gsExpr, x):
     # assume gsExpr and x have same length
     if len(gsExpr) != len(x):
@@ -184,6 +236,8 @@ def setScoringStandardMultiScaleZscore(dir, Nf, filterfiles, subgraphfile, genes
             m = len(gs)
             dist = []
 
+            # compute sd across all sgs
+
             if m <= sizeMax:
                 for li in levelSet:
                     exprMat = inputs[li].strip().split('\t')  # not great name ... it's the filtered data
@@ -239,6 +293,7 @@ def setScoringStandardMultiScale_median_diffs(dir, Nf, filterfiles, subgraphfile
             levelSet = iciRule(gs, inputs)
             m = len(gs)
             if len(levelSet) > 0 and m <= sizeMax:
+
                 dist = np.array([0.0 for gx in sgs[m]])
                 for li in levelSet:
 

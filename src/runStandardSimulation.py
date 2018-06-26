@@ -21,7 +21,7 @@ def buildListOfGenesFromSetMat(datadir, filename):
     return(setlist)
 
 
-def runStandard(datadir, Nf, subgraphFile, filterType):
+def runStandard(datadir, Nf, subgraphFile, filterType, cores):
     # defaults
     ngenes = 100   # number of nodes in the network
     nparts = 5     # number of sets in simulation
@@ -50,7 +50,7 @@ def runStandard(datadir, Nf, subgraphFile, filterType):
 
     # build the subgraph sets
     if subgraphFile == '':
-        s = es.allSubgraphs(x[0],x[1],maxSubGraphSize,numberSubGraphs)
+        s = es.allSubgraphs(x[0],x[1],maxSubGraphSize,numberSubGraphs,int(cores))
     else:
         s = subgraphFile
 
@@ -63,7 +63,7 @@ def runStandard(datadir, Nf, subgraphFile, filterType):
     # score the gene sets.
     #out, samps = scr.setScoringStandardMultiScaleTwoSampleTPooled(dir=datadir, Nf=Nf, subgraphfile=s, filterfiles=y[0], genes=genes)
     #out, samps = scr.setScoringStandardMultiScaleNumpyT(dir=datadir, Nf=Nf, subgraphfile=s, filterfiles=y[0], genes=genes)
-    out, samps = scr.setScoringStandardMultiScale_median_diffs(dir=datadir, Nf=Nf, subgraphfile=s, filterfiles=y[0], genes=genes)
+    out, samps = scr.setScoringStandardMultiScale_median_diffs_t(dir=datadir, Nf=Nf, subgraphfile=s, filterfiles=y[0], genes=genes)
     #out, samps = scr.setScoringStandardMultiScale_mahalanoibis(dir=datadir, Nf=Nf, subgraphfile=s, filterfiles=y[0], genes=genes)
     #out, samps = scr.setScoringStandardMultiScaleZscore(dir=datadir, Nf=Nf, subgraphfile=s, filterfiles=y[0], genes=genes)
 
@@ -137,7 +137,7 @@ def runStandardTest(datadir, Nf, subgraphFile, filterType, reps, cores, ):
             # score the gene sets.
             #out, samps = scr.setScoringStandardMultiScaleTwoSampleTPooled(dir=datadir, Nf=Nf, subgraphfile=s, filterfiles=y[0], genes=genes)
             #out, samps = scr.setScoringStandardMultiScaleNumpyT(dir=datadir, Nf=Nf, subgraphfile=s, filterfiles=y[0], genes=genes)
-            out, samps = scr.setScoringStandardMultiScale_median_diffs(dir=datadir, Nf=Nf, subgraphfile=s, filterfiles=y[0], genes=genes)
+            out, samps = scr.setScoringStandardMultiScale_median_diffs_t(dir=datadir, Nf=Nf, subgraphfile=s, filterfiles=y[0], genes=genes)
             #out, samps = scr.setScoringStandardMultiScale_mahalanoibis(dir=datadir, Nf=Nf, subgraphfile=s, filterfiles=y[0], genes=genes)
             #out, samps = scr.setScoringStandardMultiScaleZscore(dir=datadir, Nf=Nf, subgraphfile=s, filterfiles=y[0], genes=genes)
 
@@ -149,10 +149,13 @@ def runStandardTest(datadir, Nf, subgraphFile, filterType, reps, cores, ):
 
             # compare model results to simulation.
             fout.write(str(gseascore) + '\t' + str(score) + '\n')
+
         except:
             print("Rep Failed...")
             e = sys.exc_info()[0]
             print("<p>Error: %s</p>" % e)
+
+    fout.close()
 
     return(0)
 
