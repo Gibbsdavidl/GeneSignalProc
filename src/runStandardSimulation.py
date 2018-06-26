@@ -65,7 +65,7 @@ def runStandard(datadir, Nf, subgraphFile, filterType, cores):
     #out, samps = scr.setScoringStandardMultiScaleNumpyT(dir=datadir, Nf=Nf, subgraphfile=s, filterfiles=y[0], genes=genes)
     #out, samps = scr.setScoringStandardMultiScale_median_diffs_t(dir=datadir, Nf=Nf, subgraphfile=s, filterfiles=y[0], genes=genes)
     #out, samps = scr.setScoringStandardMultiScale_mahalanoibis(dir=datadir, Nf=Nf, subgraphfile=s, filterfiles=y[0], genes=genes)
-    out, samps = scr.setScoringStandardMultiScaleZscore(dir=datadir, Nf=Nf, subgraphfile=s, filterfiles=y[0], genes=genes)
+    out, samps = scr.setScoringStandardMultiScaleZscore(dir=datadir, Nf=Nf, subgraphfile=s, filterfiles=y[0], genes=genes, cores=int(cores))
 
     # run models
     score, cvscores, clf, featImp = mm.rfModelSetScores(dirs=x[0], inputs=out, pheno=x[3], genes=genes, cvs=crossVal)

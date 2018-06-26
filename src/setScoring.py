@@ -6,7 +6,7 @@ import scipy as sp
 import scipy.stats
 import subGraphGenerator as sg
 import sys
-
+from multiprocessing import Pool
 
 def iciRule(genes, msr):
 
@@ -99,7 +99,41 @@ def zscore(gsExpr, x, sigma):
     return(z)
 
 
-def setScoringStandardMultiScaleZscore(dir, Nf, filterfiles, subgraphfile, genes):
+def sampleScoringZ( inputv ):
+
+    (dir, sample, inputFiles, subgraphfile, genes) = inputv
+
+    # read in the filtered file for sample..
+    inputs = open(dir + inputFiles[sample], 'r').read().strip().split("\n")
+    sampRes = []
+    sgs = sg.loadSubGraphs(dir, subgraphfile)
+    sizeMax = len(sgs)
+
+    for i, gs in enumerate(genes):  # for each gene set
+        levelSet = iciRule(gs, inputs)
+        m = len(gs)
+        dist = []
+        # compute sd across all sgs
+        if m <= sizeMax:
+            subgraphs = [sgi for sgi in sgs[m] if setoverlap(sgi, gs) < 1]
+            for li in levelSet:
+                exprMat = inputs[li].strip().split('\t')  # the filtered data
+                expr = [float(x) for x in exprMat]        # convert to floads
+                gsExpr = np.array([expr[j] for j in gs])  # for this gene set
+                subGraphExpr = np.array([[expr[j] for j in gx] for gx in subgraphs])
+                sigma = np.mean( [np.std(x) for x in subGraphExpr] )
+                # the subgraph means and sd depend on *this* sample and *this ICI* level set... hard to precompute that.
+
+                dist += [zscore(gsExpr,x,sigma) for x in subGraphExpr]
+
+            res0 = np.mean(dist)
+            sampRes.append(res0)
+        else:
+            sampRes.append(0.0)
+    return(sampRes)
+
+
+def setScoringStandardMultiScaleZscore(dir, Nf, filterfiles, subgraphfile, genes, cores):
     # dir: the working directory
     # Nf: number of scales
     # exprfile: the expression file, samples in rows.
@@ -114,39 +148,15 @@ def setScoringStandardMultiScaleZscore(dir, Nf, filterfiles, subgraphfile, genes
     outputs = []
     sampleList = []
 
+    # make list of inputs ... what's needed for each sample
+    inputs = []
     for sample in range(0,len(inputFiles)):
-        # read in the filtered file for sample..
-        inputs = open(dir + inputFiles[sample], 'r').read().strip().split("\n")
         sampleList.append(sample)
-        sampRes = []
-        sgs = sg.loadSubGraphs(dir, subgraphfile)
-        sizeMax = len(sgs)
+        inputs.append( (dir, sample, inputFiles, subgraphfile, genes)  )  # gather the inputs
+    with Pool(cores) as p:
+        outputs = p.map(sampleScoringZ, inputs)
 
-        for i, gs in enumerate(genes):  # for each gene set
-            levelSet = iciRule(gs, inputs)
-            m = len(gs)
-            dist = []
 
-            # compute sd across all sgs
-
-            if m <= sizeMax:
-                subgraphs = [sgi for sgi in sgs[m] if setoverlap(sgi, gs) < 1]
-                for li in levelSet:
-                    exprMat = inputs[li].strip().split('\t')  # the filtered data
-                    expr = [float(x) for x in exprMat]        # convert to floads
-                    gsExpr = np.array([expr[j] for j in gs])  # for this gene set
-                    subGraphExpr = np.array([[expr[j] for j in gx] for gx in subgraphs])
-                    sigma = np.mean( [np.std(x) for x in subGraphExpr] )
-                    # the subgraph means and sd depend on *this* sample and *this ICI* level set... hard to precompute that.
-
-                    dist += [zscore(gsExpr,x,sigma) for x in subGraphExpr]
-
-                res0 = np.mean(dist)
-                sampRes.append(res0)
-            else:
-                sampRes.append(0.0)
-
-        outputs.append(sampRes)
     return( (outputs,sampleList) )
 
 
