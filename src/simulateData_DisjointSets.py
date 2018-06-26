@@ -131,8 +131,8 @@ def gen_expression(ngenes, sets, set_means, pheno, sigma, si, samplenames):
     gexpr = np.zeros(ngenes) # expr for each gene
     # need a vector of means with length equal to the number of nodes
     geneMeans = np.concatenate([np.repeat(set_means[i][pheno[si]], repeats=len(sets[i])) for i in range(0,len(set_means))])
-    gexpr += (np.random.multivariate_normal(mean=geneMeans, cov=sigma))
-    #gexpr += (np.random.normal(loc=geneMeans,scale=1 ))
+    #gexpr += (np.random.multivariate_normal(mean=geneMeans, cov=sigma))
+    gexpr += (np.random.normal(loc=geneMeans,scale=1 ))
     gexpr = [samplenames[si]] + [str(gi) for gi in gexpr]
     return(gexpr)
 

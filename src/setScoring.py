@@ -69,7 +69,7 @@ def setScoringStandardMultiScale_median_diffs_t(dir, Nf, filterfiles, subgraphfi
             m = len(gs)
             if len(levelSet) > 0 and m <= sizeMax:
                 subgraphs = [sgi for sgi in sgs[m] if setoverlap(sgi,gs) < 1]
-                dist = np.array([0.0 for gx in sgs[m]])
+                dist = np.array([0.0 for gx in subgraphs])
                 for li in levelSet:
                     exprMat = inputs[li].strip().split('\t')  # not great name ... it's the filtered data
                     expr = [float(x) for x in exprMat]  ############## IN FITLER FILE, yep
@@ -79,9 +79,10 @@ def setScoringStandardMultiScale_median_diffs_t(dir, Nf, filterfiles, subgraphfi
                     gsVal = np.median(gsExpr)
                     dist += [gsVal - x for x in subGraphVal]
 
-                #res0 = np.median(dist)  # / mad(dist)
-                res0 = scipy.stats.ttest_1samp(dist,0.0)
-                sampRes.append(res0[0])
+                res0 = np.median(dist) / mad(dist)
+                sampRes.append(res0)
+                #res0 = scipy.stats.ttest_1samp(dist,0.0)
+                #sampRes.append(res0[0])
             else:
                 sampRes.append(0.0)
         outputs.append(sampRes)

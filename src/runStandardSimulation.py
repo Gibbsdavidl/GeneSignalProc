@@ -28,9 +28,9 @@ def runStandard(datadir, Nf, subgraphFile, filterType, cores):
     nsamples = 32  # number of samples simulated
     filteredPrefix = "filtered_"  # file prefix for filtered files
     crossVal = 8   # random forest cross validation folds
-    deltad = 1.7   # boost in the expression for target set
+    deltad = 2.5   # boost in the expression for target set
     Nf = int(Nf)   # number of scale levels for filtering
-    numberSubGraphs = 200  # if generating subgraphs
+    numberSubGraphs = 300  # if generating subgraphs
     maxSubGraphSize = 30   # max size of subgraphs
 
     print('Running Standard Sim')
