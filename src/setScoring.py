@@ -186,7 +186,6 @@ def sampleScoringMahalanobis(inputv):
     # filterfiles: the list of filtered expression files
     # subgraphfile: the file listing sampled subgraphs
     # genes: the gene sets
-
     # return a matrix of gene set scores (samples X gs)
 
     (dir, sample, inputFiles, subgraphfile, genes) = inputv
@@ -208,11 +207,12 @@ def sampleScoringMahalanobis(inputv):
 
             for si in subGraphExpr:
                 # dimension will be the number of levels identified in the ICI
+                si = np.array(si)
                 try:
                     g = np.mean(gsExpr, axis=0)
                     u = np.mean(si, axis=0)
-                    z = np.vstack(si)
-                    c = np.cov(z.T)
+                    #z = np.vstack(si)
+                    c = np.cov(si.T)
                     v = np.linalg.inv(c)  # might barf here
                     d = scipy.spatial.distance.mahalanobis(u, g, v)
                     dist += [d]
@@ -243,7 +243,7 @@ def setScoringStandardMultiScale_mahalanobis(dir, Nf, filterfiles, subgraphfile,
     with Pool(cores) as p:
         outputs = p.map(sampleScoringMahalanobis, inputs)
 
-    return(outputs)
+    return(outputs, sampleList)
 
 
 def tstat_twosample_pooled(gsExpr, x):
