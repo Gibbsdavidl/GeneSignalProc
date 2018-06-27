@@ -89,8 +89,8 @@ def runStandard(datadir, Nf, subgraphFile, filterType, cores):
 
 def runStandardTest(datadir, Nf, subgraphFile, filterType, reps, cores, ):
     # defaults
-    ngenes = 100   # number of nodes in the network
-    nparts = 5     # number of sets in simulation
+    ngenes = 200   # number of nodes in the network
+    nparts = 10     # number of sets in simulation
     nsamples = 32  # number of samples simulated
     filteredPrefix = "filtered_"  # file prefix for filtered files
     crossVal = 8   # random forest cross validation folds
