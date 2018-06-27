@@ -30,7 +30,7 @@ def runStandard(datadir, Nf, subgraphFile, filterType, cores):
     crossVal = 8   # random forest cross validation folds
     deltad = 1.5   # boost in the expression for target set
     Nf = int(Nf)   # number of scale levels for filtering
-    numberSubGraphs = 500  # if generating subgraphs
+    numberSubGraphs = 40  # if generating subgraphs
     maxSubGraphSize = 30   # max size of subgraphs
 
     print('Running Standard Sim')
@@ -64,8 +64,8 @@ def runStandard(datadir, Nf, subgraphFile, filterType, cores):
     #out, samps = scr.setScoringStandardMultiScaleTwoSampleTPooled(dir=datadir, Nf=Nf, subgraphfile=s, filterfiles=y[0], genes=genes)
     #out, samps = scr.setScoringStandardMultiScaleNumpyT(dir=datadir, Nf=Nf, subgraphfile=s, filterfiles=y[0], genes=genes)
     #out, samps = scr.setScoringStandardMultiScale_median_diffs_t(dir=datadir, Nf=Nf, subgraphfile=s, filterfiles=y[0], genes=genes)
-    #out, samps = scr.setScoringStandardMultiScale_mahalanoibis(dir=datadir, Nf=Nf, subgraphfile=s, filterfiles=y[0], genes=genes)
-    out, samps = scr.setScoringStandardMultiScaleZscore(dir=datadir, Nf=Nf, subgraphfile=s, filterfiles=y[0], genes=genes, cores=int(cores))
+    out, samps = scr.setScoringStandardMultiScale_mahalanobis(dir=datadir, Nf=Nf, subgraphfile=s, filterfiles=y[0], genes=genes, cores=int(cores))
+    #out, samps = scr.setScoringStandardMultiScaleZscore(dir=datadir, Nf=Nf, subgraphfile=s, filterfiles=y[0], genes=genes, cores=int(cores))
 
     # run models
     score, cvscores, clf, featImp = mm.rfModelSetScores(dirs=x[0], inputs=out, pheno=x[3], genes=genes, cvs=crossVal)
@@ -103,7 +103,7 @@ def runStandardTest(datadir, Nf, subgraphFile, filterType, reps, cores, ):
     print('\n    working in ' + datadir)
 
     totalRes = []
-    fout = open(datadir+'test_results_Z_scores.tsv','w')
+    fout = open(datadir+'test_results_M_scores.tsv','w')
 
     for ri in range(0,reps):
 
@@ -138,8 +138,8 @@ def runStandardTest(datadir, Nf, subgraphFile, filterType, reps, cores, ):
             #out, samps = scr.setScoringStandardMultiScaleTwoSampleTPooled(dir=datadir, Nf=Nf, subgraphfile=s, filterfiles=y[0], genes=genes)
             #out, samps = scr.setScoringStandardMultiScaleNumpyT(dir=datadir, Nf=Nf, subgraphfile=s, filterfiles=y[0], genes=genes)
             #out, samps = scr.setScoringStandardMultiScale_median_diffs_t(dir=datadir, Nf=Nf, subgraphfile=s, filterfiles=y[0], genes=genes)
-            #out, samps = scr.setScoringStandardMultiScale_mahalanoibis(dir=datadir, Nf=Nf, subgraphfile=s, filterfiles=y[0], genes=genes)
-            out, samps = scr.setScoringStandardMultiScaleZscore(dir=datadir, Nf=Nf, subgraphfile=s, filterfiles=y[0], genes=genes, cores=int(cores))
+            out, samps = scr.setScoringStandardMultiScale_mahalanobis(dir=datadir, Nf=Nf, subgraphfile=s, filterfiles=y[0], genes=genes, cores=int(cores))
+            #out, samps = scr.setScoringStandardMultiScaleZscore(dir=datadir, Nf=Nf, subgraphfile=s, filterfiles=y[0], genes=genes, cores=int(cores))
 
             # run models
             score, cvscores, clf, featImp = mm.rfModelSetScores(dirs=x[0], inputs=out, pheno=x[3], genes=genes, cvs=crossVal)

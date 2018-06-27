@@ -161,6 +161,91 @@ def setScoringStandardMultiScaleZscore(dir, Nf, filterfiles, subgraphfile, genes
 
 
 
+def dataSortingFun(levelSet, inputs, sgs, gs):
+    # need vector of means with dimension == number of scale-levels
+
+    gsExpr = [[] for i in gs]
+    subGraphExpr = [  [[] for i in gs]  for j in sgs  ]  # each subgraph gets a list of genes
+
+    for li in levelSet:
+        exprMat = inputs[li].strip().split('\t')  # not great name ... it's the filtered data
+        expr1 = [float(x) for x in exprMat]  ############## IN FITLER FILE, yep
+        for i,gi in enumerate(gs):
+            gsExpr[i].append( expr1[gi] )   # value of gene gi for scale-level li into gene position i
+        for j,si in enumerate(sgs): # for this subgraph
+            for i, gi in enumerate(si): # for these genes
+                subGraphExpr[j][i].append(expr1[gi])  # value of gene gi for scale-level li into gene position i
+
+    return( (gsExpr, subGraphExpr) )
+
+
+def sampleScoringMahalanobis(inputv):
+    # dir: the working directory
+    # Nf: number of scales
+    # exprfile: the expression file, samples in rows.
+    # filterfiles: the list of filtered expression files
+    # subgraphfile: the file listing sampled subgraphs
+    # genes: the gene sets
+
+    # return a matrix of gene set scores (samples X gs)
+
+    (dir, sample, inputFiles, subgraphfile, genes) = inputv
+
+    inputs = open(dir + inputFiles[sample], 'r').read().strip().split("\n")
+    sgs = sg.loadSubGraphs(dir, subgraphfile)
+    sizeMax = len(sgs)
+    sampRes = []
+
+    for i, gs in enumerate(genes):
+        levelSet = iciRule(gs, inputs)
+        m = len(gs)
+        if m <= sizeMax:
+
+            # list of lists, where inner list is gene values across levels.
+            # so each gene needs a list.
+            dist = [] # list of distances for each subgraph
+            (gsExpr, subGraphExpr) = dataSortingFun(levelSet, inputs, sgs[m], gs)
+
+            for si in subGraphExpr:
+                # dimension will be the number of levels identified in the ICI
+                try:
+                    g = np.mean(gsExpr, axis=0)
+                    u = np.mean(si, axis=0)
+                    z = np.vstack(si)
+                    c = np.cov(z.T)
+                    v = np.linalg.inv(c)  # might barf here
+                    d = scipy.spatial.distance.mahalanobis(u, g, v)
+                    dist += [d]
+                except:
+                    dist += [0.0]
+
+            res0 = np.mean(dist)  # mean over subgraphs.
+            sampRes.append(res0)
+        else:
+            sampRes.append(0.0)
+    return (sampRes)
+
+
+
+
+def setScoringStandardMultiScale_mahalanobis(dir, Nf, filterfiles, subgraphfile, genes, cores):
+
+    print("scoring sets")
+    inputFiles = open(dir+filterfiles, 'r').read().strip().split('\n')
+    outputs = []
+    sampleList = []
+
+    # make list of inputs ... what's needed for each sample
+    inputs = []
+    for sample in range(0,len(inputFiles)):
+        sampleList.append(sample)
+        inputs.append( (dir, sample, inputFiles, subgraphfile, genes)  )  # gather the inputs
+    with Pool(cores) as p:
+        outputs = p.map(sampleScoringMahalanobis, inputs)
+
+    return(outputs)
+
+
 def tstat_twosample_pooled(gsExpr, x):
     # assume gsExpr and x have same length
     if len(gsExpr) != len(x):
@@ -377,58 +462,6 @@ def setScoringStandardMultiScale_median_diffs_prob_above_zero(dir, Nf, filterfil
     return( (outputs,sampleList) )
 
 
-
-
-def setScoringStandardMultiScale_mahalanoibis(dir, Nf, filterfiles, subgraphfile, genes):
-    # dir: the working directory
-    # Nf: number of scales
-    # exprfile: the expression file, samples in rows.
-    # filterfiles: the list of filtered expression files
-    # subgraphfile: the file listing sampled subgraphs
-    # genes: the gene sets
-
-    # return a matrix of gene set scores (samples X gs)
-
-    print("scoring sets")
-    # rank each of the samples across genes
-    inputFiles = open(dir+filterfiles, 'r').read().strip().split('\n')
-    outputs = []
-    sampleList = []
-    sgs = sg.loadSubGraphs(dir, subgraphfile)
-    sizeMax = len(sgs)
-
-    for sample in range(0,len(inputFiles)):
-        inputs = open(dir + inputFiles[sample], 'r').read().strip().split("\n")
-        sampleList.append(sample)
-        sampRes = []
-
-        for i, gs in enumerate(genes):
-            levelSet = iciRule(gs, inputs)
-            m = len(gs)
-            if m <= sizeMax:
-                dist = []
-                for li in levelSet:
-
-                    exprMat = inputs[li].strip().split('\t')  # not great name ... it's the filtered data
-                    expr = [float(x) for x in exprMat]  ############## IN FITLER FILE, yep
-                    gsExpr = np.array([expr[j] for j in gs]) # for this scale-level
-
-                    subGraphExpr = np.array([ [expr[j] for j in gx] for gx in sgs[m] ])
-                    try:
-                        u = np.mean(subGraphExpr, axis=0)
-                        z = np.vstack(subGraphExpr)
-                        c = np.cov(z.T)
-                        v = np.linalg.inv(c)  # might barf here
-                        d = scipy.spatial.distance.mahalanobis(u, gsExpr, v)
-                        dist += [d]
-                    except:
-                        dist += [0.0]
-                res0 = sum(dist)
-                sampRes.append(res0)
-            else:
-                sampRes.append(0.0)
-        outputs.append(sampRes)
-    return( (outputs,sampleList) )
 
 
 
