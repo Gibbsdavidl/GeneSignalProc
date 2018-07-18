@@ -61,11 +61,7 @@ def runStandard(datadir, Nf, subgraphFile, filterType, cores):
     ssgseaScores = ssgsea.scoreSets(dirs=x[0], geneSets=genes, exprfile=x[2], omega=2)
 
     # score the gene sets.
-    #out, samps = scr.setScoringStandardMultiScaleTwoSampleTPooled(dir=datadir, Nf=Nf, subgraphfile=s, filterfiles=y[0], genes=genes)
-    #out, samps = scr.setScoringStandardMultiScaleNumpyT(dir=datadir, Nf=Nf, subgraphfile=s, filterfiles=y[0], genes=genes)
-    #out, samps = scr.setScoringStandardMultiScale_median_diffs_t(dir=datadir, Nf=Nf, subgraphfile=s, filterfiles=y[0], genes=genes)
-    #out, samps = scr.setScoringStandardMultiScale_mahalanobis(dir=datadir, Nf=Nf, subgraphfile=s, filterfiles=y[0], genes=genes, cores=int(cores))
-    #out, samps = scr.setScoringStandardMultiScaleZscore(dir=datadir, Nf=Nf, subgraphfile=s, filterfiles=y[0], genes=genes, cores=int(cores))
+
     out, samps = scr.setScoringStandardMultiScaleZscoreV2(dir=datadir, Nf=Nf, subgraphfile=s, filterfiles=y[0], genes=genes, cores=int(cores))
 
     # run models
@@ -80,12 +76,6 @@ def runStandard(datadir, Nf, subgraphFile, filterType, cores):
     return(out)
 
 
-    # score the gene sets.
-    # out,samps = scr.setScoringDenovoMultiScale(dir=datadir, Nf=Nf, exprfile=x[2], subgraphfile=s, filterfiles=y[0], genes=genes, levels=levels)
-
-    # run random forest using gene set scores
-    # score, cvscores, clf, featImp = mm.rfModelSetScores(dirs=datadir, inputs=out, pheno=x[3], genes=genes, cvs=crossVal)
-
 
 
 def runStandardTest(datadir, Nf, subgraphFile, filterType, reps, cores, ):
@@ -95,7 +85,7 @@ def runStandardTest(datadir, Nf, subgraphFile, filterType, reps, cores, ):
     nsamples = 32  # number of samples simulated
     filteredPrefix = "filtered_"  # file prefix for filtered files
     crossVal = 8   # random forest cross validation folds
-    deltad = 1.5  # boost in the expression for target set
+    deltad = 2.0  # boost in the expression for target set
     Nf = int(Nf)   # number of scale levels for filtering
     numberSubGraphs = 500  # if generating subgraphs
     maxSubGraphSize = 30   # max size of subgraphs
@@ -133,22 +123,21 @@ def runStandardTest(datadir, Nf, subgraphFile, filterType, reps, cores, ):
             genes = buildListOfGenesFromSetMat(datadir, 'setmatrix.tsv')  # also could specify what gene sets wanted...
             # or proc a gmt file
 
-            ssgseaScores = ssgsea.scoreSets(dirs=x[0], geneSets=genes, exprfile=x[2], omega=2)
-
             # score the gene sets.
-            #out, samps = scr.setScoringStandardMultiScaleTwoSampleTPooled(dir=datadir, Nf=Nf, subgraphfile=s, filterfiles=y[0], genes=genes)
-            #out, samps = scr.setScoringStandardMultiScaleNumpyT(dir=datadir, Nf=Nf, subgraphfile=s, filterfiles=y[0], genes=genes)
-            #out, samps = scr.setScoringStandardMultiScale_median_diffs_t(dir=datadir, Nf=Nf, subgraphfile=s, filterfiles=y[0], genes=genes)
-            out, samps = scr.setScoringStandardMultiScale_mahalanobis(dir=datadir, Nf=Nf, subgraphfile=s, filterfiles=y[0], genes=genes, cores=int(cores))
-            #out, samps = scr.setScoringStandardMultiScaleZscore(dir=datadir, Nf=Nf, subgraphfile=s, filterfiles=y[0], genes=genes, cores=int(cores))
+            out, samps = scr.setScoringStandardMultiScaleZscoreV2(dir=datadir, Nf=Nf, subgraphfile=s, filterfiles=y[0], genes=genes, cores=int(cores))
 
             # run models
             score, cvscores, clf, featImp = mm.rfModelSetScores(dirs=x[0], inputs=out, pheno=x[3], genes=genes, cvs=crossVal)
 
+            ssgseaScores = ssgsea.scoreSets(dirs=x[0], geneSets=genes, exprfile=x[2], omega=2)
+            #outnoms, sampsnoms = scr.setScoringStandardMultiScaleZscoreNOMS(dir=datadir, Nf=Nf, exprfile=x[2], subgraphfile=s, genes=genes, cores=int(cores))
+
             # run models
             gseascore, gseacvscores, gseaclf, gseafeatImp = mm.rfModelSetScores(dirs=x[0], inputs=ssgseaScores, pheno=x[3], genes=genes, cvs=crossVal)
+            #nomsscore, nomscvscores, nomsclf, nomsfeatImp = mm.rfModelSetScores(dirs=x[0], inputs=outnoms, pheno=x[3], genes=genes, cvs=crossVal)
 
             # compare model results to simulation.
+            #fout.write(str(nomsscore) + '\t' + str(score) + '\n')
             fout.write(str(gseascore) + '\t' + str(score) + '\n')
 
         except:

@@ -117,6 +117,79 @@ def setScoringStandardMultiScaleZscoreV2(dir, Nf, filterfiles, subgraphfile, gen
 #######################################################################################################
 
 
+def zscore(gsExpr, x, sigma):
+    # assume gsExpr and x have same length
+    if len(gsExpr) != len(x):
+        print("ERROR: gene set size mismatch")
+        return(0.0)
+    top = (np.mean(gsExpr) - np.mean(x))
+    z = top / sigma
+    return(z)
+
+
+def sampleScoringZNOMS( inputv ):
+
+    (dir, sample, inputs, subgraphfile, genes) = inputv
+
+    # read in the filtered file for sample..
+    sampRes = []
+    sgs = sg.loadSubGraphs(dir, subgraphfile)
+    sizeMax = len(sgs)
+    expr = [float(x) for i, x in enumerate(inputs.split('\t')) if i > 0]
+
+    for i, gs in enumerate(genes):  # for each gene set
+        levelSet = [0]
+        m = len(gs)
+        zs = []
+
+        if m <= sizeMax:
+            subgraphs = [sgi for sgi in sgs[m] if setoverlap(sgi, gs) < 1]
+            for li in levelSet:
+
+                gsExpr = np.array([expr[j] for j in gs])  # for this gene set
+                subGraphExpr = np.array([[expr[j] for j in gx] for gx in subgraphs])
+
+                gsMean = np.mean(gsExpr)
+                subgraphMean =  np.mean( [np.mean(x) for x in subGraphExpr] )
+                subgraphSD = np.std( [np.std(x) for x in subGraphExpr] )
+                zs.append( (gsMean - subgraphMean) / subgraphSD )
+
+            sampRes.append(np.mean(zs))
+        else:
+            sampRes.append(0.0)
+    return(sampRes)
+
+
+def setScoringStandardMultiScaleZscoreNOMS(dir, Nf, exprfile, subgraphfile, genes, cores):
+    # dir: the working directory
+    # Nf: number of scales
+    # exprfile: the expression file, samples in rows.
+    # filterfiles: the list of filtered expression files
+    # subgraphfile: the file listing sampled subgraphs
+    # genes: the gene sets
+
+    # return a matrix of gene set scores (samples X gs)
+
+    print("scoring sets")
+    inputs = open(dir+exprfile,'r').read().strip().split("\n")
+    sampleList = []
+    inputList = []
+
+    # make list of inputs ... what's needed for each sample
+    for sample in range(1,len(inputs)):
+        sampleList.append(sample)
+        inputList.append( (dir, sample, inputs[(sample)], subgraphfile, genes)  )  # gather the inputs
+    with Pool(cores) as p:
+        outputs = p.map(sampleScoringZNOMS, inputList)
+
+
+    return( (outputs,sampleList) )
+
+#######################################################################################################
+#######################################################################################################
+#######################################################################################################
+
+
 def setScoringDenovoMultiScale(dir, Nf, exprfile, filterfiles, subgraphfile, genes,levels):
     # dir: the working directory
     # Nf: number of scales
