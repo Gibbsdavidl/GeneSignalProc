@@ -106,7 +106,7 @@ def allSubgraphs(dirs, adjfile, genesetfile, maxSize, numGraphs, cores):
             sgs = p.map(forestFire, inputs)
         sgsidx = f5(sgs)
         allSgs[gsize] = sgsidx
-    subgraphfilename = genesetfile+'_subgraphs.tsv'
+    subgraphfilename = genesetfile+'_subgraphs.tsv.gz'
     writeAllSubgraphs(dirs, allSgs, subgraphfilename)                            # write them out
     return(subgraphfilename)
 

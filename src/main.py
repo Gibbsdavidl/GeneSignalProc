@@ -16,8 +16,8 @@ def argProc(args, opts):
     subgraphs = ''  # the subgraphs file
     genesets = ''
     threshold = 0
-    numSubGraphs = 200
-    maxSubGraphSize = 201
+    numSubGraphs = 5
+    maxSubGraphSize = 5
     Nf = 10      # the number of scale-levels.
     filterType = 'heat'
     numCores = 2
@@ -36,6 +36,7 @@ def argProc(args, opts):
             print("    -c number of cores")
             print("    -n number of subgraphs")
             print("    -x max size of subgraphs")
+            print("    -g genesets file as .gmt")
             print("    -a adjacency file if available")
             print("    -e gene list file if available")
             print("setscoring args: ")
@@ -44,6 +45,7 @@ def argProc(args, opts):
             print("    -l number of scale levels")
             print("    -f filter name")
             print("    -s subgraph file")
+            print("    -g genesets file as .gmt")
             print("    -c num cores")
             sys.exit(0)
     # process arguments
@@ -96,7 +98,7 @@ def argProc(args, opts):
 def main():
 
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "hm:d:n:s:f:c:t:x:a:e:l:", ["help"])
+        opts, args = getopt.getopt(sys.argv[1:], "hm:d:n:s:f:c:t:x:a:e:l:g:", ["help"])
     except:
         print("For help use --help")
         print("Modes available: makegraphs, setscoring")
@@ -107,6 +109,7 @@ def main():
         print("    -c number of cores")
         print("    -n number of subgraphs")
         print("    -x max size of subgraphs")
+        print("    -g genesets file as .gmt")
         print("    -a adjacency file if available")
         print("    -e gene list file if available")
         print("setscoring args: ")
@@ -115,6 +118,7 @@ def main():
         print("    -l number of scale levels")
         print("    -f filter name")
         print("    -s subgraph file")
+        print("    -g genesets file as .gmt")
         print("    -c num cores")
         sys.exit(2)
 
@@ -128,7 +132,8 @@ def main():
 
     else:
         print("Modes available: makegraphs, setscoring")
-        print("-d data dir  -m Mode  -f filter name  -n number of scale-levels -s subgraph file")
+
+    print("done")
     return(1)
 
 
