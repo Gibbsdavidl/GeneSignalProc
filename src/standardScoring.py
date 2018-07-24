@@ -9,6 +9,7 @@ import makeGraphs as es
 import setScoring as scr
 import ssGSEA as ssgsea
 import sys
+import gzip
 
 
 def buildListOfGenesFromSetMat(datadir, filename):
@@ -21,28 +22,28 @@ def buildListOfGenesFromSetMat(datadir, filename):
     return(setlist)
 
 
-def runStandard(datadir, Nf, filename, filterType, cores):
+def runStandard(datadir, Nf, exprfile, filterType, cores, subgraphs, genefile, genesets, adjmat):
     # defaults
     np.random.seed(seed=int(time.time()))
 
     # read the genes,
-    genes = open(datadir+filename,'r').read().strip().split()
+    genes = gzip.open(datadir+genefile,'r').read().strip().split()
     ngenes = len(genes)   # number of nodes in the network
+    geneidx = {i: gi for i, gi in enumerate(genes)}  # look up gene indices
 
     # read the data
     # each sample becomes a vector,
     # of genes as in order genes above
-    nsamples = len(data)  # number of samples simulated
+    #nsamples = len(data)  # number of samples simulated
 
     crossVal = 8   # random forest cross validation folds
     Nf = int(Nf)   # number of scale levels for filtering
 
     # filter the data
-    if filterType == 'heat':
-        print('running heat filter..')
-        y = fs.heatFilterData(exprfile=exprfile, dirs=datadir, outputprefix='_filtered.tsv', Nf=Nf, adjmat=datadir+filename+'_adjmat.tsv.gz')
-    else:
-        y = fs.mexFilterData(exprfile=x[2], dirs=x[0], outputprefix=filteredPrefix, Nf=Nf, adjmat=x[1])
+    if filterType == 'mexicanhat':
+        y = fs.mexFilterData(exprfile=exprfile, dirs=datadir, outputprefix=filteredPrefix, Nf=Nf, adjmat=x[1])
+    if filterType == '' or filterType == 'heat':
+        y = fs.heatFilterData(exprfile=exprfile, dirs=datadir, outputprefix='_filtered.tsv', Nf=Nf, adjmat=adjmat, allgenes=genes)
 
     # build the subgraph sets
     if subgraphFile == '':

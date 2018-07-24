@@ -101,6 +101,7 @@ def allSubgraphs(dirs, adjfile, genesetfile, maxSize, numGraphs, cores):
     allSgs = [[] for i in range(0,maxSize)] # for each subgraph size
     print("searching for subgraphs")
     for gsize in range(5, maxSize):
+        print("  working on subgraphs of size " + str(gsize))
         inputs = [(i, G, gsize, np.random.randint(low=1, high=999999999)) for i in range(0,numGraphs)]  # gather the inputs
         with Pool(cores) as p:
             sgs = p.map(forestFire, inputs)
