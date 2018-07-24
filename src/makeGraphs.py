@@ -102,11 +102,11 @@ def allSubgraphs(dirs, adjfile, genesetfile, maxSize, numGraphs, cores):
     print("searching for subgraphs")
     for gsize in range(5, maxSize):
         print("  working on subgraphs of size " + str(gsize))
-        #inputs = [(i, G, gsize, np.random.randint(low=1, high=999999999)) for i in range(0,numGraphs)]  # gather the inputs
-        #with Pool(cores) as p:
-        #    sgs = p.map(forestFire, inputs)
-        seeds = [np.random.randint(low=1, high=999999999) for i in range(0,numGraphs)]
-        sgs = [forestFire( (i, G, gsize, seeds[i]) ) for i in range(0,numGraphs)]
+        inputs = [(i, G, gsize, np.random.randint(low=1, high=999999999)) for i in range(0,numGraphs)]  # gather the inputs
+        with Pool(cores) as p:
+            sgs = p.map(forestFire, inputs)
+        #seeds = [np.random.randint(low=1, high=999999999) for i in range(0,numGraphs)]
+        #sgs = [forestFire( (i, G, gsize, seeds[i]) ) for i in range(0,numGraphs)]
         sgsidx = f5(sgs)
         allSgs[gsize] = sgsidx
     subgraphfilename = genesetfile+'_subgraphs.tsv.gz'
