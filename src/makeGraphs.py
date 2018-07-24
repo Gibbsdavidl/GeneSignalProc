@@ -34,12 +34,9 @@ def oneSubgraph( x ):
     return(np.where(used)[0])
 
 def forestFire( x ):
-    (i, G, size, seed) = x
+    (i, G, size, seed, valid) = x
     np.random.seed(seed)
     p = 0.35 / (1.0-0.35)
-    comp = G.components(mode=ig.STRONG)
-    compSizes = [sum(i == np.array(comp.membership)) for i in set(comp.membership)]
-    valid = [compSizes[i] > size for i in comp.membership]  # only sampling from components that are large enough
     burning = []
     while len(burning) < size:
         firstNode = np.random.choice(np.where(valid)[0], size=1)[0] # root of the subgraph
@@ -97,16 +94,16 @@ def allSubgraphs(dirs, adjfile, genesetfile, maxSize, numGraphs, cores):
     print("loading network")
     mat = np.loadtxt(dirs+adjfile, delimiter='\t')
     G = ig.Graph.Weighted_Adjacency(list(mat), mode="undirected")
-    #G.vs["name"] = allgenes
+    comp = G.components(mode=ig.STRONG)
+    compSizes = [sum(i == np.array(comp.membership)) for i in set(comp.membership)] ## very slow ##
+    valid = [compSizes[i] > size for i in comp.membership]  # only sampling from components that are large enough
     allSgs = [[] for i in range(0,maxSize)] # for each subgraph size
     print("searching for subgraphs")
     for gsize in range(5, maxSize):
         print("  working on subgraphs of size " + str(gsize))
-        inputs = [(i, G, gsize, np.random.randint(low=1, high=999999999)) for i in range(0,numGraphs)]  # gather the inputs
+        inputs = [(i, G, gsize, np.random.randint(low=1, high=999999999), valid) for i in range(0,numGraphs)]  # gather the inputs
         with Pool(cores) as p:
             sgs = p.map(forestFire, inputs)
-        #seeds = [np.random.randint(low=1, high=999999999) for i in range(0,numGraphs)]
-        #sgs = [forestFire( (i, G, gsize, seeds[i]) ) for i in range(0,numGraphs)]
         sgsidx = f5(sgs)
         allSgs[gsize] = sgsidx
     subgraphfilename = genesetfile+'_subgraphs.tsv.gz'
