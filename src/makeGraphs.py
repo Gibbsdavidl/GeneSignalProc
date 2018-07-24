@@ -69,11 +69,11 @@ def forestFire( x ):
 
 
 def writeAllSubgraphs(dirs, allSgs, subgraphname):
-    fout = open(dirs+subgraphname,'w')
+    fout = gzip.open(dirs+subgraphname,'w')
     for ais in allSgs:
         if (len(ais) > 0):
             for aij in ais:
-                fout.write(','.join([str(x) for x in aij])+'\n')
+                fout.write((','.join([str(x) for x in aij])+'\n').encode())
     fout.close()
     return()
 
@@ -93,10 +93,11 @@ def f5(seq, idfun=None):
    return result
 
 
-def allSubgraphs(dirs, adjfile, maxSize, numGraphs, cores):
+def allSubgraphs(dirs, adjfile, genesetfile, maxSize, numGraphs, cores):
     print("loading network")
     mat = np.loadtxt(dirs+adjfile, delimiter='\t')
     G = ig.Graph.Weighted_Adjacency(list(mat), mode="undirected")
+    #G.vs["name"] = allgenes
     allSgs = [[] for i in range(0,maxSize)] # for each subgraph size
     print("searching for subgraphs")
     for gsize in range(5, maxSize):
@@ -105,8 +106,9 @@ def allSubgraphs(dirs, adjfile, maxSize, numGraphs, cores):
             sgs = p.map(forestFire, inputs)
         sgsidx = f5(sgs)
         allSgs[gsize] = sgsidx
-    writeAllSubgraphs(dirs,subgraphname,allSgs)                            # write them out
-    return(subgraphname)
+    subgraphfilename = genesetfile+'_subgraphs.tsv'
+    writeAllSubgraphs(dirs, allSgs, subgraphfilename)                            # write them out
+    return(subgraphfilename)
 
 
 def loadSubGraphs(dir, subgraphFile):
@@ -222,11 +224,11 @@ def makeGraphs(datadir, numgraphs, maxgraphsize, genesetfile, threshold, numCore
         (allgenes, allsets, genesets, setnames, genebins) = procGMT(datadir, genesetfile)
         adjmat = makeAdjMat(allgenes, genebins, threshold)
         adjfile = writeAdjAndAnnot(datadir, genesetfile, adjmat, allgenes)
-    else:
-        # read gene file to get all genes
-        allgenes = gzip.open(datadir+genefile).read().strip().split()
+    #else:
+    #    # read gene file to get all genes
+    #    allgenes = gzip.open(datadir+genefile).read().strip().split()
 
     # then with that adjmat, we
-    s = allSubgraphs(datadir,adjfile,int(maxgraphsize),int(numgraphs),int(numCores))
+    s = allSubgraphs(datadir,adjfile,genesetfile,int(maxgraphsize),int(numgraphs),int(numCores))
 
     return(1)
