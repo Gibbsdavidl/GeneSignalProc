@@ -99,7 +99,7 @@ def allSubgraphs(dirs, adjfile, genesetfile, maxSize, numGraphs, cores):
     print("searching for subgraphs")
     for gsize in range(5, maxSize):
         compSizes = [sum(i == np.array(comp.membership)) for i in set(comp.membership)]  ## very slow ##
-        valid = [compSizes[i] > size for i in comp.membership]  # only sampling from components that are large enough
+        valid = [compSizes[i] > gsize for i in comp.membership]  # only sampling from components that are large enough
         print("  working on subgraphs of size " + str(gsize))
         inputs = [(i, G, gsize, np.random.randint(low=1, high=999999999), valid) for i in range(0,numGraphs)]  # gather the inputs
         with Pool(cores) as p:
