@@ -28,11 +28,11 @@ TODO
 
 13. DONE ... Write filter files to a directory
 
-13.1 Add parameter to choose filter kernel
+13.1 DONE Add parameter to choose filter kernel
 
-13.2 Do a cross-val, maybe leave one out to get mean accuracy on hold-outs.
+13.2 DONE Do a cross-val, maybe leave one out to get mean accuracy on hold-outs.
 
-6.1  Read data once... pass it around.. setScoring randomForest, what else?
+6.1  DONE Read data once... pass it around.. setScoring randomForest, what else?
 
 6.2  Add stand-alone function for building subgraphs
 
@@ -61,3 +61,5 @@ XX.  For final analysis:  What is jaccard index (with error?) for different para
                           What is separability by set scores?
                           Compare to ssGSEA for separability... depending on effect size.
                           Compare with respect to set sizes and overlap.
+
+22. end of datadir must be a slash .. but should just check and add one if needed.

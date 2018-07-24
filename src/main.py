@@ -6,24 +6,48 @@
 #############
 
 import sys, getopt
-import runDenovoSimulation as rds
-import runStandardSimulation as std
+import makeGraphs as mgs
+import standardScoring as std
 
 def argProc(args, opts):
     # process options
     mode = ''    # mode is standard or denovo, etc
     datadir = '' # the working directory
     subgraphs = ''  # the subgraphs file
-    Nf = ''      # the number of scale-levels.
-    filterType = ''
+    genesets = ''
+    threshold = 0
+    numSubGraphs = 200
+    maxSubGraphSize = 201
+    Nf = 10      # the number of scale-levels.
+    filterType = 'heat'
     numCores = 2
+    genefile=''
+    subgraphfile = ''
+    adjfile = ''
 
     for o, a in opts:
         if o in ("-h", "--help"):
-            print("Modes available: denovo_sim, denovo_sim_rerun")
-            print("-m Mode  -d data dir  -nf  number of scale-levels")
+            print("For help use --help")
+            print("Modes available: makegraphs, setscoring")
+            print("makegraphs args: ")
+            print("    -m Mode")
+            print("    -d data dir")
+            print("    -t threshold for geneset overlaps")
+            print("    -c number of cores")
+            print("    -n number of subgraphs")
+            print("    -x max size of subgraphs")
+            print("    -a adjacency file if available")
+            print("    -e gene list file if available")
+            print("setscoring args: ")
+            print("    -m Mode")
+            print("    -d data dir")
+            print("    -l number of scale levels")
+            print("    -f filter name")
+            print("    -s subgraph file")
+            print("    -c num cores")
             sys.exit(0)
     # process arguments
+
     for opt, arg in opts:
         if opt == '-h':
             print('main.py ')
@@ -33,43 +57,78 @@ def argProc(args, opts):
         elif opt in ("-d"):
             datadir = arg
         elif opt in ('-n'):
-            Nf = arg
+            numSubGraphs = arg
+        elif opt in ('-x'):
+            maxSubGraphSize = arg
         elif opt in ('-s'):
             subgraphs = arg
         elif opt in ('-f'):
             filterType = arg
         elif opt in ('-c'):
             numCores = arg
-    return(mode, datadir, Nf, subgraphs, filterType, numCores)
+        elif opt in ('-g'):
+            genesets = arg
+        elif opt in ('-t'):
+            threshold = arg
+        elif opt in ('-l'):
+            Nf = arg
+        elif opt in ('-e'):
+            genefile = arg
+        elif opt in ('-a'):
+            adjfile = arg
+
+    return(mode,
+           datadir,
+           numSubGraphs,
+           maxSubGraphSize,
+           subgraphs,
+           filterType,
+           numCores,
+           genesets,
+           threshold,
+           Nf,
+           genefile,
+           subgraphfile,
+           adjfile
+           )
 
 
 def main():
 
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "hm:d:n:s:f:c:", ["help"])
+        opts, args = getopt.getopt(sys.argv[1:], "hm:d:n:s:f:c:t:x:a:e:l:", ["help"])
     except:
-        print("for help use --help")
-        print("Modes available: denovo_sim, denovo_sim_reuse_data")
-        print("-d data dir  -m Mode  -f filter name  -n number of scale-levels  -s subgraph file")
+        print("For help use --help")
+        print("Modes available: makegraphs, setscoring")
+        print("makegraphs args: ")
+        print("    -m Mode")
+        print("    -d data dir")
+        print("    -t threshold for geneset overlaps")
+        print("    -c number of cores")
+        print("    -n number of subgraphs")
+        print("    -x max size of subgraphs")
+        print("    -a adjacency file if available")
+        print("    -e gene list file if available")
+        print("setscoring args: ")
+        print("    -m Mode")
+        print("    -d data dir")
+        print("    -l number of scale levels")
+        print("    -f filter name")
+        print("    -s subgraph file")
+        print("    -c num cores")
         sys.exit(2)
 
-    mode, datadir, Nf, subgraphs, filterType, numCores = argProc(args,opts)
+    (mode,datadir,numSubGraphs,maxSubGraphSize,subgraphs,filterType,numCores,genesets,threshold,Nf,genefile,subgraphfile,adjfile) = argProc(args,opts)
 
-    if mode == 'denovo_sim':
-        rds.runDenovoSim(datadir, Nf, subgraphs, filterType)
+    if mode == 'makegraphs':
+        mgs.makeGraphs(datadir, numSubGraphs, maxSubGraphSize, genesets, threshold, numCores, adjfile, genefile)
 
-    elif mode == 'denovo_sim_rerun':
-        rds.runDenovoSimRerun(datadir, Nf, subgraphs, filterType)
-
-    elif mode == 'standard_sim':
-        std.runStandard(datadir, Nf, subgraphs, filterType, numCores)
-
-    elif mode == 'standard_test':
-        std.runStandardTest(datadir, Nf, subgraphs, filterType, 200, numCores)
+    elif mode == 'setscoring':
+        std.runStandard(datadir, Nf, subgraphs, filterType, numCores, genesets)
 
     else:
-        print("Modes: denovo_sim, denovo_sim_reuse_data ")
-
+        print("Modes available: makegraphs, setscoring")
+        print("-d data dir  -m Mode  -f filter name  -n number of scale-levels -s subgraph file")
     return(1)
 
 

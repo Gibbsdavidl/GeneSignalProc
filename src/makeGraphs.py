@@ -8,6 +8,7 @@ import igraph as ig
 from multiprocessing import Pool
 import numpy as np
 import copy
+import gzip
 
 # first the function that returns subgraphs of a given size
 
@@ -67,8 +68,8 @@ def forestFire( x ):
     return(bret)
 
 
-def writeAllSubgraphs(dirs, allSgs):
-    fout = open(dirs+'all_subgraphs.txt','w')
+def writeAllSubgraphs(dirs, allSgs, subgraphname):
+    fout = open(dirs+subgraphname,'w')
     for ais in allSgs:
         if (len(ais) > 0):
             for aij in ais:
@@ -91,9 +92,10 @@ def f5(seq, idfun=None):
        result.append(item)
    return result
 
-def allSubgraphs(dirs, adjmat, maxSize, numGraphs, cores):
+
+def allSubgraphs(dirs, adjfile, maxSize, numGraphs, cores):
     print("loading network")
-    mat = np.loadtxt(dirs+adjmat, delimiter='\t')
+    mat = np.loadtxt(dirs+adjfile, delimiter='\t')
     G = ig.Graph.Weighted_Adjacency(list(mat), mode="undirected")
     allSgs = [[] for i in range(0,maxSize)] # for each subgraph size
     print("searching for subgraphs")
@@ -103,8 +105,8 @@ def allSubgraphs(dirs, adjmat, maxSize, numGraphs, cores):
             sgs = p.map(forestFire, inputs)
         sgsidx = f5(sgs)
         allSgs[gsize] = sgsidx
-    writeAllSubgraphs(dirs,allSgs)                            # write them out
-    return('all_subgraphs.txt')
+    writeAllSubgraphs(dirs,subgraphname,allSgs)                            # write them out
+    return(subgraphname)
 
 
 def loadSubGraphs(dir, subgraphFile):
@@ -123,3 +125,108 @@ def loadSubGraphs(dir, subgraphFile):
 
     return(sgdict)
 
+
+def procGMT(datadir,GMTfile):
+    # return an adjmat given a gmt file
+    allgenes = set()
+    allsets  = set()
+    genesets = dict()  # key is gene set
+    setnames = dict()  # key is gene name
+
+    for line in open(datadir+GMTfile, 'r').read().strip().split('\n'):
+        bits = line.split('\t')
+        genes = [bi for i,bi in enumerate(bits) if i > 1]
+        gsname = bits[0]  # the gene set name
+        genesets[gsname] = genes # all the genes that belong to this set
+        allsets.add(gsname)
+        for gi in genes:
+            allgenes.add(gi)
+            if gi in setnames:
+                setnames[gi].append(gsname)
+            else:
+                setnames[gi] = [gsname]
+
+
+    allsets = list(allsets)
+    allgenes = list(allgenes)
+
+    genebins = []  # list of binary set memberships
+
+    # for each gene
+    for gi in allgenes:
+
+        # make a vector of zeros with length equal to setnames
+        membership = [0.0 for si in allsets]
+
+        # then get index of sets that a gene *DOES* have, and set those ones.
+        for i,si in enumerate(allsets):
+            if si in setnames[gi]:  # if gi is in set si
+                membership[i] = 1.0
+
+        genebins.append(membership)
+
+    # then can make pairwise scores
+
+    return( (allgenes, allsets, genesets, setnames, genebins) )
+
+
+def makeAdjMat(allgenes, genebins, setthr):
+
+    scrmat = []
+    # for each pair of genes,
+    for i,gi in enumerate(allgenes):
+        scrvec = [0.0 for i in allgenes]  # all zeros unless
+        for j,gj in enumerate(allgenes):
+            if i != j:
+                a = 0.0; b = 0.0; c=0.0; d=0.0
+                # get a=intersection, b in one not in other, c in other not in one, d not in either
+                for k in range(0,len(genebins[0])):
+                    if genebins[i][k] == 1.0 and genebins[j][k] == 0.0:
+                        c += 1.0
+                    elif genebins[i][k] == 0.0 and genebins[j][k] == 1.0:
+                        b += 1.0
+                    elif genebins[i][k] == 1.0 and genebins[j][k] == 1.0:
+                        a += 1.0
+                    else:
+                        d += 1.0
+
+                # compute the score.  0.5*(a/(a+b)+a/(a+c))
+                if a > setthr:
+                    scr = 0.5*( (a/(a+b)) + (a/(a+c)))
+                    scrvec[j] = scr
+        scrmat.append(scrvec)
+    return(scrmat)
+
+
+def writeAdjAndAnnot(datadir, filename, adjmat, allgenes):
+    fout = gzip.open(datadir+filename+'_adjmat.tsv.gz','wb')
+    for ai in adjmat:
+        ab = [str(x) for x in ai]
+        fout.write(('\t'.join(ab)+'\n').encode())
+    fout.close()
+
+    fout = gzip.open(datadir+filename+'_genes.tsv.gz', 'wb')
+    for bi in allgenes:
+        fout.write((bi+'\n').encode())
+    fout.close()
+    return(datadir+filename+'_adjmat.tsv.gz')
+
+
+def makeGraphs(datadir, numgraphs, maxgraphsize, genesetfile, threshold, numCores, adjfile, genefile):
+    # build the subgraph sets
+
+    # first have to transform a gmt file to a network, adj mat.
+    # write adjmat and gene list for row/col labels
+
+    if adjfile == '' and genefile == '':
+        (allgenes, allsets, genesets, setnames, genebins) = procGMT(datadir, genesetfile)
+        adjmat = makeAdjMat(allgenes, genebins, threshold)
+        adjfile = writeAdjAndAnnot(datadir, genesetfile, adjmat, allgenes)
+    else:
+        # read gene file to get all genes
+        allgenes = gzip.open(datadir+genefile).read().strip().split()
+
+    # then with that adjmat, we
+    s = allSubgraphs(datadir,adjfile,int(maxgraphsize),int(numgraphs),int(numCores))
+
+    return(1)

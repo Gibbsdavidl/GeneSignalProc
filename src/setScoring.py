@@ -4,7 +4,7 @@
 import numpy as np
 import scipy as sp
 import scipy.stats
-import subGraphGenerator as sg
+import makeGraphs as sg
 import sys
 from multiprocessing import Pool
 
