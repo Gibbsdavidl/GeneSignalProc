@@ -33,10 +33,19 @@ def writeOutputs(dir,sampleList,outputs,idx):
     fout.close()
     return(1)
 
-
+def writeOutputsGSO(dir,sampleList,outputs, filesuffix):
+    fout = open(dir+filesuffix,'w')
+    for i in range(0,len(outputs)):
+        outstr = []
+        for j in range(0,len(outputs[0])):
+            outstr.append(str(outputs[i][j]))
+        outstr = [str(sampleList[i])] + outstr
+        fout.write('\t'.join(outstr)+'\n')
+    fout.close()
+    return(1)
 
 # trees, (in, out) where those are pointers to the denovo_trees file.
-def analysis(predacc, genes, dirs, setfile, setscores, setsamples, featureImp, gseaScore):
+def analysis(predacc, genes, dirs, setscores, setsamples, featureImp, gseaScore):
     # predacc - prediction accuracy from random forest
     # genes - list of gene sets
     # dirs - working directory
@@ -46,14 +55,14 @@ def analysis(predacc, genes, dirs, setfile, setscores, setsamples, featureImp, g
 
 
     # open the set assignment matrix
-    mat = open(dirs + setfile,'r').read().strip().split('\n')
+    #mat = open(dirs + setfile,'r').read().strip().split('\n')
 
-    means = open(dirs + "set_means.tsv",'r').read().strip().split('\n')
-    means = (means[1]).split('\t')
+    #means = open(dirs + "set_means.tsv",'r').read().strip().split('\n')
+    #means = (means[1]).split('\t')
 
     fout = open(dirs+'analyout.tsv','w')
-    fout.write("set\taccr\tgsea\tfeatimp\tmean\tngenes\tgenes\n")
-    print("set\taccr\tgsea\tmean\tngenes\n")
+    fout.write("set\taccr\tgsea\tfeatimp\tngenes\tgenes\n")
+    print("set\taccr\tgsea\tngenes\n")
 
     # put the sets in order of prediction ability
     predidx = np.argsort(featureImp)
@@ -62,12 +71,12 @@ def analysis(predacc, genes, dirs, setfile, setscores, setsamples, featureImp, g
         seti = str(i)
         a = str(predacc)
         d = str(gseaScore)
-        b = str(means[i])
+        #b = str(means[i])
         c = str(len(genes[i]))
-        f = str(genes[i])
+        #f = str(genes[i])
         g = str(featureImp[i])
-        fout.write('\t'.join([seti,a,d,g,b,c,f])+'\n')
-        print('\t'.join([seti,a,d,g,b,c]))
+        fout.write('\t'.join([seti,a,d,g,c])+'\n')
+        print('\t'.join([seti,a,d,g,c]))
 
     writeOutputs(dirs, setsamples, setscores, predidx)
 

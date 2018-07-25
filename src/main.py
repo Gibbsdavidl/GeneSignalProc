@@ -25,6 +25,7 @@ def argProc(args, opts):
     subgraphfile = ''
     adjfile = ''
     exprfile = ''
+    phenofile = ''
 
     for o, a in opts:
         if o in ("-h", "--help"):
@@ -43,10 +44,14 @@ def argProc(args, opts):
             print("setscoring args: ")
             print("    -m Mode")
             print("    -d data dir")
-            print("    -l number of scale levels")
-            print("    -f filter name")
+            print("    -r expression data, samples in rows, genes in columns, first col is sample name, first row is gene names")
+            print("    -p phenotype file if available, same order as expression data")
+            print("    -a adjacency file")
             print("    -s subgraph file")
+            print("    -e gene list")
             print("    -g genesets file as .gmt")
+            print("    -f filter name")
+            print("    -l number of scale levels")
             print("    -c num cores")
             sys.exit(0)
     # process arguments
@@ -81,6 +86,8 @@ def argProc(args, opts):
             adjfile = arg
         elif opt in ('-r'):
             exprfile = arg
+        elif opt in ('-p'):
+            phenofile = arg
 
     return(mode,
            datadir,
@@ -95,14 +102,15 @@ def argProc(args, opts):
            genefile,
            subgraphfile,
            adjfile,
-           exprfile
+           exprfile,
+           phenofile
            )
 
 
 def main():
 
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "hm:d:n:s:f:c:t:x:a:e:l:g:r:", ["help"])
+        opts, args = getopt.getopt(sys.argv[1:], "hm:d:n:s:f:c:t:x:a:e:l:g:r:p:", ["help"])
     except:
         print("For help use --help")
         print("Modes available: makegraphs, setscoring")
@@ -120,6 +128,7 @@ def main():
         print("    -m Mode")
         print("    -d data dir")
         print("    -r expression data, samples in rows, genes in columns, first col is sample name, first row is gene names")
+        print("    -p phenotype file if available, same order as expression data")
         print("    -a adjacency file")
         print("    -s subgraph file")
         print("    -e gene list")
@@ -129,13 +138,13 @@ def main():
         print("    -c num cores")
         sys.exit(2)
 
-    (mode,datadir,numSubGraphs,maxSubGraphSize,subgraphs,filterType,numCores,genesets,threshold,Nf,genefile,subgraphfile,adjfile,exprfile) = argProc(args,opts)
+    (mode,datadir,numSubGraphs,maxSubGraphSize,subgraphs,filterType,numCores,genesets,threshold,Nf,genefile,subgraphfile,adjfile,exprfile,phenofile) = argProc(args,opts)
 
     if mode == 'makegraphs':
         mgs.makeGraphs(datadir, numSubGraphs, maxSubGraphSize, genesets, threshold, numCores, adjfile, genefile)
 
     elif mode == 'setscoring':
-        std.runStandard(datadir, Nf, exprfile, filterType, numCores, subgraphs, genefile, genesets, adjfile)
+        std.runStandard(datadir, Nf, exprfile, filterType, numCores, subgraphs, genefile, genesets, adjfile, phenofile)
 
     else:
         print("Modes available: makegraphs, setscoring")

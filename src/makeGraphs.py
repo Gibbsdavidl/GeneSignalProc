@@ -70,7 +70,7 @@ def writeAllSubgraphs(dirs, allSgs, subgraphname):
     for ais in allSgs:
         if (len(ais) > 0):
             for aij in ais:
-                fout.write((','.join([str(x) for x in aij])+'\n').encode())
+                fout.write((','.join([str(x) for x in aij])+'\n').encode('utf-8'))
     fout.close()
     return()
 
@@ -112,14 +112,14 @@ def allSubgraphs(dirs, adjfile, genesetfile, maxSize, numGraphs, cores):
 
 
 def loadSubGraphs(dir, subgraphFile):
-    dat = open(dir+subgraphFile,'r').read().strip().split('\n')
+    dat = gzip.open(dir+subgraphFile).read().decode('utf-8').strip().split('\n')
     sgdict = dict()
 
     # get size of each subgraph
     ms = np.array([len(di.split(',')) for di in dat])
     nmax = max(ms)
 
-    for i in range(2,nmax): # for each size class of subgraph
+    for i in range(5,nmax): # for each size class of subgraph
         idx = np.where(ms == i)[0]
         sets = [dat[i] for i in idx]
         splitsets = [ [int(y) for y in x] for x in map(lambda x: x.split(','), sets)]
@@ -204,12 +204,12 @@ def writeAdjAndAnnot(datadir, filename, adjmat, allgenes):
     fout = gzip.open(datadir+filename+'_adjmat.tsv.gz','wb')
     for ai in adjmat:
         ab = [str(x) for x in ai]
-        fout.write(('\t'.join(ab)+'\n').encode())
+        fout.write(('\t'.join(ab)+'\n').encode('utf-8'))
     fout.close()
 
     fout = gzip.open(datadir+filename+'_genes.tsv.gz', 'wb')
     for bi in allgenes:
-        fout.write((bi+'\n').encode())
+        fout.write((bi+'\n').encode('utf-8'))
     fout.close()
     return(datadir+filename+'_adjmat.tsv.gz')
 

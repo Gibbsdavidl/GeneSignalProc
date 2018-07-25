@@ -12,17 +12,38 @@ import sys
 import gzip
 
 
-def buildListOfGenesFromSetMat(datadir, filename):
-    setmat = open(datadir+filename,'r').read().strip().split('\n')
+def buildListOfGenesFromGeneSets(datadir, genes, genesetfile):
+    allgenesdec = [gi.decode('utf-8') for gi in genes]
+    allgenesdict = {g:i for i,g in enumerate(allgenesdec)}
     setlist = []
-    for si in setmat:
-        bits = np.array(si.split('\t'))
-        idx = np.where(bits == '1')
-        setlist.append(idx[0])
+    genesets = []
+
+    for line in open(datadir+genesetfile, 'r').read().strip().split('\n'):
+        bits = line.split('\t')
+        genes = [bi for i,bi in enumerate(bits) if i > 1]
+        genesets.append(bits[0])
+        idx = []
+        for gi in genes:
+            if gi in allgenesdict:
+                idx.append(allgenesdict[gi]) # for gene gi in this gene set, what index is it?
+            else:
+                print('Missing gene from building gene sets: ' + gi)
+        setlist.append(idx)
     return(setlist)
 
+def buildListOfSymbolsFromGeneSets(datadir, genes, genesetfile):
+    setlist = []
+    setnames = []
+    for line in open(datadir+genesetfile, 'r').read().strip().split('\n'):
+        bits = line.split('\t')
+        genes = [bi for i,bi in enumerate(bits) if i > 1]
+        setlist.append(genes)
+        setnames.append(bits[0])
+    return(setlist, setnames)
 
-def runStandard(datadir, Nf, exprfile, filterType, cores, subgraphs, genefile, genesets, adjmat):
+
+
+def runStandard(datadir, Nf, exprfile, filterType, cores, subgraphs, genefile, genesets, adjmat, phenofile):
     # defaults
     np.random.seed(seed=int(time.time()))
 
@@ -45,30 +66,26 @@ def runStandard(datadir, Nf, exprfile, filterType, cores, subgraphs, genefile, g
     if filterType == '' or filterType == 'heat':
         y = fs.heatFilterData(exprfile=exprfile, dirs=datadir, outputprefix='_filtered.tsv', Nf=Nf, adjmat=adjmat, allgenes=genes)
 
-    # build the subgraph sets
-    if subgraphFile == '':
-        s = es.allSubgraphs(x[0],x[1],maxSubGraphSize,numberSubGraphs,int(cores))
-    else:
-        s = subgraphFile
+    # get a list of genes for each set in the gene set file
+    genesetidx = buildListOfGenesFromGeneSets(datadir, genes, genesets)
+    genesetsymbols, setnames = buildListOfSymbolsFromGeneSets(datadir, genes, genesets)
 
-    # get a list of genes for each set in the setmatrix
-    genes = buildListOfGenesFromSetMat(datadir, 'setmatrix.tsv')  # also could specify what gene sets wanted...
-    # or proc a gmt file
+    msgsScores, samps = scr.setScoringStandardMultiScaleZscoreV2(dir=datadir, Nf=Nf, subgraphfile=subgraphs, filterfiles=y[0], genes=genesetidx, cores=int(cores))
 
-    ssgseaScores = ssgsea.scoreSets(dirs=x[0], geneSets=genes, exprfile=x[2], omega=2)
+    ssgseaScores = ssgsea.scoreSets(dirs=datadir, geneSets=genesetsymbols, exprfile=exprfile, omega=2)
 
-    # score the gene sets.
+    an.writeOutputsGSO(datadir,samps,ssgseaScores,'ssgsea_scores.tsv')
+    an.writeOutputsGSO(datadir,samps,msgsScores,  'msgs_scores.tsv')
 
-    out, samps = scr.setScoringStandardMultiScaleZscoreV2(dir=datadir, Nf=Nf, subgraphfile=s, filterfiles=y[0], genes=genes, cores=int(cores))
+    if phenofile != '':
+        # run models
+        score, cvscores, clf, featImp = mm.rfModelSetScores(dirs=datadir, inputs=msgsScores, pheno=phenofile, genes=genes, cvs=crossVal)
 
-    # run models
-    score, cvscores, clf, featImp = mm.rfModelSetScores(dirs=x[0], inputs=out, pheno=x[3], genes=genes, cvs=crossVal)
+        # run models
+        gseascore, gseacvscores, gseaclf, gseafeatImp = mm.rfModelSetScores(dirs=datadir, inputs=ssgseaScores, pheno=phenofile, genes=genes, cvs=crossVal)
 
-    # run models
-    gseascore, gseacvscores, gseaclf, gseafeatImp = mm.rfModelSetScores(dirs=x[0], inputs=ssgseaScores, pheno=x[3], genes=genes, cvs=crossVal)
+        # compare model results to simulation.
+        g = an.analysis(predacc=score, genes=genesetsymbols, dirs=datadir, setscores=msgsScores, setsamples=samps, featureImp=featImp, gseaScore=gseascore)
 
-    # compare model results to simulation.
-    g = an.analysis(predacc=score, genes=genes, dirs=x[0], setfile=x[4], setscores=out, setsamples=samps, featureImp=featImp, gseaScore=gseascore)
-
-    return(out)
+    return(1)
 

@@ -63,7 +63,7 @@ def calculate_enrichment_score(gene_set, expressions, omega):
 def buildExprDict(exprdat, geneNames):
     edict = dict()
     bits = exprdat.split('\t')
-    for ai, bi in enumerate(bits[1:]):
+    for (ai, bi) in zip(geneNames, bits[1:]):
         edict[ai] = float(bi)
     return(edict)
 
@@ -79,11 +79,12 @@ def printSSGSEAResults(res0, dirs):
 def scoreSets(dirs, geneSets, exprfile, omega):
     print("running ssGSEA")
     inputs = open(dirs + exprfile, 'r').read().strip().split("\n")
-    geneNames = inputs[0].split('\t')
+    geneNames = (inputs[0].split('\t'))[1:] # gene names in expression file
     allResults = []
     for i in inputs[1:]:
         thisResult = []
-        for g in geneSets:
+        for j,g in enumerate(geneSets):
+            print('ssgsea, gene set ' + str(j))
             di = buildExprDict(i, geneNames)
             scr = calculate_enrichment_score(g, di, omega)
             thisResult.append(scr)

@@ -59,17 +59,18 @@ def sampleScoringZV2( inputv ):
     inputs = open(dir + inputFiles[sample], 'r').read().strip().split("\n")
     sampRes = []
     sgs = sg.loadSubGraphs(dir, subgraphfile)
-    sizeMax = len(sgs)
+    sizeMax = 201 # len(sgs[len(sgs)][0])+3
 
     for i, gs in enumerate(genes):  # for each gene set
+        print("std score, gene set "+str(i))
         #levelSet = iciRule(gs, inputs)
         levelSet = range(0,len(inputs))
-        m = len(gs)
+        m = min(len(gs), 199)
         zs = []
 
         if m <= sizeMax:
 
-            subgraphs = [sgi for sgi in sgs[m] if setoverlap(sgi, gs) < 1]
+            subgraphs = [sgi for sgi in sgs[(m-1)] if setoverlap(sgi, gs) < int(0.2 * m)]
             for li in levelSet:
                 exprMat = inputs[li].strip().split('\t')  # the filtered data
                 expr = [float(x) for x in exprMat]        # convert to floads
@@ -108,7 +109,6 @@ def setScoringStandardMultiScaleZscoreV2(dir, Nf, filterfiles, subgraphfile, gen
         inputs.append( (dir, sample, inputFiles, subgraphfile, genes)  )  # gather the inputs
     with Pool(cores) as p:
         outputs = p.map(sampleScoringZV2, inputs)
-
 
     return( (outputs,sampleList) )
 

@@ -13,11 +13,25 @@ from datetime import datetime, timedelta
 
 
 def formatExprData(dirs,exprfile,allgenes):
-    inputs = open(dirs+exprfile,'r').read().strip().split("\n")  ###########!!!!!!!!!!!!!! NEW FORMAT!!!!!!!!!!!!!!!!!
-    filegenes = [x for i,x in enumerate(inputs[0]) if i > 0]
-
-
-    return(filegene)
+    reformat = []
+    samples  = []
+    allgenesdec = [gi.decode('utf-8') for gi in allgenes]
+    inputs = open(dirs+exprfile,'r').read().strip().split("\n")
+    header = inputs[0].strip().split('\t')
+    genedict = {g:i for i,g in enumerate(header) if i > 0}
+    for i in range(1,len(inputs)):
+        thisline = []
+        bits = inputs[i].strip().split('\t')
+        vals = [float(x) for i,x in enumerate(bits) if i > 0]
+        samples.append(bits[0])
+        for gi in allgenesdec:
+            if gi in genedict:
+                thisline.append(vals[genedict[gi]])
+            else:
+                print('Gene missing in data:' + gi)
+                thisline.append(0.0)
+        reformat.append(thisline)
+    return( (reformat, samples) )
 
 
 def heatFilterData(exprfile, dirs, outputprefix, Nf, adjmat, allgenes):
@@ -40,7 +54,7 @@ def heatFilterData(exprfile, dirs, outputprefix, Nf, adjmat, allgenes):
     net.compute_fourier_basis()
 
     # for each input file
-    sigs = formatExprData(dirs,exprfile, allgenes)     #open(dirs+exprfile,'r').read().strip().split("\n")  ###########!!!!!!!!!!!!!! NEW FORMAT!!!!!!!!!!!!!!!!!
+    sigs, samps = formatExprData(dirs,exprfile, allgenes)     #open(dirs+exprfile,'r').read().strip().split("\n")  ###########!!!!!!!!!!!!!! NEW FORMAT!!!!!!!!!!!!!!!!!
     outputlist = open(dirs+'filtered_files_list.txt', 'w')
     samplelist = open(dirs+'filtered_sample_list.txt', 'w')
 
@@ -51,12 +65,12 @@ def heatFilterData(exprfile, dirs, outputprefix, Nf, adjmat, allgenes):
     print("filtering data")
     for i in range(0,len(sigs)):
         #vals = inputs[i].split('\t')
-        sig = sigs[i] # np.array([float(x) for x in vals[1:len(vals)]])
+        sig = np.array(sigs[i]) # np.array([float(x) for x in vals[1:len(vals)]])
         msr = waveletFun.heatFilter(net, sig, Nf) # list of filtered signal for each sample
         # the filtered signal is in shape (Nf, num_nodes)
         np.savetxt(dirs+'filtered_files/'+outputprefix+str(i)+".txt", msr, delimiter='\t')
         outputlist.write('filtered_files/'+outputprefix+str(i)+'.txt'+'\n')
-        samplelist.write(vals[0] + '\n')
+        samplelist.write(samps[i] + '\n')
 
     outputlist.close()
     samplelist.close()
