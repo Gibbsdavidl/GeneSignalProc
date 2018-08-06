@@ -53,7 +53,7 @@ def zscore(gsExpr, x, sigma):
 
 def sampleScoringZV2( inputv ):
 
-    (dir, sample, inputFiles, subgraphfile, genes) = inputv
+    (dir, sample, inputFiles, subgraphfile, genes, t) = inputv
 
     # read in the filtered file for sample..
     inputs = open(dir + inputFiles[sample], 'r').read().strip().split("\n")
@@ -70,7 +70,7 @@ def sampleScoringZV2( inputv ):
 
         if m <= sizeMax:
 
-            subgraphs = [sgi for sgi in sgs[(m-1)] if setoverlap(sgi, gs) < int(0.2 * m)]
+            subgraphs = [sgi for sgi in sgs[(m-1)] if setoverlap(sgi, gs) < int(t * m)]
             for li in levelSet:
                 exprMat = inputs[li].strip().split('\t')  # the filtered data
                 expr = [float(x) for x in exprMat]        # convert to floads
@@ -88,7 +88,7 @@ def sampleScoringZV2( inputv ):
     return(sampRes)
 
 
-def setScoringStandardMultiScaleZscoreV2(dir, Nf, filterfiles, subgraphfile, genes, cores):
+def setScoringStandardMultiScaleZscoreV2(dir, Nf, filterfiles, subgraphfile, genes, cores, threshold):
     # dir: the working directory
     # Nf: number of scales
     # exprfile: the expression file, samples in rows.
@@ -106,7 +106,7 @@ def setScoringStandardMultiScaleZscoreV2(dir, Nf, filterfiles, subgraphfile, gen
     inputs = []
     for sample in range(0,len(inputFiles)):
         sampleList.append(sample)
-        inputs.append( (dir, sample, inputFiles, subgraphfile, genes)  )  # gather the inputs
+        inputs.append( (dir, sample, inputFiles, subgraphfile, genes, float(threshold))  )  # gather the inputs
     with Pool(cores) as p:
         outputs = p.map(sampleScoringZV2, inputs)
 
@@ -116,6 +116,8 @@ def setScoringStandardMultiScaleZscoreV2(dir, Nf, filterfiles, subgraphfile, gen
 #######################################################################################################
 #######################################################################################################
 
+
+# go no further! #
 
 def zscore(gsExpr, x, sigma):
     # assume gsExpr and x have same length

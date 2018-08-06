@@ -34,6 +34,42 @@ def formatExprData(dirs,exprfile,allgenes):
     return( (reformat, samples) )
 
 
+
+
+def noFilterData(exprfile, dirs, outputprefix, Nf, adjmat, allgenes):
+    # exprfile - matrix of gene expression
+    # dirs - the working directory
+    # outputprefix - the prefix put on filter file outputs
+    # Nf - number of scale levels
+    # adjmat - the file name for the adjacent matrix
+
+    if not os.path.exists(dirs+'filtered_files'):
+        os.makedirs(dirs+'filtered_files')
+
+    # for each input file
+    sigs, samps = formatExprData(dirs,exprfile, allgenes)     #open(dirs+exprfile,'r').read().strip().split("\n")  ###########!!!!!!!!!!!!!! NEW FORMAT!!!!!!!!!!!!!!!!!
+    outputlist = open(dirs+'filtered_files_list.txt', 'w')
+    samplelist = open(dirs+'filtered_sample_list.txt', 'w')
+
+    filteredSignal = []
+
+    # compute wavelets
+    # process the data
+    print("filtering data")
+    for i in range(0,len(sigs)):
+        #vals = inputs[i].split('\t')
+        sig = np.array([sigs[i]]) # np.array([float(x) for x in vals[1:len(vals)]])
+        np.savetxt(dirs+'filtered_files/'+outputprefix+str(i)+".txt", sig, delimiter='\t')
+        outputlist.write('filtered_files/'+outputprefix+str(i)+'.txt'+'\n')
+        samplelist.write(samps[i] + '\n')
+
+    outputlist.close()
+    samplelist.close()
+    print("finished filtering data")
+    return(['filtered_files_list.txt'])
+
+
+
 def heatFilterData(exprfile, dirs, outputprefix, Nf, adjmat, allgenes):
     # exprfile - matrix of gene expression
     # dirs - the working directory

@@ -15,7 +15,7 @@ def argProc(args, opts):
     datadir = '' # the working directory
     subgraphs = ''  # the subgraphs file
     genesets = ''
-    threshold = 0
+    threshold = 0.5
     numSubGraphs = 5
     maxSubGraphSize = 5
     Nf = 10      # the number of scale-levels.
@@ -48,6 +48,7 @@ def argProc(args, opts):
             print("    -p phenotype file if available, same order as expression data")
             print("    -a adjacency file")
             print("    -s subgraph file")
+            print("    -t threshold for geneset overlaps")
             print("    -e gene list")
             print("    -g genesets file as .gmt")
             print("    -f filter name")
@@ -131,6 +132,7 @@ def main():
         print("    -p phenotype file if available, same order as expression data")
         print("    -a adjacency file")
         print("    -s subgraph file")
+        print("    -t threshold for geneset overlaps")
         print("    -e gene list")
         print("    -g genesets file as .gmt")
         print("    -f filter name")
@@ -144,7 +146,7 @@ def main():
         mgs.makeGraphs(datadir, numSubGraphs, maxSubGraphSize, genesets, threshold, numCores, adjfile, genefile)
 
     elif mode == 'setscoring':
-        std.runStandard(datadir, Nf, exprfile, filterType, numCores, subgraphs, genefile, genesets, adjfile, phenofile)
+        std.runStandard(datadir, Nf, exprfile, filterType, numCores, subgraphs, genefile, genesets, adjfile, phenofile, threshold)
 
     else:
         print("Modes available: makegraphs, setscoring")

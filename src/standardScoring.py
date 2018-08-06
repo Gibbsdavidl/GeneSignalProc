@@ -43,7 +43,7 @@ def buildListOfSymbolsFromGeneSets(datadir, genes, genesetfile):
 
 
 
-def runStandard(datadir, Nf, exprfile, filterType, cores, subgraphs, genefile, genesets, adjmat, phenofile):
+def runStandard(datadir, Nf, exprfile, filterType, cores, subgraphs, genefile, genesets, adjmat, phenofile, threshold):
     # defaults
     np.random.seed(seed=int(time.time()))
 
@@ -61,16 +61,21 @@ def runStandard(datadir, Nf, exprfile, filterType, cores, subgraphs, genefile, g
     Nf = int(Nf)   # number of scale levels for filtering
 
     # filter the data
-    if filterType == 'mexicanhat':
+    if Nf == 1:
+        # then don't do a decomposition
+        y = fs.noFilterData(exprfile=exprfile, dirs=datadir, outputprefix='_filtered.tsv', Nf=Nf, adjmat=adjmat, allgenes=genes)
+    elif Nf > 1 and filterType == 'mexicanhat':
         y = fs.mexFilterData(exprfile=exprfile, dirs=datadir, outputprefix=filteredPrefix, Nf=Nf, adjmat=x[1])
-    if filterType == '' or filterType == 'heat':
+    elif Nf > 1 and (filterType == '' or filterType == 'heat'):
         y = fs.heatFilterData(exprfile=exprfile, dirs=datadir, outputprefix='_filtered.tsv', Nf=Nf, adjmat=adjmat, allgenes=genes)
+    else:
+        print("Options error: please check your number of scale levels and filter type")
 
     # get a list of genes for each set in the gene set file
     genesetidx = buildListOfGenesFromGeneSets(datadir, genes, genesets)
     genesetsymbols, setnames = buildListOfSymbolsFromGeneSets(datadir, genes, genesets)
 
-    msgsScores, samps = scr.setScoringStandardMultiScaleZscoreV2(dir=datadir, Nf=Nf, subgraphfile=subgraphs, filterfiles=y[0], genes=genesetidx, cores=int(cores))
+    msgsScores, samps = scr.setScoringStandardMultiScaleZscoreV2(dir=datadir, Nf=Nf, subgraphfile=subgraphs, filterfiles=y[0], genes=genesetidx, cores=int(cores), threshold=threshold)
 
     ssgseaScores = ssgsea.scoreSets(dirs=datadir, geneSets=genesetsymbols, exprfile=exprfile, omega=2)
 
