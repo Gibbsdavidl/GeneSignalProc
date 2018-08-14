@@ -1,13 +1,28 @@
+~/C/GeneSignalProc> python3.6 src/main.py -h
 
-
-Reconfigured the functions, now it's run with one call to main:
-
-# home computer: /Users/davidlgibbs/Data/SimWaves
-
-
-python3.6 GeneSignalProc/src/main.py -m sim -d /Users/davidgibbs/Data/SimWaveDat/Go5/
-
-
-# get the names of the sim-sets
-cat /Users/davidgibbs/Data/SimWaveDat/Go4/setmatrix.tsv | cut -f 1
+For help use --help
+Modes available: makegraphs, setscoring
+makegraphs args:
+    -m Mode
+    -d data dir
+    -t threshold for geneset overlaps
+    -c number of cores
+    -n number of subgraphs
+    -x max size of subgraphs
+    -g genesets file as .gmt
+    -a adjacency file if available
+    -e gene list file if available
+setscoring args:
+    -m Mode
+    -d data dir
+    -r expression data, samples in rows, genes in columns, first col is sample name, first row is gene names
+    -p phenotype file if available, same order as expression data
+    -a adjacency file
+    -s subgraph file
+    -t threshold for geneset overlaps
+    -e gene list
+    -g genesets file as .gmt
+    -f filter name
+    -l number of scale levels
+    -c num cores
 

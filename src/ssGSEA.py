@@ -5,6 +5,7 @@ Original code by:  AndrewZhaoLuo
 
 '''
 
+import gzip
 import numpy as np
 #from simulation import *
 
@@ -78,7 +79,7 @@ def printSSGSEAResults(res0, dirs):
 
 def scoreSets(dirs, geneSets, exprfile, omega):
     print("running ssGSEA")
-    inputs = open(dirs + exprfile, 'r').read().strip().split("\n")
+    inputs = gzip.open(dirs + exprfile, 'rt').read().strip().split("\n")
     geneNames = (inputs[0].split('\t'))[1:] # gene names in expression file
     allResults = []
     for i in inputs[1:]:
