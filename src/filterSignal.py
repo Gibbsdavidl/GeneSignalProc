@@ -9,6 +9,7 @@ import numpy as np
 import pygsp as gs
 import igraph as ig
 import os
+import gzip
 from datetime import datetime, timedelta
 
 
@@ -16,7 +17,8 @@ def formatExprData(dirs,exprfile,allgenes):
     reformat = []
     samples  = []
     allgenesdec = [gi.decode('utf-8') for gi in allgenes]
-    inputs = open(dirs+exprfile,'r').read().strip().split("\n")
+    inputs = gzip.open(dirs+exprfile,'rt').read().strip().split("\n")
+    #inputs = [gi.decode('utf-8') for gi in codedinputs]
     header = inputs[0].strip().split('\t')
     genedict = {g:i for i,g in enumerate(header) if i > 0}
     for i in range(1,len(inputs)):
@@ -87,7 +89,7 @@ def heatFilterData(exprfile, dirs, outputprefix, Nf, adjmat, allgenes):
     net = gs.graphs.Graph(W=mat)
     net.directed = False
     net.estimate_lmax()
-    net.compute_fourier_basis()
+    #net.compute_fourier_basis()
 
     # for each input file
     sigs, samps = formatExprData(dirs,exprfile, allgenes)     #open(dirs+exprfile,'r').read().strip().split("\n")  ###########!!!!!!!!!!!!!! NEW FORMAT!!!!!!!!!!!!!!!!!
