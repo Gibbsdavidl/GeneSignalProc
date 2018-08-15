@@ -75,22 +75,29 @@ def runStandard(datadir, Nf, exprfile, filterType, cores, subgraphs, genefile, g
     genesetidx = buildListOfGenesFromGeneSets(datadir, genes, genesets)
     genesetsymbols, setnames = buildListOfSymbolsFromGeneSets(datadir, genes, genesets)
 
+    # generate score matrices
     msgsScores, samps = scr.setScoringStandardMultiScaleZscoreV2(dir=datadir, Nf=Nf, subgraphfile=subgraphs, filterfiles=y[0], genes=genesetidx, cores=int(cores), threshold=threshold)
-
     ssgseaScores = ssgsea.scoreSets(dirs=datadir, geneSets=genesetsymbols, exprfile=exprfile, omega=2)
+
+    y1lev = fs.noFilterData(exprfile=exprfile, dirs=datadir, outputprefix='_not_filtered.tsv', Nf=Nf, adjmat=adjmat, allgenes=genes)
+    msgs1LevelScores, samps1Level = scr.setScoringStandardMultiScaleZscoreV2(dir=datadir, Nf=1, subgraphfile=subgraphs, filterfiles=y1lev[0], genes=genesetidx, cores=int(cores), threshold=threshold)
 
     an.writeOutputsGSO(datadir,samps,ssgseaScores,'ssgsea_scores.tsv')
     an.writeOutputsGSO(datadir,samps,msgsScores,  'msgs_scores.tsv')
+    an.writeOutputsGSO(datadir,samps1Level,msgs1LevelScores, 'msgs_1level_scores.tsv')
 
     if phenofile != '':
         # run models
         score, cvscores, clf, featImp = mm.rfModelSetScores(dirs=datadir, inputs=msgsScores, pheno=phenofile, genes=genes, cvs=crossVal)
 
-        # run models
+        # run models for 1 level
+        score1level, cvscores1level, clf1level, featImp1level = mm.rfModelSetScores(dirs=datadir, inputs=msgs1LevelScores, pheno=phenofile,  genes=genes, cvs=crossVal)
+
+        # run models for ssGSEA
         gseascore, gseacvscores, gseaclf, gseafeatImp = mm.rfModelSetScores(dirs=datadir, inputs=ssgseaScores, pheno=phenofile, genes=genes, cvs=crossVal)
 
         # compare model results to simulation.
-        g = an.analysis(predacc=score, genes=genesetsymbols, dirs=datadir, setscores=msgsScores, setsamples=samps, featureImp=featImp, gseaScore=gseascore)
+        g = an.analysis(predacc=score, genes=genesetsymbols, dirs=datadir, setscores=msgsScores, setsamples=samps, featureImp=featImp, gseaScore=gseascore, level1Score=score1level)
 
     return(1)
 

@@ -45,24 +45,19 @@ def writeOutputsGSO(dir,sampleList,outputs, filesuffix):
     return(1)
 
 # trees, (in, out) where those are pointers to the denovo_trees file.
-def analysis(predacc, genes, dirs, setscores, setsamples, featureImp, gseaScore):
+def analysis(predacc, genes, dirs, setscores, setsamples, featureImp, gseaScore, level1Score):
     # predacc - prediction accuracy from random forest
     # genes - list of gene sets
     # dirs - working directory
-    # setfile - the matrix of assignments to sets
     # setscores - the file of set scores matrix
     # setsamples - the sample names to write into the set score matrix.
-
-
-    # open the set assignment matrix
-    #mat = open(dirs + setfile,'r').read().strip().split('\n')
-
-    #means = open(dirs + "set_means.tsv",'r').read().strip().split('\n')
-    #means = (means[1]).split('\t')
+    # featureImp
+    # gseaScore - scores from ssGSEA
+    # level1Score - scores from 1 level
 
     fout = open(dirs+'analyout.tsv','w')
-    fout.write("set\taccr\tgsea\tfeatimp\tngenes\tgenes\n")
-    print("set\taccr\tgsea\tngenes\n")
+    fout.write("set\tmsgs\t1level\tgsea\tfeatimp\tngenes\tgenes\n")
+    print("set\tmsgs\t1level\tgsea\tngenes\n")
 
     # put the sets in order of prediction ability
     predidx = np.argsort(featureImp)
@@ -71,11 +66,11 @@ def analysis(predacc, genes, dirs, setscores, setsamples, featureImp, gseaScore)
         seti = str(i)
         a = str(predacc)
         d = str(gseaScore)
-        #b = str(means[i])
+        b = str(level1Score)
         c = str(len(genes[i]))
         #f = str(genes[i])
         g = str(featureImp[i])
-        fout.write('\t'.join([seti,a,d,g,c])+'\n')
+        fout.write('\t'.join([seti,a,b,d,g,c])+'\n')
         print('\t'.join([seti,a,d,g,c]))
 
     writeOutputs(dirs, setsamples, setscores, predidx)
