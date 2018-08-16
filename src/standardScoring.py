@@ -64,9 +64,9 @@ def runStandard(datadir, Nf, exprfile, filterType, cores, subgraphs, genefile, g
     if Nf == 1:
         # then don't do a decomposition
         y = fs.noFilterData(exprfile=exprfile, dirs=datadir, outputprefix='_filtered.tsv', Nf=Nf, adjmat=adjmat, allgenes=genes)
-    elif Nf > 1 and filterType == 'mexicanhat':
-        y = fs.mexFilterData(exprfile=exprfile, dirs=datadir, outputprefix=filteredPrefix, Nf=Nf, adjmat=x[1])
-    elif Nf > 1 and (filterType == '' or filterType == 'heat'):
+    #elif Nf > 1 and filterType == 'mexicanhat':
+    #    y = fs.mexFilterData(exprfile=exprfile, dirs=datadir, outputprefix=filteredPrefix, Nf=Nf, adjmat=x[1])
+    elif Nf > 1: # and (filterType == '' or filterType == 'heat'):
         y = fs.heatFilterData(exprfile=exprfile, dirs=datadir, outputprefix='_filtered.tsv', Nf=Nf, adjmat=adjmat, allgenes=genes)
     else:
         print("Options error: please check your number of scale levels and filter type")

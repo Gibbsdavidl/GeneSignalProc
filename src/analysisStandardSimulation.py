@@ -65,13 +65,13 @@ def analysis(predacc, genes, dirs, setscores, setsamples, featureImp, gseaScore,
     for i in predidx:
         seti = str(i)
         a = str(predacc)
-        d = str(gseaScore)
         b = str(level1Score)
+        d = str(gseaScore)
         c = str(len(genes[i]))
         #f = str(genes[i])
         g = str(featureImp[i])
         fout.write('\t'.join([seti,a,b,d,g,c])+'\n')
-        print('\t'.join([seti,a,d,g,c]))
+        print('\t'.join([seti,a,b,d,g,c]))
 
     writeOutputs(dirs, setsamples, setscores, predidx)
 
