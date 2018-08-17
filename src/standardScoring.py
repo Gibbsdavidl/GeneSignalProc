@@ -59,6 +59,7 @@ def runStandard(datadir, Nf, exprfile, filterType, cores, subgraphs, genefile, g
 
     crossVal = 8   # random forest cross validation folds
     Nf = int(Nf)   # number of scale levels for filtering
+    threshold = float(threshold)
 
     # filter the data
     if Nf == 1:

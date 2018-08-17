@@ -222,7 +222,7 @@ def makeGraphs(datadir, numgraphs, maxgraphsize, genesetfile, threshold, numCore
 
     if adjfile == '' and genefile == '':
         (allgenes, allsets, genesets, setnames, genebins) = procGMT(datadir, genesetfile)
-        adjmat = makeAdjMat(allgenes, genebins, threshold)
+        adjmat = makeAdjMat(allgenes, genebins, float(threshold))
         adjfile = writeAdjAndAnnot(datadir, genesetfile, adjmat, allgenes)
     #else:
     #    # read gene file to get all genes
