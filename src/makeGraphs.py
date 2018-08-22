@@ -128,16 +128,20 @@ def loadSubGraphs(dir, subgraphFile):
     return(sgdict)
 
 
-def procGMT(datadir,GMTfile):
+def procGMT(datadir,GMTfile, okgenes):
     # return an adjmat given a gmt file
-    allgenes = set()
-    allsets  = set()
+    allgenes = set()   # all gene names
+    allsets  = set()   # all set names
     genesets = dict()  # key is gene set
     setnames = dict()  # key is gene name
+    if len(okgenes) > 0:
+        okgenedict = {v: k for k, v in enumerate(okgenes)}
 
     for line in open(datadir+GMTfile, 'r').read().strip().split('\n'):
         bits = line.split('\t')
         genes = [bi for i,bi in enumerate(bits) if i > 1]
+        if len(okgenes) > 0:
+            genes = [gi for gi in genes if gi in okgenedict]  ### FILTER OUT GENES THAT ARE NOT PROTEIN CODING OFFICIAL SYMBOLS
         gsname = bits[0]  # the gene set name
         genesets[gsname] = genes # all the genes that belong to this set
         allsets.add(gsname)
@@ -152,66 +156,48 @@ def procGMT(datadir,GMTfile):
     allsets = list(allsets)
     allgenes = list(allgenes)
 
-    genebins = []  # list of binary set memberships
-
-    # for each gene
-    for gi in allgenes:
-
-        # make a vector of zeros with length equal to setnames
-        membership = [0.0 for si in allsets]
-
-        # then get index of sets that a gene *DOES* have, and set those ones.
-        for i,si in enumerate(allsets):
-            if si in setnames[gi]:  # if gi is in set si
-                membership[i] = 1.0
-
-        genebins.append(membership)
-
-    # then can make pairwise scores
-
-    return( (allgenes, allsets, genesets, setnames, genebins) )
+    return( (allgenes, allsets, genesets, setnames) )
 
 
-def makeAdjMat(allgenes, genebins, setthr):
+def makeAdjMat(allgenes, setnames, setthr):
 
-    scrmat = []
+    scrmat = np.zeros( (len(allgenes),len(allgenes)) )
+    n = len(allgenes)
     # for each pair of genes,
-    for i,gi in enumerate(allgenes):
-        scrvec = [0.0 for i in allgenes]  # all zeros unless
-        for j,gj in enumerate(allgenes):
+    for i in range(0,n):
+        if i % 500 == 0:
+            print(i)
+        for j in range(i,n):
             if i != j:
-                a = 0.0; b = 0.0; c=0.0; d=0.0
-                # get a=intersection, b in one not in other, c in other not in one, d not in either
-                for k in range(0,len(genebins[0])):
-                    if genebins[i][k] == 1.0 and genebins[j][k] == 0.0:
-                        c += 1.0
-                    elif genebins[i][k] == 0.0 and genebins[j][k] == 1.0:
-                        b += 1.0
-                    elif genebins[i][k] == 1.0 and genebins[j][k] == 1.0:
-                        a += 1.0
-                    else:
-                        d += 1.0
+                gi = allgenes[i]
+                gj = allgenes[j]
+                a = 0.0; b = 0.0; c=0.0;
+                # get a=intersection, b in one not in other, c in other not in one, d not in either (not used)
+                setgi = set(setnames[gi])
+                setgj = set(setnames[gj])
+                a = float(len(setgi.intersection(setgj)))
+                b = float(len(setgi.difference(setgj)))
+                c = float(len(setgj.difference(setgi)))
 
                 # compute the score.  0.5*(a/(a+b)+a/(a+c))
                 if a > setthr:
                     scr = 0.5*( (a/(a+b)) + (a/(a+c)))
-                    scrvec[j] = scr
-        scrmat.append(scrvec)
+                    scrmat[i][j] = scr
+                    scrmat[j][i] = scr
+
     return(scrmat)
 
 
 def writeAdjAndAnnot(datadir, filename, adjmat, allgenes):
-    fout = gzip.open(datadir+filename+'_adjmat.tsv.gz','wb')
-    for ai in adjmat:
-        ab = [str(x) for x in ai]
-        fout.write(('\t'.join(ab)+'\n').encode('utf-8'))
-    fout.close()
+    foutname = (datadir+filename+'_adjmat.tsv.gz')
+    np.savetxt(fname=foutname, X=adjmat, delimiter='\t',)
 
     fout = gzip.open(datadir+filename+'_genes.tsv.gz', 'wb')
     for bi in allgenes:
         fout.write((bi+'\n').encode('utf-8'))
     fout.close()
-    return(datadir+filename+'_adjmat.tsv.gz')
+
+    return(filename+'_adjmat.tsv.gz')
 
 
 def makeGraphs(datadir, numgraphs, maxgraphsize, genesetfile, threshold, numCores, adjfile, genefile):
@@ -219,16 +205,16 @@ def makeGraphs(datadir, numgraphs, maxgraphsize, genesetfile, threshold, numCore
 
     # first have to transform a gmt file to a network, adj mat.
     # write adjmat and gene list for row/col labels
+    if genefile != '':
+        okgenes = open(genefile, 'r').read().strip().split('\n')
 
-    if adjfile == '' and genefile == '':
-        (allgenes, allsets, genesets, setnames, genebins) = procGMT(datadir, genesetfile)
-        adjmat = makeAdjMat(allgenes, genebins, threshold)
+    if adjfile == '':
+        (allgenes, allsets, genesets, setnames) = procGMT(datadir, genesetfile, okgenes)
+        adjmat = makeAdjMat(allgenes, setnames, float(threshold))
+        print('...writing adjmat...')
         adjfile = writeAdjAndAnnot(datadir, genesetfile, adjmat, allgenes)
-    #else:
-    #    # read gene file to get all genes
-    #    allgenes = gzip.open(datadir+genefile).read().strip().split()
 
-    # then with that adjmat, we
+    # then with that adjmat, we search for subgraphs
     s = allSubgraphs(datadir,adjfile,genesetfile,int(maxgraphsize),int(numgraphs),int(numCores))
 
     return(1)
