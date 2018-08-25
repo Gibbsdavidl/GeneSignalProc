@@ -190,7 +190,7 @@ def makeAdjMat(allgenes, setnames, setthr):
 
 def writeAdjAndAnnot(datadir, filename, adjmat, allgenes):
     foutname = (datadir+filename+'_adjmat.tsv.gz')
-    np.savetxt(fname=foutname, X=adjmat, delimiter='\t',)
+    np.savetxt(fname=foutname, X=adjmat, delimiter='\t')
 
     fout = gzip.open(datadir+filename+'_genes.tsv.gz', 'wb')
     for bi in allgenes:
@@ -198,6 +198,51 @@ def writeAdjAndAnnot(datadir, filename, adjmat, allgenes):
     fout.close()
 
     return(filename+'_adjmat.tsv.gz')
+
+
+def writeEdgesAndAnnot(datadir, genesetfile, edgeList, allgenes):
+    foutname = (datadir + filename + '_adjmat.tsv.gz')
+    fout = open(foutname, 'w')
+    for ei in edgeList:
+        fout.write('\t'.join(ei)+'\n')
+    fout.close()
+
+    fout = gzip.open(datadir+filename+'_genes.tsv.gz', 'wb')
+    for bi in allgenes:
+        fout.write((bi+'\n').encode('utf-8'))
+    fout.close()
+
+    return(filename+'_adjmat.tsv.gz')
+
+
+def makeEdgeList(allgenes, setnames, setthr):
+
+    edgeList = []
+
+    n = len(allgenes)
+    # for each pair of genes,
+    for i in range(0,n):
+        if i % 500 == 0:
+            print(i)
+        for j in range(i,n):
+            if i != j:
+                gi = allgenes[i]
+                gj = allgenes[j]
+                a = 0.0; b = 0.0; c=0.0;
+                # get a=intersection, b in one not in other, c in other not in one, d not in either (not used)
+                setgi = set(setnames[gi])
+                setgj = set(setnames[gj])
+                a = float(len(setgi.intersection(setgj)))
+                b = float(len(setgi.difference(setgj)))
+                c = float(len(setgj.difference(setgi)))
+
+                # compute the score.  0.5*(a/(a+b)+a/(a+c))
+                if a > setthr:
+                    scr = 0.5*( (a/(a+b)) + (a/(a+c)))
+                    if scr > 0.0:
+                        edgeList.append( [gi, gj, scr] )
+
+    return(edgeList)
 
 
 def makeGraphs(datadir, numgraphs, maxgraphsize, genesetfile, threshold, numCores, adjfile, genefile):
@@ -210,9 +255,10 @@ def makeGraphs(datadir, numgraphs, maxgraphsize, genesetfile, threshold, numCore
 
     if adjfile == '':
         (allgenes, allsets, genesets, setnames) = procGMT(datadir, genesetfile, okgenes)
-        adjmat = makeAdjMat(allgenes, setnames, float(threshold))
-        print('...writing adjmat...')
-        adjfile = writeAdjAndAnnot(datadir, genesetfile, adjmat, allgenes)
+        #adjmat = makeAdjMat(allgenes, setnames, float(threshold))
+        edgeList = makeEdgeList(allgenes, setnames, float(threshold))
+        print('...writing edgelist...')
+        adjfile = writeEdgesAndAnnot(datadir, genesetfile, edgeList, allgenes)
 
     # then with that adjmat, we search for subgraphs
     s = allSubgraphs(datadir,adjfile,genesetfile,int(maxgraphsize),int(numgraphs),int(numCores))
