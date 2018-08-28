@@ -12,6 +12,7 @@ import copy
 import gzip
 import pickle
 import gc
+import monty.itertools as it
 
 # first the function that returns subgraphs of a given size
 
@@ -202,45 +203,34 @@ def computeScoreList (x):
 def makeEdgeList(pickleName, setthr, cores):
 
     (allgenes, allsets, genesets, setnames) = pickle.load(open(pickleName, "rb"))
-    grpSize = 1000000
-    n = len(allgenes)
-    # for each pair of genes,
-    idx = []
-    for i in range(0,n):
-        for j in range(i,n):
-            idx.append( (i,j) )
-    # then put into groups of 200
-    idxgrp = []
-    tmp = []
-    for i,x in enumerate(idx):
-        if len(tmp) < grpSize:
-            tmp.append(x)
-        else:
-            idxgrp.append(tmp)
-            tmp = [x]
-            if len(idx) - i - 1 < grpSize:
-                # then we're out
-                idxgrp.append(idx[i:])
-                break
-    idx = []
-    gc.collect()
-    inputs = [(xi, pickleName, setthr) for xi in idxgrp]  # gather the inputs
 
-    with Pool(cores) as p:
-        srclst = p.map(computeScoreList, inputs)
+    grpSize = 100000
+    n = len(allgenes)
+    allgenes = []; allsets = []; genesets = []; setnames = [];
+    gc.collect()
 
     I = np.array([])
     J = np.array([])
     V = np.array([])
-    for si in srclst:
-        (i,j,v) = si
-        if len(i) > 0 and len(i) == len(v):
-            I=np.append(I,i)
-            J=np.append(J,j)
-            V=np.append(V,v)
 
+    idxgrp = []
+    for x in it.chunks(it.iuptri(items=range(0, n)), grpSize):
+        idxgrp.append(x)
+        if len(idxgrp) >= cores:
+            print("... ... starting multicore ...")
+            inputs = [(xi, pickleName, setthr) for xi in idxgrp]  # gather the inputs
+            with Pool(cores) as p:
+                srclst = p.map(computeScoreList, inputs)
+            for si in srclst:
+                (i,j,v) = si
+                if len(i) > 0 and len(i) == len(v):
+                    I=np.append(I,i)
+                    J=np.append(J,j)
+                    V=np.append(V,v)
+            idxgrp = []
+            gc.collect()
     # then need to unpack the I,J,Vs
-    sparseEdges = sp.sparse.coo_matrix(( V, (I, J)), shape=(len(allgenes),len(allgenes))).tocsr()
+    sparseEdges = sp.sparse.coo_matrix(( V, (I, J)), shape=(n,n)).tocsr()
     return(sparseEdges)
 
 
