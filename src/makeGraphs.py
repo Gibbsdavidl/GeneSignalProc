@@ -101,7 +101,8 @@ def allSubgraphs(dirs, edgefile, genesetfile, maxSize, numGraphs, cores):
     weights = spmat[sources,targets]
     weights = np.array(weights)[0]
     G = ig.Graph.TupleList(edges=zip(sources,targets,weights), directed=False, weights=True)
-
+    print("... graph loaded ... ")
+    print(G)
     # clear out memory
     sources = []; targets = []; weights = [];
     gc.collect()
@@ -115,9 +116,12 @@ def allSubgraphs(dirs, edgefile, genesetfile, maxSize, numGraphs, cores):
         valid = [compSizes[i] > gsize for i in comp.membership]  # only sampling from components that are large enough
         print("  working on subgraphs of size " + str(gsize))
         for kins in it.chunks(range(0, numGraphs), cores):
+            print("... ... generating multi-data ...")
             inputs = [(i, G, gsize, np.random.randint(low=1, high=999999999), valid) for i in kins]  # gather the inputs
+            print("... ... jobs at the pool ...")
             with Pool(cores) as p:
                 sgs = p.map(forestFire, inputs)
+            print("... ... uniqueifying... ")
             sgsidx = f5(sgs)
             allSgs[gsize] = sgsidx
     subgraphfilename = genesetfile+'_subgraphs.tsv.gz'
