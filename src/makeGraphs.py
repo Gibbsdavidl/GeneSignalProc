@@ -7,6 +7,7 @@
 import igraph as ig
 from multiprocessing import Pool
 import numpy as np
+import scipy as sp
 import copy
 import gzip
 
@@ -90,10 +91,13 @@ def f5(seq, idfun=None):
    return result
 
 
-def allSubgraphs(dirs, adjfile, genesetfile, maxSize, numGraphs, cores):
+def allSubgraphs(dirs, edgefile, genesetfile, maxSize, numGraphs, cores):
     print("loading network")
-    mat = np.loadtxt(dirs+adjfile, delimiter='\t')
-    G = ig.Graph.Weighted_Adjacency(list(mat), mode="undirected")
+    spmat = sp.sparse.load_npz(dirs+edgefile)
+    sources, targets = spmat.nonzero()
+    weights = spmat[sources,targets]
+    weights = np.array(weights)[0]
+    G = ig.Graph.TupleList(edges=zip(sources,targets,weights), directed=False, weights=True)
     comp = G.components(mode=ig.STRONG)
     allSgs = [[] for i in range(0,maxSize)] # for each subgraph size
     print("searching for subgraphs")
@@ -151,13 +155,121 @@ def procGMT(datadir,GMTfile, okgenes):
                 setnames[gi].append(gsname)
             else:
                 setnames[gi] = [gsname]
-
-
     allsets = list(allsets)
     allgenes = list(allgenes)
 
     return( (allgenes, allsets, genesets, setnames) )
 
+
+def writeEdgesAndAnnot(datadir, filename, sparseEdges, allgenes):
+    foutname = (datadir + filename + '_sparseMatrix.npz')
+    sp.sparse.save_npz(foutname, sparseEdges, compressed=True)
+
+    fout = gzip.open(datadir+filename+'_genes.tsv.gz', 'wb')
+    for bi in allgenes:
+        fout.write((bi+'\n').encode('utf-8'))
+    fout.close()
+
+    return(filename+'_sparseMatrix.npz')
+
+
+def computeScoreList (x):
+    # here allgenes is a list of genes
+    # tuples of (i,j)
+    (idxs, allgenes, setnames, setthr) = x
+    I = np.array([])
+    J = np.array([])
+    V = np.array([])
+    for (i,j) in idxs:
+        gi = allgenes[i]
+        gj = allgenes[j]
+        a = 0.0;
+        b = 0.0;
+        c = 0.0;
+        # get a=intersection, b in one not in other, c in other not in one, d not in either (not used)
+        setgi = set(setnames[gi])
+        setgj = set(setnames[gj])
+        a = float(len(setgi.intersection(setgj)))
+        b = float(len(setgi.difference(setgj)))
+        c = float(len(setgj.difference(setgi)))
+        # compute the score.  0.5*(a/(a+b)+a/(a+c))
+        if a > setthr:
+            scr = 0.5 * ((a / (a + b)) + (a / (a + c)))
+            if scr > 0.0:
+                I = np.append(I, i)
+                J = np.append(J, j)
+                V = np.append(V, scr)
+    return( (I,J,V) )
+
+
+def makeEdgeList(allgenes, setnames, setthr, cores):
+
+    n = len(allgenes)
+    # for each pair of genes,
+    idx = []
+    for i in range(0,n):
+        for j in range(i,n):
+            idx.append( (i,j) )
+    # then put into groups of 200
+    idxgrp = []
+    tmp = []
+    for i,x in enumerate(idx):
+        if len(tmp) < 100:
+            tmp.append(x)
+        else:
+            idxgrp.append(tmp)
+            tmp = [x]
+            if len(idx) - i - 1 < 100:
+                # then we're out
+                idxgrp.append(idx[i:])
+                break
+
+    inputs = [(xi, allgenes, setnames, setthr) for xi in idxgrp]  # gather the inputs
+
+    with Pool(cores) as p:
+        srclst = p.map(computeScoreList, inputs)
+
+    I = np.array([])
+    J = np.array([])
+    V = np.array([])
+    for si in srclst:
+        i,j,v = si
+        np.append(I,i)
+        np.append(J,j)
+        np.append(V,v)
+
+    # then need to unpack the I,J,Vs
+    sparseEdges = sp.sparse.coo_matrix(( V, (I, J)), shape=(len(allgenes),len(allgenes))).tocsr()
+    return(sparseEdges)
+
+
+def makeGraphs(datadir, numgraphs, maxgraphsize, genesetfile, threshold, numCores, adjfile, genefile):
+    # build the subgraph sets
+
+    # first have to transform a gmt file to a network, adj mat.
+    # write adjmat and gene list for row/col labels
+    if genefile != '':
+        okgenes = open(genefile, 'r').read().strip().split('\n')
+
+    if adjfile == '':
+        print('...proc gmt...')
+        (allgenes, allsets, genesets, setnames) = procGMT(datadir, genesetfile, okgenes)
+        print('...finding edges...')
+        sparseEdges = makeEdgeList(allgenes, setnames, float(threshold), int(numCores))
+        print('...writing edgelist...')
+        edgefile = writeEdgesAndAnnot(datadir, genesetfile, sparseEdges, allgenes)
+
+    # then with that adjmat, we search for subgraphs
+    print('...searching for subgraphs...')
+    s = allSubgraphs(datadir,edgefile,genesetfile,int(maxgraphsize),int(numgraphs),int(numCores))
+
+    return(1)
+
+
+
+########################
+
+# Archive
 
 def makeAdjMat(allgenes, setnames, setthr):
 
@@ -199,68 +311,3 @@ def writeAdjAndAnnot(datadir, filename, adjmat, allgenes):
 
     return(filename+'_adjmat.tsv.gz')
 
-
-def writeEdgesAndAnnot(datadir, genesetfile, edgeList, allgenes):
-    foutname = (datadir + filename + '_adjmat.tsv.gz')
-    fout = open(foutname, 'w')
-    for ei in edgeList:
-        fout.write('\t'.join(ei)+'\n')
-    fout.close()
-
-    fout = gzip.open(datadir+filename+'_genes.tsv.gz', 'wb')
-    for bi in allgenes:
-        fout.write((bi+'\n').encode('utf-8'))
-    fout.close()
-
-    return(filename+'_adjmat.tsv.gz')
-
-
-def makeEdgeList(allgenes, setnames, setthr):
-
-    edgeList = []
-
-    n = len(allgenes)
-    # for each pair of genes,
-    for i in range(0,n):
-        if i % 500 == 0:
-            print(i)
-        for j in range(i,n):
-            if i != j:
-                gi = allgenes[i]
-                gj = allgenes[j]
-                a = 0.0; b = 0.0; c=0.0;
-                # get a=intersection, b in one not in other, c in other not in one, d not in either (not used)
-                setgi = set(setnames[gi])
-                setgj = set(setnames[gj])
-                a = float(len(setgi.intersection(setgj)))
-                b = float(len(setgi.difference(setgj)))
-                c = float(len(setgj.difference(setgi)))
-
-                # compute the score.  0.5*(a/(a+b)+a/(a+c))
-                if a > setthr:
-                    scr = 0.5*( (a/(a+b)) + (a/(a+c)))
-                    if scr > 0.0:
-                        edgeList.append( [gi, gj, scr] )
-
-    return(edgeList)
-
-
-def makeGraphs(datadir, numgraphs, maxgraphsize, genesetfile, threshold, numCores, adjfile, genefile):
-    # build the subgraph sets
-
-    # first have to transform a gmt file to a network, adj mat.
-    # write adjmat and gene list for row/col labels
-    if genefile != '':
-        okgenes = open(genefile, 'r').read().strip().split('\n')
-
-    if adjfile == '':
-        (allgenes, allsets, genesets, setnames) = procGMT(datadir, genesetfile, okgenes)
-        #adjmat = makeAdjMat(allgenes, setnames, float(threshold))
-        edgeList = makeEdgeList(allgenes, setnames, float(threshold))
-        print('...writing edgelist...')
-        adjfile = writeEdgesAndAnnot(datadir, genesetfile, edgeList, allgenes)
-
-    # then with that adjmat, we search for subgraphs
-    s = allSubgraphs(datadir,adjfile,genesetfile,int(maxgraphsize),int(numgraphs),int(numCores))
-
-    return(1)
