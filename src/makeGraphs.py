@@ -233,10 +233,11 @@ def makeEdgeList(allgenes, setnames, setthr, cores):
     J = np.array([])
     V = np.array([])
     for si in srclst:
-        i,j,v = si
-        np.append(I,i)
-        np.append(J,j)
-        np.append(V,v)
+        (i,j,v) = si
+        if len(i) > 0 and len(i) == len(v):
+            I=np.append(I,i)
+            J=np.append(J,j)
+            V=np.append(V,v)
 
     # then need to unpack the I,J,Vs
     sparseEdges = sp.sparse.coo_matrix(( V, (I, J)), shape=(len(allgenes),len(allgenes))).tocsr()
