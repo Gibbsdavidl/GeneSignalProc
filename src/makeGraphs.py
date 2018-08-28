@@ -10,6 +10,8 @@ import numpy as np
 import scipy as sp
 import copy
 import gzip
+import pickle
+import gc
 
 # first the function that returns subgraphs of a given size
 
@@ -158,25 +160,20 @@ def procGMT(datadir,GMTfile, okgenes):
     allsets = list(allsets)
     allgenes = list(allgenes)
 
-    return( (allgenes, allsets, genesets, setnames) )
+    pickle.dump((allgenes, allsets, genesets, setnames), open( datadir+"gmt_proc.p", "wb" ) )
 
-
-def writeEdgesAndAnnot(datadir, filename, sparseEdges, allgenes):
-    foutname = (datadir + filename + '_sparseMatrix.npz')
-    sp.sparse.save_npz(foutname, sparseEdges, compressed=True)
-
-    fout = gzip.open(datadir+filename+'_genes.tsv.gz', 'wb')
-    for bi in allgenes:
-        fout.write((bi+'\n').encode('utf-8'))
-    fout.close()
-
-    return(filename+'_sparseMatrix.npz')
+    return( datadir+"gmt_proc.p" )
 
 
 def computeScoreList (x):
     # here allgenes is a list of genes
     # tuples of (i,j)
-    (idxs, allgenes, setnames, setthr) = x
+
+    ## LOAD PICKLE
+
+    (idxs, pickleName, setthr) = x
+    (allgenes, allsets, genesets, setnames)= pickle.load(open(pickleName, "rb"))
+
     I = np.array([])
     J = np.array([])
     V = np.array([])
@@ -202,8 +199,10 @@ def computeScoreList (x):
     return( (I,J,V) )
 
 
-def makeEdgeList(allgenes, setnames, setthr, cores):
+def makeEdgeList(pickleName, setthr, cores):
 
+    (allgenes, allsets, genesets, setnames) = pickle.load(open(pickleName, "rb"))
+    grpSize = 1000000
     n = len(allgenes)
     # for each pair of genes,
     idx = []
@@ -214,17 +213,18 @@ def makeEdgeList(allgenes, setnames, setthr, cores):
     idxgrp = []
     tmp = []
     for i,x in enumerate(idx):
-        if len(tmp) < 100:
+        if len(tmp) < grpSize:
             tmp.append(x)
         else:
             idxgrp.append(tmp)
             tmp = [x]
-            if len(idx) - i - 1 < 100:
+            if len(idx) - i - 1 < grpSize:
                 # then we're out
                 idxgrp.append(idx[i:])
                 break
-
-    inputs = [(xi, allgenes, setnames, setthr) for xi in idxgrp]  # gather the inputs
+    idx = []
+    gc.collect()
+    inputs = [(xi, pickleName, setthr) for xi in idxgrp]  # gather the inputs
 
     with Pool(cores) as p:
         srclst = p.map(computeScoreList, inputs)
@@ -244,6 +244,21 @@ def makeEdgeList(allgenes, setnames, setthr, cores):
     return(sparseEdges)
 
 
+
+def writeEdgesAndAnnot(datadir, filename, sparseEdges, pickleName):
+    (allgenes, allsets, genesets, setnames) = pickle.load(open(pickleName, "rb"))
+
+    foutname = (datadir + filename + '_sparseMatrix.npz')
+    sp.sparse.save_npz(foutname, sparseEdges, compressed=True)
+
+    fout = gzip.open(datadir+filename+'_genes.tsv.gz', 'wb')
+    for bi in allgenes:
+        fout.write((bi+'\n').encode('utf-8'))
+    fout.close()
+
+    return(filename+'_sparseMatrix.npz')
+
+
 def makeGraphs(datadir, numgraphs, maxgraphsize, genesetfile, threshold, numCores, adjfile, genefile):
     # build the subgraph sets
 
@@ -254,11 +269,11 @@ def makeGraphs(datadir, numgraphs, maxgraphsize, genesetfile, threshold, numCore
 
     if adjfile == '':
         print('...proc gmt...')
-        (allgenes, allsets, genesets, setnames) = procGMT(datadir, genesetfile, okgenes)
+        pickleName = procGMT(datadir, genesetfile, okgenes)
         print('...finding edges...')
-        sparseEdges = makeEdgeList(allgenes, setnames, float(threshold), int(numCores))
+        sparseEdges = makeEdgeList(pickleName, float(threshold), int(numCores))
         print('...writing edgelist...')
-        edgefile = writeEdgesAndAnnot(datadir, genesetfile, sparseEdges, allgenes)
+        edgefile = writeEdgesAndAnnot(datadir, genesetfile, sparseEdges, pickleName)
 
     # then with that adjmat, we search for subgraphs
     print('...searching for subgraphs...')
