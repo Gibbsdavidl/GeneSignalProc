@@ -256,7 +256,7 @@ def writeEdgesAndAnnot(datadir, filename, sparseEdges, pickleName):
     return(filename+'_sparseMatrix.npz')
 
 
-def makeGraphs(datadir, numgraphs, maxgraphsize, genesetfile, threshold, numCores, adjfile, genefile):
+def makeGraphs(datadir, numgraphs, maxgraphsize, genesetfile, threshold, numCores, edgefile, genefile):
     # build the subgraph sets
 
     # first have to transform a gmt file to a network, adj mat.
