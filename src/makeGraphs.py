@@ -106,9 +106,16 @@ def allSubgraphs(dirs, edgefile, genesetfile, maxSize, numGraphs, cores):
     print("G nodes: " + str(G.vcount()))
     print("G edges: " + str(G.ecount()))
 
+    print("... pruning edges ... ")
+    dedges = G.es.select(weight_lt=0.2)
+    G.delete_edges(dedges)
+    print("... after pruning ... ")
+    print("G nodes: " + str(G.vcount()))
+    print("G edges: " + str(G.ecount()))
+
     # clear out memory
     print("... pickling graph ...")
-    gpickle = 'dirs'+edgefile+'pickle.p'
+    gpickle = dirs+edgefile+'_pickle.p'
     pickle.dump(G, file=open(gpickle, "wb"))
     sources = []; targets = []; weights = [];
 
