@@ -101,18 +101,25 @@ def allSubgraphs(dirs, edgefile, genesetfile, maxSize, numGraphs, cores):
     weights = spmat[sources,targets]
     weights = np.array(weights)[0]
     G = ig.Graph.TupleList(edges=zip(sources,targets,weights), directed=False, weights=True)
+
+    # clear out memory
+    sources = []; targets = []; weights = [];
+    gc.collect()
+
     comp = G.components(mode=ig.STRONG)
     allSgs = [[] for i in range(0,maxSize)] # for each subgraph size
+
     print("searching for subgraphs")
     for gsize in range(5, maxSize):
         compSizes = [sum(i == np.array(comp.membership)) for i in set(comp.membership)]  ## very slow ##
         valid = [compSizes[i] > gsize for i in comp.membership]  # only sampling from components that are large enough
         print("  working on subgraphs of size " + str(gsize))
-        inputs = [(i, G, gsize, np.random.randint(low=1, high=999999999), valid) for i in range(0,numGraphs)]  # gather the inputs
-        with Pool(cores) as p:
-            sgs = p.map(forestFire, inputs)
-        sgsidx = f5(sgs)
-        allSgs[gsize] = sgsidx
+        for kins in it.chunks(range(0, numGraphs), cores):
+            inputs = [(i, G, gsize, np.random.randint(low=1, high=999999999), valid) for i in kins]  # gather the inputs
+            with Pool(cores) as p:
+                sgs = p.map(forestFire, inputs)
+            sgsidx = f5(sgs)
+            allSgs[gsize] = sgsidx
     subgraphfilename = genesetfile+'_subgraphs.tsv.gz'
     writeAllSubgraphs(dirs, allSgs, subgraphfilename)                            # write them out
     return(subgraphfilename)
