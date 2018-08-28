@@ -264,7 +264,7 @@ def makeGraphs(datadir, numgraphs, maxgraphsize, genesetfile, threshold, numCore
     if genefile != '':
         okgenes = open(genefile, 'r').read().strip().split('\n')
 
-    if adjfile == '':
+    if edgefile == '':
         print('...proc gmt...')
         pickleName = procGMT(datadir, genesetfile, okgenes)
         print('...finding edges...')
