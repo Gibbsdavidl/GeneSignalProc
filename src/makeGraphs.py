@@ -38,7 +38,8 @@ def oneSubgraph( x ):
     return(np.where(used)[0])
 
 def forestFire( x ):
-    (i, G, size, seed, valid) = x
+    (i, gpickle, size, seed, valid) = x
+    G = pickle.load(open(gpickle, "rb"))
     np.random.seed(seed)
     p = 0.35 / (1.0-0.35)
     burning = []
@@ -102,13 +103,19 @@ def allSubgraphs(dirs, edgefile, genesetfile, maxSize, numGraphs, cores):
     weights = np.array(weights)[0]
     G = ig.Graph.TupleList(edges=zip(sources,targets,weights), directed=False, weights=True)
     print("... graph loaded ... ")
-    print(G)
+    print("G nodes: " + str(G.vcount()))
+    print("G edges: " + str(G.ecount()))
+
     # clear out memory
+    print("... pickling graph ...")
+    gpickle = 'dirs'+edgefile+'pickle.p'
+    pickle.dump(G, file=open(gpickle, "wb"))
     sources = []; targets = []; weights = [];
-    gc.collect()
 
     comp = G.components(mode=ig.STRONG)
     allSgs = [[] for i in range(0,maxSize)] # for each subgraph size
+    G = []
+    gc.collect()
 
     print("searching for subgraphs")
     for gsize in range(5, maxSize):
@@ -117,7 +124,7 @@ def allSubgraphs(dirs, edgefile, genesetfile, maxSize, numGraphs, cores):
         print("  working on subgraphs of size " + str(gsize))
         for kins in it.chunks(range(0, numGraphs), cores):
             print("... ... generating multi-data ...")
-            inputs = [(i, G, gsize, np.random.randint(low=1, high=999999999), valid) for i in kins]  # gather the inputs
+            inputs = [(i, gpickle, gsize, np.random.randint(low=1, high=999999999), valid) for i in kins]  # gather the inputs
             print("... ... jobs at the pool ...")
             with Pool(cores) as p:
                 sgs = p.map(forestFire, inputs)
