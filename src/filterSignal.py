@@ -10,6 +10,7 @@ import pygsp as gs
 import igraph as ig
 import os
 import gzip
+import scipy
 from datetime import datetime, timedelta
 
 
@@ -72,7 +73,7 @@ def noFilterData(exprfile, dirs, outputprefix, Nf, adjmat, allgenes):
 
 
 
-def heatFilterData(exprfile, dirs, outputprefix, Nf, adjmat, allgenes):
+def heatFilterData(exprfile, dirs, outputprefix, Nf, adjmat, allgenes, edgeT):
     # exprfile - matrix of gene expression
     # dirs - the working directory
     # outputprefix - the prefix put on filter file outputs
@@ -84,7 +85,8 @@ def heatFilterData(exprfile, dirs, outputprefix, Nf, adjmat, allgenes):
 
     # made the network in pygsp
     print("loading network")
-    mat = np.loadtxt(dirs+adjmat, delimiter='\t')
+    mat = scipy.sparse.load_npz(dirs+adjmat)
+    mat = mat.multiply(mat >= edgeT)
     #gra = ig.Graph.Weighted_Adjacency(list(mat), mode="undirected")
     net = gs.graphs.Graph(W=mat)
     net.directed = False
@@ -92,21 +94,17 @@ def heatFilterData(exprfile, dirs, outputprefix, Nf, adjmat, allgenes):
     #net.compute_fourier_basis()
 
     # for each input file
-    sigs, samps = formatExprData(dirs,exprfile, allgenes)     #open(dirs+exprfile,'r').read().strip().split("\n")  ###########!!!!!!!!!!!!!! NEW FORMAT!!!!!!!!!!!!!!!!!
+    sigs, samps = formatExprData(dirs,exprfile, allgenes)     ### needs to be same order as graph ###
     outputlist = open(dirs+'filtered_files_list.txt', 'w')
     samplelist = open(dirs+'filtered_sample_list.txt', 'w')
-
-    filteredSignal = []
 
     # compute wavelets
     # process the data
     print("filtering data")
     for i in range(0,len(sigs)):
-        #vals = inputs[i].split('\t')
-        sig = np.array(sigs[i]) # np.array([float(x) for x in vals[1:len(vals)]])
-        msr = waveletFun.heatFilter(net, sig, Nf) # list of filtered signal for each sample
-        # the filtered signal is in shape (Nf, num_nodes)
-        np.savetxt(dirs+'filtered_files/'+outputprefix+str(i)+".txt", msr, delimiter='\t')
+        sig = np.array(sigs[i])
+        msr = waveletFun.heatFilter(net, sig, Nf)                                                  # list of filtered signal for each sample
+        np.savetxt(dirs+'filtered_files/'+outputprefix+str(i)+".txt", msr, delimiter='\t')         # the filtered signal is in shape (Nf, num_nodes)
         outputlist.write('filtered_files/'+outputprefix+str(i)+'.txt'+'\n')
         samplelist.write(samps[i] + '\n')
 

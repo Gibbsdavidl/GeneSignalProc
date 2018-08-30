@@ -133,6 +133,7 @@ def main():
         print("    -a adjacency file")
         print("    -s subgraph file")
         print("    -t threshold for geneset overlaps")
+        print("    -x threshold for graph edges")
         print("    -e gene list")
         print("    -g genesets file as .gmt")
         print("    -f filter name")
@@ -146,7 +147,7 @@ def main():
         mgs.makeGraphs(datadir, numSubGraphs, maxSubGraphSize, genesets, threshold, numCores, adjfile, genefile)
 
     elif mode == 'setscoring':
-        std.runStandard(datadir, Nf, exprfile, filterType, numCores, subgraphs, genefile, genesets, adjfile, phenofile, threshold)
+        std.runStandard(datadir, Nf, exprfile, filterType, numCores, subgraphs, genefile, genesets, adjfile, phenofile, threshold, maxSubGraphSize)
 
     else:
         print("Modes available: makegraphs, setscoring")

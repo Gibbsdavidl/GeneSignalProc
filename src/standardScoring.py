@@ -42,20 +42,14 @@ def buildListOfSymbolsFromGeneSets(datadir, genes, genesetfile):
     return(setlist, setnames)
 
 
-
-def runStandard(datadir, Nf, exprfile, filterType, cores, subgraphs, genefile, genesets, adjmat, phenofile, threshold):
+def runStandard(datadir, Nf, exprfile, filterType, cores, subgraphs, genefile, genesets, adjmat, phenofile, threshold, edgeThreshold):
     # defaults
     np.random.seed(seed=int(time.time()))
 
-    # read the genes,
+    # read the genes for the graph
     genes = gzip.open(datadir+genefile,'r').read().strip().split()
     ngenes = len(genes)   # number of nodes in the network
     geneidx = {i: gi for i, gi in enumerate(genes)}  # look up gene indices
-
-    # read the data
-    # each sample becomes a vector,
-    # of genes as in order genes above
-    #nsamples = len(data)  # number of samples simulated
 
     crossVal = 8   # random forest cross validation folds
     Nf = int(Nf)   # number of scale levels for filtering
@@ -65,10 +59,8 @@ def runStandard(datadir, Nf, exprfile, filterType, cores, subgraphs, genefile, g
     if Nf == 1:
         # then don't do a decomposition
         y = fs.noFilterData(exprfile=exprfile, dirs=datadir, outputprefix='_filtered.tsv', Nf=Nf, adjmat=adjmat, allgenes=genes)
-    #elif Nf > 1 and filterType == 'mexicanhat':
-    #    y = fs.mexFilterData(exprfile=exprfile, dirs=datadir, outputprefix=filteredPrefix, Nf=Nf, adjmat=x[1])
     elif Nf > 1: # and (filterType == '' or filterType == 'heat'):
-        y = fs.heatFilterData(exprfile=exprfile, dirs=datadir, outputprefix='_filtered.tsv', Nf=Nf, adjmat=adjmat, allgenes=genes)
+        y = fs.heatFilterData(exprfile=exprfile, dirs=datadir, outputprefix='_filtered.tsv', Nf=Nf, adjmat=adjmat, allgenes=genes, edgeT=float(edgeThreshold))
     else:
         print("Options error: please check your number of scale levels and filter type")
 
