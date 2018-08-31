@@ -91,7 +91,7 @@ def heatFilterData(exprfile, dirs, outputprefix, Nf, adjmat, allgenes, edgeT):
     net = gs.graphs.Graph(W=mat)
     net.directed = False
     net.estimate_lmax()
-    #net.compute_fourier_basis()
+    net.compute_fourier_basis()
 
     # for each input file
     sigs, samps = formatExprData(dirs,exprfile, allgenes)     ### needs to be same order as graph ###
