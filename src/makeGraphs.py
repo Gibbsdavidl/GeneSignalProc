@@ -107,7 +107,7 @@ def allSubgraphs(dirs, edgefile, genesetfile, maxSize, numGraphs, cores):
     print("G edges: " + str(G.ecount()))
 
     print("... pruning edges ... ")
-    dedges = G.es.select(weight_lt=0.2)
+    dedges = G.es.select(weight_lt=0.1)
     G.delete_edges(dedges)
     print("... after pruning ... ")
     print("G nodes: " + str(G.vcount()))
