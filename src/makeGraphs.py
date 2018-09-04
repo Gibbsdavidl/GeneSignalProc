@@ -18,25 +18,6 @@ import monty.itertools as it
 
 # Determine which nodes fall in sufficiently large connected components
 
-def oneSubgraph( x ):
-    (i, G, size) = x
-    n = len(G.vs)
-    comp = G.components(mode=ig.STRONG)
-    compSizes = [sum(i == np.array(comp.membership)) for i in set(comp.membership)]
-    valid = [compSizes[i] > size for i in comp.membership]  # only sampling from components that are large enough
-    firstNode = np.random.choice(np.where(valid)[0], size=1)[0] # root of the subgraph
-    used = [i == firstNode for i in range(0,n)] # Is this node selected?
-    neigh = [i in G.neighbors(firstNode) for i in range(0,n)]  #
-    z = [ni and (not ui) for ni,ui in zip(neigh, used)]
-    for iter in range(1,size): # grow the subgraph to size
-        if (sum(z) > 0): # if there's nodes still available
-            newNode = np.random.choice(np.where(z)[0], size=1)[0] # then pick a new one
-            used[newNode] = True                                  # mark it as used
-            for gi in G.neighbors(newNode):                       # and get the new neighbors
-                neigh[gi] = True
-            z = [ni and (not ui) for ni, ui in zip(neigh, used)]  # what's left?
-    return(np.where(used)[0])
-
 def forestFire( x ):
     (i, gpickle, size, seed, valid) = x
     G = pickle.load(open(gpickle, "rb"))
@@ -295,9 +276,11 @@ def makeEdgeList(pickleName, setthr, cores):
 def writeEdgesAndAnnot(datadir, filename, sparseEdges, pickleName):
     (allgenes, allsets, genesets, setnames) = pickle.load(open(pickleName, "rb"))
 
+    # load in the adjacency matrix
     foutname = (datadir + filename + '_sparseMatrix.npz')
     sp.sparse.save_npz(foutname, sparseEdges, compressed=True)
 
+    # the list of genes that maps the row names of the adjacency matrix
     fout = gzip.open(datadir+filename+'_genes.tsv.gz', 'wb')
     for bi in allgenes:
         fout.write((bi+'\n').encode('utf-8'))
@@ -374,3 +357,22 @@ def writeAdjAndAnnot(datadir, filename, adjmat, allgenes):
 
     return(filename+'_adjmat.tsv.gz')
 
+
+def oneSubgraph( x ):
+    (i, G, size) = x
+    n = len(G.vs)
+    comp = G.components(mode=ig.STRONG)
+    compSizes = [sum(i == np.array(comp.membership)) for i in set(comp.membership)]
+    valid = [compSizes[i] > size for i in comp.membership]  # only sampling from components that are large enough
+    firstNode = np.random.choice(np.where(valid)[0], size=1)[0] # root of the subgraph
+    used = [i == firstNode for i in range(0,n)] # Is this node selected?
+    neigh = [i in G.neighbors(firstNode) for i in range(0,n)]  #
+    z = [ni and (not ui) for ni,ui in zip(neigh, used)]
+    for iter in range(1,size): # grow the subgraph to size
+        if (sum(z) > 0): # if there's nodes still available
+            newNode = np.random.choice(np.where(z)[0], size=1)[0] # then pick a new one
+            used[newNode] = True                                  # mark it as used
+            for gi in G.neighbors(newNode):                       # and get the new neighbors
+                neigh[gi] = True
+            z = [ni and (not ui) for ni, ui in zip(neigh, used)]  # what's left?
+    return(np.where(used)[0])

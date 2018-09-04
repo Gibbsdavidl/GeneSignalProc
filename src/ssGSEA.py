@@ -77,18 +77,30 @@ def printSSGSEAResults(res0, dirs):
     return(0)
 
 
-def scoreSets(dirs, geneSets, exprfile, omega):
-    print("running ssGSEA")
+def scoreSets( x ):
+    (dirs, geneSets, exprfile, omega, idx) = x
     inputs = gzip.open(dirs + exprfile, 'rt').read().strip().split("\n")
     geneNames = (inputs[0].split('\t'))[1:] # gene names in expression file
-    allResults = []
-    for i in inputs[1:]:
-        thisResult = []
-        for j,g in enumerate(geneSets):
-            print('ssgsea, gene set ' + str(j))
-            di = buildExprDict(i, geneNames)
-            scr = calculate_enrichment_score(g, di, omega)
-            thisResult.append(scr)
-        allResults.append(thisResult)
+    i = inputs[idx]
+    thisResult = []
+    print('ssgsea, sample ' + str(idx))
+    for j,g in enumerate(geneSets):
+        di = buildExprDict(i, geneNames)
+        scr = calculate_enrichment_score(g, di, omega)
+        thisResult.append(scr)
+    return(thisResult)
+
+
+def parScoreSets(dirs, geneSets, exprfile, omega, cores):
+
+    # make inputs...
+    inputs = gzip.open(dirs + exprfile, 'rt').read().strip().split("\n")
+    n = len(inputs)
+    inputList = [(dirs, geneSets, exprfile, omega, i) for i in range(0,n)]
+
+    # pool...
+    with Pool(cores) as p:
+        allResults = p.map(scoreSets, inputList)
+
     printSSGSEAResults(allResults, dirs)
     return(allResults)

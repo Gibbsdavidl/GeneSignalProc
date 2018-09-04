@@ -70,7 +70,7 @@ def runStandard(datadir, Nf, exprfile, filterType, cores, subgraphs, genefile, g
 
     # generate score matrices
     msgsScores, samps = scr.setScoringStandardMultiScaleZscoreV2(dir=datadir, Nf=Nf, subgraphfile=subgraphs, filterfiles=y[0], genes=genesetidx, cores=int(cores), threshold=threshold)
-    ssgseaScores = ssgsea.scoreSets(dirs=datadir, geneSets=genesetsymbols, exprfile=exprfile, omega=2)
+    ssgseaScores = ssgsea.parScoreSets(dirs=datadir, geneSets=genesetsymbols, exprfile=exprfile, omega=2, cores=int(cores))
 
     y1lev = fs.noFilterData(exprfile=exprfile, dirs=datadir, outputprefix='_not_filtered.tsv', Nf=Nf, adjmat=adjmat, allgenes=genes)
     msgs1LevelScores, samps1Level = scr.setScoringStandardMultiScaleZscoreV2(dir=datadir, Nf=1, subgraphfile=subgraphs, filterfiles=y1lev[0], genes=genesetidx, cores=int(cores), threshold=threshold)
