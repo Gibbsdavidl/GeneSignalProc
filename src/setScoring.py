@@ -70,7 +70,7 @@ def sampleScoringZV2( inputv ):
 
         if m <= sizeMax:
 
-            subgraphs = [sgi for sgi in sgs[(m-1)] if setoverlap(sgi, gs) < int(t * m)]
+            subgraphs = [sgi for sgi in sgs[m] if setoverlap(sgi, gs) < int(t * m)]
             for li in levelSet:
                 exprMat = inputs[li].strip().split('\t')  # the filtered data
                 expr = [float(x) for x in exprMat]        # convert to floads

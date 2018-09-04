@@ -181,7 +181,7 @@ def loadSubGraphs(dir, subgraphFile):
 
     # get size of each subgraph
     ms = np.array([len(di.split(',')) for di in dat])
-    nmax = max(ms)
+    nmax = max(ms)+1
 
     for i in range(0,nmax): # for each size class of subgraph
         idx = np.where(ms == i)[0]
