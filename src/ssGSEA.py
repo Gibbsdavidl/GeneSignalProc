@@ -7,6 +7,7 @@ Original code by:  AndrewZhaoLuo
 
 import gzip
 import numpy as np
+from multiprocessing import Pool
 #from simulation import *
 
 def calculate_enrichment_score(gene_set, expressions, omega):
@@ -95,12 +96,16 @@ def parScoreSets(dirs, geneSets, exprfile, omega, cores):
 
     # make inputs...
     inputs = gzip.open(dirs + exprfile, 'rt').read().strip().split("\n")
-    n = len(inputs)
-    inputList = [(dirs, geneSets, exprfile, omega, i) for i in range(0,n)]
+    n = len(inputs) # includes a header
+    inputList = [(dirs, geneSets, exprfile, omega, i) for i in range(1,n)]
 
     # pool...
     with Pool(cores) as p:
         allResults = p.map(scoreSets, inputList)
+    #allResults = []
+    #for iii in inputList:
+    #    allResults.append(scoreSets(iii))
+
 
     printSSGSEAResults(allResults, dirs)
     return(allResults)
