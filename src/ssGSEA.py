@@ -99,13 +99,11 @@ def parScoreSets(dirs, geneSets, exprfile, omega, cores):
     n = len(inputs) # includes a header
     inputList = [(dirs, geneSets, exprfile, omega, i) for i in range(1,n)]
 
-    # pool...
     with Pool(cores) as p:
         allResults = p.map(scoreSets, inputList)
     #allResults = []
     #for iii in inputList:
     #    allResults.append(scoreSets(iii))
-
 
     printSSGSEAResults(allResults, dirs)
     return(allResults)
