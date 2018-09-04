@@ -66,6 +66,8 @@ def forestFire( x ):
                     queue.append(si)
                 else:
                     break
+            if len(burning) >= size:
+                break
     bret = copy.deepcopy(burning)
     return(bret)
 
@@ -95,6 +97,28 @@ def f5(seq, idfun=None):
    return result
 
 
+def getMaxSizeList(maxSize):
+
+    #maxSize must be a string
+    # and either just an integer
+    # or a list of numbers separated by commas
+    # or a range defined by two numbers separated by a dash
+
+    if ',' in maxSize:
+        x = maxSize.strip().split(',')
+        y = [int(m) for m in x]
+        return(y)
+    elif '-' in maxSize:
+        x = maxSize.strip().split('-')
+        y = [int(m) for m in x]
+        z = range(y[0], y[1])
+        w = [int(zi) for zi in z]
+        return(z)
+    else:
+        x = range(1,int(maxSize))
+        y = [int(xi) for xi in x]
+        return(x)
+
 def allSubgraphs(dirs, edgefile, genesetfile, maxSize, numGraphs, cores):
     print("loading network")
     spmat = sp.sparse.load_npz(dirs+edgefile)
@@ -120,12 +144,15 @@ def allSubgraphs(dirs, edgefile, genesetfile, maxSize, numGraphs, cores):
     sources = []; targets = []; weights = [];
 
     comp = G.components(mode=ig.STRONG)
-    allSgs = [[] for i in range(0,maxSize)] # for each subgraph size
+
+    maxSizeList = getMaxSizeList(maxSize)
+
+    allSgs = [[] for i in range(0,max(maxSizeList)+1)] # for each subgraph size
     G = []
     gc.collect()
 
     print("searching for subgraphs")
-    for gsize in range(5, maxSize):
+    for gsize in maxSizeList:
         compSizes = [sum(i == np.array(comp.membership)) for i in set(comp.membership)]  ## very slow ##
         valid = [compSizes[i] > gsize for i in comp.membership]  # only sampling from components that are large enough
         print("  working on subgraphs of size " + str(gsize))
@@ -136,22 +163,27 @@ def allSubgraphs(dirs, edgefile, genesetfile, maxSize, numGraphs, cores):
             with Pool(cores) as p:
                 sgs = p.map(forestFire, inputs)
             print("... ... uniqueifying... ")
-            sgsidx = f5(sgs)
-            allSgs[gsize] = sgsidx
+            allSgs[gsize] += sgs
     subgraphfilename = genesetfile+'_subgraphs.tsv.gz'
-    writeAllSubgraphs(dirs, allSgs, subgraphfilename)                            # write them out
+    allFilteredSgs = [f5(ai) for ai in allSgs]
+    writeAllSubgraphs(dirs, allFilteredSgs, subgraphfilename)                            # write them out
     return(subgraphfilename)
 
 
 def loadSubGraphs(dir, subgraphFile):
-    dat = gzip.open(dir+subgraphFile).read().decode('utf-8').strip().split('\n')
+
+    # now we must check the number of elements in each line
+
+    dat = gzip.open(dir+subgraphFile,'rt').read().strip().split('\n')
+
+
     sgdict = dict()
 
     # get size of each subgraph
     ms = np.array([len(di.split(',')) for di in dat])
     nmax = max(ms)
 
-    for i in range(5,nmax): # for each size class of subgraph
+    for i in range(0,nmax): # for each size class of subgraph
         idx = np.where(ms == i)[0]
         sets = [dat[i] for i in idx]
         splitsets = [ [int(y) for y in x] for x in map(lambda x: x.split(','), sets)]
@@ -280,7 +312,7 @@ def makeGraphs(datadir, numgraphs, maxgraphsize, genesetfile, threshold, numCore
     # first have to transform a gmt file to a network, adj mat.
     # write adjmat and gene list for row/col labels
     if genefile != '':
-        okgenes = open(genefile, 'r').read().strip().split('\n')
+        okgenes = gzip.open(datadir+genefile, 'rt').read().strip().split('\n')
 
     if edgefile == '':
         print('...proc gmt...')
@@ -292,7 +324,7 @@ def makeGraphs(datadir, numgraphs, maxgraphsize, genesetfile, threshold, numCore
 
     # then with that adjmat, we search for subgraphs
     print('...searching for subgraphs...')
-    s = allSubgraphs(datadir,edgefile,genesetfile,int(maxgraphsize),int(numgraphs),int(numCores))
+    s = allSubgraphs(datadir,edgefile,genesetfile,maxgraphsize,int(numgraphs),int(numCores))
 
     return(1)
 
