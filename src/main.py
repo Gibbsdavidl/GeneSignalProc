@@ -49,6 +49,7 @@ def argProc(args, opts):
             print("    -a adjacency file")
             print("    -s subgraph file")
             print("    -t threshold for geneset overlaps")
+            print("    -x threshold for graph edges")
             print("    -e gene list")
             print("    -g genesets file as .gmt")
             print("    -f filter name")
