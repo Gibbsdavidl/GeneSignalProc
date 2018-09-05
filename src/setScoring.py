@@ -59,17 +59,14 @@ def sampleScoringZV2( inputv ):
     inputs = open(dir + inputFiles[sample], 'r').read().strip().split("\n")
     sampRes = []
     sgs = sg.loadSubGraphs(dir, subgraphfile)
-    sizeMax = 201 # len(sgs[len(sgs)][0])+3
 
     for i, gs in enumerate(genes):  # for each gene set
         print("std score, gene set "+str(i))
         #levelSet = iciRule(gs, inputs)
         levelSet = range(0,len(inputs))
-        m = min(len(gs), 199)
+        m = len(gs)
         zs = []
-
-        if m <= sizeMax:
-
+        if m in sgs:
             subgraphs = [sgi for sgi in sgs[m] if setoverlap(sgi, gs) < int(t * m)]
             for li in levelSet:
                 exprMat = inputs[li].strip().split('\t')  # the filtered data

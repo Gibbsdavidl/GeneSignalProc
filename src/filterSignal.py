@@ -17,17 +17,16 @@ from datetime import datetime, timedelta
 def formatExprData(dirs,exprfile,allgenes):
     reformat = []
     samples  = []
-    allgenesdec = [gi.decode('utf-8') for gi in allgenes]
+    graphGenes = [gi.decode('utf-8') for gi in allgenes]
     inputs = gzip.open(dirs+exprfile,'rt').read().strip().split("\n")
-    #inputs = [gi.decode('utf-8') for gi in codedinputs]
     header = inputs[0].strip().split('\t')
-    genedict = {g:i for i,g in enumerate(header) if i > 0}
+    genedict = {g:(i-1) for i,g in enumerate(header) if i > 0}
     for i in range(1,len(inputs)):
         thisline = []
         bits = inputs[i].strip().split('\t')
         vals = [float(x) for i,x in enumerate(bits) if i > 0]
         samples.append(bits[0])
-        for gi in allgenesdec:
+        for gi in graphGenes:
             if gi in genedict:
                 thisline.append(vals[genedict[gi]])
             else:
