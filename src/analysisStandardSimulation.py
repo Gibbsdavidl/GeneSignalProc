@@ -21,9 +21,9 @@ import numpy as np
 #    fout.close()
 #    return(1)
 
-def writeOutputs(dir,sampleList,outputs,idx):
+def writeOutputs(dir,sampleList,outputs,idx, outdir):
 
-    fout = open(dir+'setscores.tsv','w')
+    fout = open(outdir+'setscores.tsv','w')
     for i in range(0,len(outputs)):
         outstr = []
         for j in idx:
@@ -33,27 +33,31 @@ def writeOutputs(dir,sampleList,outputs,idx):
     fout.close()
     return(1)
 
-
+def writeOutputsGSO(dir,sampleList,outputs, filesuffix, outdir):
+    fout = open(outdir+filesuffix,'w')
+    for i in range(0,len(outputs)):
+        outstr = []
+        for j in range(0,len(outputs[0])):
+            outstr.append(str(outputs[i][j]))
+        outstr = [str(sampleList[i])] + outstr
+        fout.write('\t'.join(outstr)+'\n')
+    fout.close()
+    return(1)
 
 # trees, (in, out) where those are pointers to the denovo_trees file.
-def analysis(predacc, genes, dirs, setfile, setscores, setsamples, featureImp, gseaScore):
+def analysis(predacc, genes, featureImp, gseaScore, level1Score, outdir):
     # predacc - prediction accuracy from random forest
     # genes - list of gene sets
     # dirs - working directory
-    # setfile - the matrix of assignments to sets
     # setscores - the file of set scores matrix
     # setsamples - the sample names to write into the set score matrix.
+    # featureImp
+    # gseaScore - scores from ssGSEA
+    # level1Score - scores from 1 level
 
-
-    # open the set assignment matrix
-    mat = open(dirs + setfile,'r').read().strip().split('\n')
-
-    means = open(dirs + "set_means.tsv",'r').read().strip().split('\n')
-    means = (means[1]).split('\t')
-
-    fout = open(dirs+'analyout.tsv','w')
-    fout.write("set\taccr\tgsea\tfeatimp\tmean\tngenes\tgenes\n")
-    print("set\taccr\tgsea\tmean\tngenes\n")
+    fout = open(outdir+'analyout.tsv','w')
+    fout.write("set\tmsgs\t1level\tgsea\tfeatimp\tngenes\tgenes\n")
+    print("set\tmsgs\t1level\tgsea\tngenes\n")
 
     # put the sets in order of prediction ability
     predidx = np.argsort(featureImp)
@@ -61,15 +65,15 @@ def analysis(predacc, genes, dirs, setfile, setscores, setsamples, featureImp, g
     for i in predidx:
         seti = str(i)
         a = str(predacc)
+        b = str(level1Score)
         d = str(gseaScore)
-        b = str(means[i])
         c = str(len(genes[i]))
-        f = str(genes[i])
+        #f = str(genes[i])
         g = str(featureImp[i])
-        fout.write('\t'.join([seti,a,d,g,b,c,f])+'\n')
-        print('\t'.join([seti,a,d,g,b,c]))
+        fout.write('\t'.join([seti,a,b,d,g,c])+'\n')
+        print('\t'.join([seti,a,b,d,g,c]))
 
-    writeOutputs(dirs, setsamples, setscores, predidx)
+    #writeOutputs(dirs, setsamples, setscores, predidx)
 
     return(1)
 

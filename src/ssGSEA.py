@@ -5,7 +5,9 @@ Original code by:  AndrewZhaoLuo
 
 '''
 
+import gzip
 import numpy as np
+from multiprocessing import Pool
 #from simulation import *
 
 def calculate_enrichment_score(gene_set, expressions, omega):
@@ -63,7 +65,7 @@ def calculate_enrichment_score(gene_set, expressions, omega):
 def buildExprDict(exprdat, geneNames):
     edict = dict()
     bits = exprdat.split('\t')
-    for ai, bi in enumerate(bits[1:]):
+    for (ai, bi) in zip(geneNames, bits[1:]):
         edict[ai] = float(bi)
     return(edict)
 
@@ -76,17 +78,32 @@ def printSSGSEAResults(res0, dirs):
     return(0)
 
 
-def scoreSets(dirs, geneSets, exprfile, omega):
-    print("running ssGSEA")
-    inputs = open(dirs + exprfile, 'r').read().strip().split("\n")
-    geneNames = inputs[0].split('\t')
-    allResults = []
-    for i in inputs[1:]:
-        thisResult = []
-        for g in geneSets:
-            di = buildExprDict(i, geneNames)
-            scr = calculate_enrichment_score(g, di, omega)
-            thisResult.append(scr)
-        allResults.append(thisResult)
+def scoreSets( x ):
+    (dirs, geneSets, exprfile, omega, idx) = x
+    inputs = gzip.open(dirs + exprfile, 'rt').read().strip().split("\n")
+    geneNames = (inputs[0].split('\t'))[1:] # gene names in expression file
+    i = inputs[idx]
+    thisResult = []
+    print('ssgsea, sample ' + str(idx))
+    for j,g in enumerate(geneSets):
+        di = buildExprDict(i, geneNames)
+        scr = calculate_enrichment_score(g, di, omega)
+        thisResult.append(scr)
+    return(thisResult)
+
+
+def parScoreSets(dirs, geneSets, exprfile, omega, cores):
+
+    # make inputs...
+    inputs = gzip.open(dirs + exprfile, 'rt').read().strip().split("\n")
+    n = len(inputs) # includes a header
+    inputList = [(dirs, geneSets, exprfile, omega, i) for i in range(1,n)]
+
+    with Pool(cores) as p:
+        allResults = p.map(scoreSets, inputList)
+    #allResults = []
+    #for iii in inputList:
+    #    allResults.append(scoreSets(iii))
+
     printSSGSEAResults(allResults, dirs)
     return(allResults)

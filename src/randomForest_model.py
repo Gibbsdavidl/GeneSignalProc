@@ -7,6 +7,7 @@ from sklearn.model_selection import cross_val_score
 from sklearn import datasets
 from sklearn.model_selection import LeaveOneOut
 
+import gzip
 import numpy as np
 
 def rfModelTest():
@@ -19,8 +20,8 @@ def rfModelTest():
 
 def rfModel(dirs, exprfile, pheno, genes, cvs):
     print("random forest")
-    ys = [int(yi) for yi in open(dirs + pheno,'r').read().strip().split('\n')]
-    inputs = open(dirs + exprfile, 'r').read().strip().split("\n")
+    ys = [float(yi) for yi in gzip.open(dirs + pheno,'rt').read().strip().split('\n')]
+    inputs = gzip.open(dirs + exprfile, 'rt').read().strip().split("\n")
     inputHeader = inputs.pop(0)
     scoreList = []
     # for each gene set
@@ -44,9 +45,7 @@ def rfModel(dirs, exprfile, pheno, genes, cvs):
 
 def rfModelSetScores(dirs, inputs, pheno, genes, cvs):
     print("random forest")
-    ys = [int(yi) for yi in open(dirs + pheno,'r').read().strip().split('\n')]
-    #inputs = open(dirs + exprfile, 'r').read().strip().split("\n")
-    #inputHeader = inputs.pop(0)
+    ys = [float(yi) for yi in gzip.open(dirs + pheno,'rt').read().strip().split('\n')]
     # use all reported gene sets for prediction
     xs = np.array([ np.array(x) for x in inputs ])
     clf = RandomForestClassifier(max_depth=5, n_estimators=100)
