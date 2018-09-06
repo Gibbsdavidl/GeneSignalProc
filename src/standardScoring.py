@@ -23,8 +23,8 @@ def buildListOfGenesFromGeneSets(datadir, genes, genesetfile):
         for gi in genes:
             if gi in allgenesdict:
                 idx.append(allgenesdict[gi]) # for gene gi in this gene set, what index is it?
-            else:
-                print('Missing gene from building gene sets: ' + gi)
+            #else:
+            #    print('Missing gene from building gene sets: ' + gi)
         setlist.append(idx)
     return(setlist)
 

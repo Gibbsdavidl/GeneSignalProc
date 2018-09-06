@@ -84,7 +84,7 @@ def scoreSets( x ):
     geneNames = (inputs[0].split('\t'))[1:] # gene names in expression file
     i = inputs[idx]
     thisResult = []
-    print('ssgsea, sample ' + str(idx))
+    #print('ssgsea, sample ' + str(idx))
     for j,g in enumerate(geneSets):
         di = buildExprDict(i, geneNames)
         scr = calculate_enrichment_score(g, di, omega)
@@ -101,9 +101,6 @@ def parScoreSets(dirs, geneSets, exprfile, omega, cores):
 
     with Pool(cores) as p:
         allResults = p.map(scoreSets, inputList)
-    #allResults = []
-    #for iii in inputList:
-    #    allResults.append(scoreSets(iii))
 
     printSSGSEAResults(allResults, dirs)
     return(allResults)

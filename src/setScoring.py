@@ -61,7 +61,7 @@ def sampleScoringZV2( inputv ):
     sgs = sg.loadSubGraphs(dir, subgraphfile)
 
     for i, gs in enumerate(genes):  # for each gene set
-        print("std score, gene set "+str(i))
+        #print("std score, gene set "+str(i))
         #levelSet = iciRule(gs, inputs)
         levelSet = range(0,len(inputs))
         m = len(gs)
