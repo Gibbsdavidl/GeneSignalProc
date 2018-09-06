@@ -21,9 +21,9 @@ import numpy as np
 #    fout.close()
 #    return(1)
 
-def writeOutputs(dir,sampleList,outputs,idx):
+def writeOutputs(dir,sampleList,outputs,idx, outdir):
 
-    fout = open(dir+'setscores.tsv','w')
+    fout = open(outdir+'setscores.tsv','w')
     for i in range(0,len(outputs)):
         outstr = []
         for j in idx:
@@ -33,8 +33,8 @@ def writeOutputs(dir,sampleList,outputs,idx):
     fout.close()
     return(1)
 
-def writeOutputsGSO(dir,sampleList,outputs, filesuffix):
-    fout = open(dir+filesuffix,'w')
+def writeOutputsGSO(dir,sampleList,outputs, filesuffix, outdir):
+    fout = open(outdir+filesuffix,'w')
     for i in range(0,len(outputs)):
         outstr = []
         for j in range(0,len(outputs[0])):
@@ -45,7 +45,7 @@ def writeOutputsGSO(dir,sampleList,outputs, filesuffix):
     return(1)
 
 # trees, (in, out) where those are pointers to the denovo_trees file.
-def analysis(predacc, genes, dirs, setscores, setsamples, featureImp, gseaScore, level1Score):
+def analysis(predacc, genes, featureImp, gseaScore, level1Score, outdir):
     # predacc - prediction accuracy from random forest
     # genes - list of gene sets
     # dirs - working directory
@@ -55,7 +55,7 @@ def analysis(predacc, genes, dirs, setscores, setsamples, featureImp, gseaScore,
     # gseaScore - scores from ssGSEA
     # level1Score - scores from 1 level
 
-    fout = open(dirs+'analyout.tsv','w')
+    fout = open(outdir+'analyout.tsv','w')
     fout.write("set\tmsgs\t1level\tgsea\tfeatimp\tngenes\tgenes\n")
     print("set\tmsgs\t1level\tgsea\tngenes\n")
 
@@ -73,7 +73,7 @@ def analysis(predacc, genes, dirs, setscores, setsamples, featureImp, gseaScore,
         fout.write('\t'.join([seti,a,b,d,g,c])+'\n')
         print('\t'.join([seti,a,b,d,g,c]))
 
-    writeOutputs(dirs, setsamples, setscores, predidx)
+    #writeOutputs(dirs, setsamples, setscores, predidx)
 
     return(1)
 

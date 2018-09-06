@@ -53,10 +53,10 @@ def zscore(gsExpr, x, sigma):
 
 def sampleScoringZV2( inputv ):
 
-    (dir, sample, inputFiles, subgraphfile, genes, t) = inputv
+    (dir, outdir, sample, inputFiles, subgraphfile, genes, t) = inputv
 
     # read in the filtered file for sample..
-    inputs = open(dir + inputFiles[sample], 'r').read().strip().split("\n")
+    inputs = open(outdir + inputFiles[sample], 'r').read().strip().split("\n")
     sampRes = []
     sgs = sg.loadSubGraphs(dir, subgraphfile)
 
@@ -85,7 +85,7 @@ def sampleScoringZV2( inputv ):
     return(sampRes)
 
 
-def setScoringStandardMultiScaleZscoreV2(dir, Nf, filterfiles, subgraphfile, genes, cores, threshold):
+def setScoringStandardMultiScaleZscoreV2(dir, outdir, Nf, filterfiles, subgraphfile, genes, cores, threshold):
     # dir: the working directory
     # Nf: number of scales
     # exprfile: the expression file, samples in rows.
@@ -96,14 +96,14 @@ def setScoringStandardMultiScaleZscoreV2(dir, Nf, filterfiles, subgraphfile, gen
     # return a matrix of gene set scores (samples X gs)
 
     print("scoring sets")
-    inputFiles = open(dir+filterfiles, 'r').read().strip().split('\n')
+    inputFiles = open(outdir+filterfiles, 'r').read().strip().split('\n')
     sampleList = []
 
     # make list of inputs ... what's needed for each sample
     inputs = []
     for sample in range(0,len(inputFiles)):
         sampleList.append(sample)
-        inputs.append( (dir, sample, inputFiles, subgraphfile, genes, float(threshold))  )  # gather the inputs
+        inputs.append( (dir, outdir, sample, inputFiles, subgraphfile, genes, float(threshold))  )  # gather the inputs
     with Pool(cores) as p:
         outputs = p.map(sampleScoringZV2, inputs)
 
