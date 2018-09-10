@@ -160,7 +160,7 @@ def main():
         os.makedirs(outputdir)
 
     if mode == 'makegraphs':
-        mgs.makeGraphs(datadir, numSubGraphs, maxSubGraphSize, genesets, threshold, numCores, adjfile, genefile, outputdir)
+        mgs.makeGraphs(datadir, numSubGraphs, maxSubGraphSize, genesets, threshold, numCores, adjfile, genefile)
 
     elif mode == 'setscoring':
         std.runStandard(datadir, Nf, exprfile, filterType, numCores, subgraphs, genefile, genesets, adjfile, phenofile, threshold, maxSubGraphSize, outputdir)
