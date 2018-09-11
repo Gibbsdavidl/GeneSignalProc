@@ -72,7 +72,7 @@ def sampleScoringZV2( inputv ):
                 exprMat = inputs[li].strip().split('\t')  # the filtered data
                 expr = [float(x) for x in exprMat]        # convert to floads
                 gsExpr = np.array([expr[j] for j in gs]) # if expr[j] >= 0.0])  # for this gene set... only genes we have measured.
-                subGraphExpr = np.array([[expr[j] for j in gx]) # if expr[j] >= 0.0] for gx in subgraphs])
+                subGraphExpr = np.array([[expr[j] for j in gx] for gx in subgraphs]) # if expr[j] >= 0.0] for gx in subgraphs])
                 gsMean = np.mean(gsExpr)
                 subgraphMean =  np.mean( [np.mean(x) for x in subGraphExpr] )
                 subgraphSD = np.std( [np.std(x) for x in subGraphExpr] )
