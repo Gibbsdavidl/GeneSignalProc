@@ -61,7 +61,7 @@ def sampleScoringZV2( inputv ):
     sgs = sg.loadSubGraphs(dir, subgraphfile)
 
     for i, gs in enumerate(genes):  # for each gene set
-        print("std score, gene set "+str(i))
+        #print("std score, gene set "+str(i))
         #levelSet = iciRule(gs, inputs)
         levelSet = range(0,len(inputs))
         m = len(gs)
@@ -71,9 +71,8 @@ def sampleScoringZV2( inputv ):
             for li in levelSet:
                 exprMat = inputs[li].strip().split('\t')  # the filtered data
                 expr = [float(x) for x in exprMat]        # convert to floads
-                gsExpr = np.array([expr[j] for j in gs])  # for this gene set
-                subGraphExpr = np.array([[expr[j] for j in gx] for gx in subgraphs])
-
+                gsExpr = np.array([expr[j] for j in gs]) # if expr[j] >= 0.0])  # for this gene set... only genes we have measured.
+                subGraphExpr = np.array([[expr[j] for j in gx] for gx in subgraphs]) # if expr[j] >= 0.0] for gx in subgraphs])
                 gsMean = np.mean(gsExpr)
                 subgraphMean =  np.mean( [np.mean(x) for x in subGraphExpr] )
                 subgraphSD = np.std( [np.std(x) for x in subGraphExpr] )
