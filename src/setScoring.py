@@ -3,7 +3,7 @@
 
 import numpy as np
 import scipy as sp
-import scipy.stats
+import scipy.stats as stats
 import makeGraphs as sg
 import sys
 from multiprocessing import Pool
@@ -74,9 +74,11 @@ def sampleScoringZV2( inputv ):
                 gsExpr = np.array([expr[j] for j in gs]) # if expr[j] >= 0.0])  # for this gene set... only genes we have measured.
                 subGraphExpr = np.array([[expr[j] for j in gx] for gx in subgraphs]) # if expr[j] >= 0.0] for gx in subgraphs])
                 gsMean = np.mean(gsExpr)
-                subgraphMean =  np.mean( [np.mean(x) for x in subGraphExpr] )
-                subgraphSD = np.std( [np.std(x) for x in subGraphExpr] )
-                zs.append( (gsMean - subgraphMean) / subgraphSD )
+                #subgraphMean =  np.mean( [np.mean(x) for x in subGraphExpr] )
+                subgraphMeanList = np.array([gsMean - np.mean(x) for x in subGraphExpr])
+                #subgraphSD = np.std( [np.std(x) for x in subGraphExpr] )
+                #zs.append( (gsMean - subgraphMean) / subgraphSD )
+                zs.append( stats.ttest_1samp(subgraphMeanList, 0.0)[0]) # get T stat
 
             sampRes.append(np.mean(zs))
         else:
