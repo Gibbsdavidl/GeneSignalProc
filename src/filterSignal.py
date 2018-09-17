@@ -31,10 +31,9 @@ def formatExprData(dirs,exprfile,allgenes):
                 thisline.append(vals[genedict[gi]])
             else:
                 #print('Gene missing in data:' + gi)
-                thisline.append(0.0) # was -1.0
+                thisline.append(-1.0) # was -1.0
         reformat.append(thisline)
     return( (reformat, samples) )
-
 
 
 
