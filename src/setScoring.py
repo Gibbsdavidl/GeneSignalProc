@@ -40,7 +40,6 @@ def setoverlap(x,y):
     return(sum([1 for xi in x if xi in y]))
 
 
-
 def zscore(gsExpr, x, sigma):
     # assume gsExpr and x have same length
     if len(gsExpr) != len(x):
@@ -73,14 +72,15 @@ def sampleScoringZV2( inputv ):
                 expr = [float(x) for x in exprMat]        # convert to floads
                 gsExpr = np.array([expr[j] for j in gs if expr[j] >= 0.0]) # if expr[j] >= 0.0])  # for this gene set... only genes we have measured.
                 subGraphExpr = np.array([ [expr[j] for j in gx if expr[j] >= 0.0] for gx in subgraphs])
-                gsMean = np.mean(gsExpr)
+                #gsMean = np.mean(gsExpr)
                 #subgraphMean =  np.mean( [np.mean(x) for x in subGraphExpr] )
-                subgraphMeanList = np.array([gsMean - np.mean(x) for x in subGraphExpr])
+                #subgraphMeanList = np.array([gsMean - np.mean(x) for x in subGraphExpr])
                 #subgraphSD = np.std( [np.std(x) for x in subGraphExpr] )
                 #zs.append( (gsMean - subgraphMean) / subgraphSD )
-                zs.append( stats.ttest_1samp(subgraphMeanList, 0.0)[0]) # get T stat
+                scoreList = [stats.ttest_ind(a=gsExpr, b=x, equal_var=False, nan_policy='omit') for x in subGraphExpr]
+                zs.append(stats.ttest_1samp(scoreList, 0.0)[0]) # get T stat
 
-            sampRes.append(np.mean(zs))
+            sampRes.append(sum(zs))
         else:
             sampRes.append(0.0)
     return(sampRes)
