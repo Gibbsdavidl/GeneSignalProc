@@ -77,7 +77,7 @@ def sampleScoringZV2( inputv ):
                 #subgraphMeanList = np.array([gsMean - np.mean(x) for x in subGraphExpr])
                 #subgraphSD = np.std( [np.std(x) for x in subGraphExpr] )
                 #zs.append( (gsMean - subgraphMean) / subgraphSD )
-                scoreList = [stats.ttest_ind(a=gsExpr, b=x, equal_var=False, nan_policy='omit') for x in subGraphExpr]
+                scoreList = [stats.ttest_ind(a=gsExpr, b=x, equal_var=False, nan_policy='omit')[0] for x in subGraphExpr]
                 zs.append(stats.ttest_1samp(scoreList, 0.0)[0]) # get T stat
 
             sampRes.append(sum(zs))
