@@ -33,22 +33,21 @@ def calculate_enrichment_score(gene_set, expressions, omega):
     P_GW_denominator = 0
 
     #determining denominator value
-    i = len(expressions) #current rank stepping through listing of sorted genes
+    i = 1 #current rank stepping through listing of sorted genes
     for gene in keys_sorted:
         if gene in gene_set:
             P_GW_denominator += i ** omega
-        i -= 1
+        i += 1
 
     P_GW = lambda : P_GW_numerator / P_GW_denominator
 
     #values representing the ECDF of genes not in the geneset
     P_NG_numerator = 0
     P_NG_denominator = len(expressions) - len(gene_set)
-
     P_NG = lambda : P_NG_numerator / P_NG_denominator
 
     #integrate different in P_GW and P_NG
-    i = len(expressions) #current index in the traversal of sorted genes
+    i = 1 #current index in the traversal of sorted genes
     scores = []
     for gene in keys_sorted:
         if gene in gene_set:
@@ -57,7 +56,7 @@ def calculate_enrichment_score(gene_set, expressions, omega):
             P_NG_numerator += 1
 
         scores.append(P_GW() - P_NG())
-        i -= 1
+        i += 1
 
     return sum(scores)
 
