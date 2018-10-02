@@ -67,7 +67,7 @@ def sampleScoringZV2( inputv ):
         zs = []
         if m in sgs:
             subgraphs = [sgi for sgi in sgs[m] if setoverlap(sgi, gs) < int(t * m)]
-            for li in levelSet:
+            for li in range(0,5):
                 exprMat = inputs[li].strip().split('\t')  # the filtered data
                 expr = [float(x) for x in exprMat]        # convert to floads
                 gsExpr = np.array([expr[j] for j in gs if expr[j] >= 0.0]) # if expr[j] >= 0.0])  # for this gene set... only genes we have measured.
