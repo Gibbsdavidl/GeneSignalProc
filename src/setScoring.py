@@ -42,9 +42,6 @@ def setoverlap(x,y):
 
 def zscore(gsExpr, x):
     # assume gsExpr and x have same length
-    if len(gsExpr) != len(x):
-        print("ERROR: gene set size mismatch")
-        return(0.0)
     z = (np.mean(gsExpr) - np.mean(x)) / np.std(x)
     return(z)
 
@@ -66,7 +63,7 @@ def sampleScoringZV2( inputv ):
         zs = []
         if m in sgs:
             subgraphs = [sgi for sgi in sgs[m] if setoverlap(sgi, gs) < int(t * m)]
-            for li in range(0,5):
+            for li in range(0,5): # levelSet:
                 exprMat = inputs[li].strip().split('\t')  # the filtered data
                 expr = [float(x) for x in exprMat]        # convert to floads
                 gsExpr = np.array([expr[j] for j in gs if expr[j] >= 0.0])  # for this gene set... only genes we have measured.
