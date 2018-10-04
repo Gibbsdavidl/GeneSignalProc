@@ -66,14 +66,14 @@ def sampleScoringZV2( inputv ):
         zs = []
         if m in sgs:
             subgraphs = [sgi for sgi in sgs[m] if setoverlap(sgi, gs) < int(t * m)]
-            for li in levelSet:
+            for li in range(0,5):
                 exprMat = inputs[li].strip().split('\t')  # the filtered data
                 expr = [float(x) for x in exprMat]        # convert to floads
                 gsExpr = np.array([expr[j] for j in gs if expr[j] >= 0.0])  # for this gene set... only genes we have measured.
                 subGraphExpr = np.array([ [expr[j] for j in gx if expr[j] >= 0.0] for gx in subgraphs])
 
-                subGraphZs = [zscore(gsExpr, x) for x in subGraphExpr]
-                zs.append(sum(subGraphZs) / np.std(subGraphZs)) # each level has a z
+                subGraphZs = [zscore(gsExpr, x) for x in subGraphExpr]  # list of z scores
+                zs.append(np.sum(subGraphZs) / np.std(subGraphZs)) # each level has a z
 
                 #gsMean = np.mean(gsExpr)
                 #subgraphMean =  np.mean( [np.mean(x) for x in subGraphExpr] )
@@ -86,7 +86,7 @@ def sampleScoringZV2( inputv ):
                 #x = [item for sublist in subGraphExpr for item in sublist]
                 #zs.append(stats.ttest_ind(a=gsExpr, b=x, equal_var=False, nan_policy='omit')[0])  # terrible
 
-            sampRes.append(np.max(zs))  # could take max here too
+            sampRes.append(np.sum(zs))  # could take max here too
         else:
             sampRes.append(0.0)
     return(sampRes)
