@@ -57,13 +57,17 @@ def sampleScoringZV2( inputv ):
 
     for i, gs in enumerate(genes):  # for each gene set
 
-        levelSet = iciRule(gs, inputs)
-        #levelSet = range(0,len(inputs))
+        #levelSet = iciRule(gs, inputs)
+        if len(inputs) == 1:
+            toplevel = 1
+        else:
+            toplevel = int(len(inputs) / 2)
+        levelSet = range(0, toplevel)
         m = len(gs)
         zs = []
         if m in sgs:
             subgraphs = [sgi for sgi in sgs[m] if setoverlap(sgi, gs) < int(t * m)]
-            for li in range(0,5): # levelSet:
+            for li in levelSet:
                 exprMat = inputs[li].strip().split('\t')  # the filtered data
                 expr = [float(x) for x in exprMat]        # convert to floads
                 gsExpr = np.array([expr[j] for j in gs if expr[j] >= 0.0])  # for this gene set... only genes we have measured.
