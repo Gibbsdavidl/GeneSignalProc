@@ -56,7 +56,9 @@ def runStandard(datadir, Nf, exprfile, filterType, cores, subgraphs, genefile, g
     genesetsymbols, setnames = buildListOfSymbolsFromGeneSets(datadir, genes, genesets)
 
     # filter the data
-    if Nf == 1:
+    if Nf < 0:
+        y = ['filtered_files_list.txt']
+    elif Nf == 1:
         # then don't do a decomposition
         y = fs.noFilterData(exprfile=exprfile, dirs=datadir, outputprefix='_filtered.tsv', Nf=Nf, adjmat=adjmat, allgenes=genes, outdir=outputdir)
     elif Nf > 1: # and (filterType == '' or filterType == 'heat'):
