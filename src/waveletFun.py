@@ -19,7 +19,7 @@ def normi(x):
     return(x / max(abs(x)))
 
 
-def waveletFilter(net, signal, Nf):
+def mexFilter(net, signal, Nf):
     mexhat = g.filters.MexicanHat(net, Nf)
     sighat = mexhat.analyze(signal)
     sighat_transpose = sighat.transpose()

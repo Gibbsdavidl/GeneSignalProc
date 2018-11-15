@@ -102,7 +102,8 @@ def sampleScoringEB( inputv ):
         toplevel = 1
     else:
         # levelSet = iciRule(gs, inputs)
-        toplevel = int(len(inputs) / 3)
+        # toplevel = int(len(inputs) / 3)
+        toplevel = int(len(inputs))
 
     levelSet = range(0, toplevel)
 
@@ -114,7 +115,7 @@ def sampleScoringEB( inputv ):
     for i, gs in enumerate(genes):  # for each gene set
         m = len(gs)
         if m in sgs:
-            propSummary = 1.0
+            propSummary = [] #propSummary = 1.0
             for li in levelSet:
                 exprMat = inputs[li].strip().split('\t')  # the filtered data
                 expr = stats.rankdata([float(x) for x in exprMat])      # convert to floads
@@ -124,8 +125,8 @@ def sampleScoringEB( inputv ):
                 alpha = priorList[li][m][0]
                 beta  = priorList[li][m][1]
                 gsProp = (gsHigher + alpha) / (sgsN + alpha + beta)
-                propSummary *= gsProp # multiply it in.
-            sampRes.append(propSummary)  # could take max here too
+                propSummary.append(gsProp) # propSummary *= gsProp # multiply it in.
+            sampRes += propSummary # sampRes.append(propSummary)  # could take max here too
         else:
             sampRes.append(0.0)
     return(sampRes)

@@ -20,7 +20,7 @@ def argProc(args, opts):
     threshold = 0.5
     numSubGraphs = 5
     maxSubGraphSize = 5
-    Nf = 10      # the number of scale-levels.
+    Nf = 8          # the number of scale-levels.
     filterType = 'heat'
     numCores = 2
     genefile=''

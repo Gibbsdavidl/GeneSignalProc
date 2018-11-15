@@ -112,7 +112,50 @@ def heatFilterData(exprfile, dirs, outputprefix, Nf, adjmat, allgenes, edgeT, ou
     return(['filtered_files_list.txt'])
 
 
-def mexFilterData(exprfile, dirs, outputprefix, Nf, adjmat):
+def mexFilterData(exprfile, dirs, outputprefix, Nf, adjmat, allgenes, edgeT, outdir):
+    # exprfile - matrix of gene expression
+    # dirs - the working directory
+    # outputprefix - the prefix put on filter file outputs
+    # Nf - number of scale levels
+    # adjmat - the file name for the adjacent matrix
+
+    if not os.path.exists(outdir+'filtered_files'):
+        os.makedirs(outdir+'filtered_files')
+
+    # made the network in pygsp
+    print("loading network")
+    mat = scipy.sparse.load_npz(dirs+adjmat)
+    mat = mat.multiply(mat >= edgeT)
+    #gra = ig.Graph.Weighted_Adjacency(list(mat), mode="undirected")
+    net = gs.graphs.Graph(W=mat)
+    net.directed = False
+    net.estimate_lmax()
+    #net.compute_fourier_basis()
+
+    # for each input file
+    sigs, samps = formatExprData(dirs,exprfile, allgenes)     ### needs to be same order as graph ###
+    outputlist = open(outdir+'filtered_files_list.txt', 'w')
+    samplelist = open(outdir+'filtered_sample_list.txt', 'w')
+
+    # compute wavelets
+    # process the data
+    print("filtering data")
+    for i in range(0,len(sigs)):
+        sig = np.array(sigs[i])
+        msr = waveletFun.mexFilter(net, sig, Nf)                                                  # list of filtered signal for each sample
+        np.savetxt(outdir+'filtered_files/'+outputprefix+str(i)+".txt", msr, delimiter='\t')         # the filtered signal is in shape (Nf, num_nodes)
+        outputlist.write('filtered_files/'+outputprefix+str(i)+'.txt'+'\n')
+        samplelist.write(samps[i] + '\n')
+
+    outputlist.close()
+    samplelist.close()
+    print("finished filtering data")
+    return(['filtered_files_list.txt'])
+
+
+
+
+def oldmexFilterData(exprfile, dirs, outputprefix, Nf, adjmat):
     # exprfile - matrix of gene expression
     # dirs - the working directory
     # outputprefix - the prefix put on filter file outputs
@@ -154,4 +197,5 @@ def mexFilterData(exprfile, dirs, outputprefix, Nf, adjmat):
     samplelist.close()
     print("finished filtering data")
     return(['filtered_files_list.txt'])
+
 
