@@ -91,7 +91,7 @@ def runStandard(datadir, Nf, exprfile, filterType, cores, subgraphs, genefile, g
         gseascore, gseacvscores, gseaclf, gseafeatImp = mm.rfModelSetScores(dirs=datadir, inputs=ssgseaScores, pheno=phenofile, genes=genes, cvs=crossVal)
 
         # compare model results
-        g = an.analysis(predacc=score, genes=genesetsymbols, featureImp=featImp, gseaScore=gseascore, level1Score=score1level, outdir=outputdir)
+        g = an.analysis2(predacc=score, genes=genesetsymbols, featureImp=featImp, gseaScore=gseascore, level1Score=score1level, outdir=outputdir)
 
     return(1)
 
