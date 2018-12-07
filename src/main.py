@@ -5,9 +5,10 @@
   # MAIN #
 #############
 
+import entropyScoring as ent
 import sys, getopt
 import makeGraphs as mgs
-import standardScoring as std
+import entropyScoring as ent
 import os
 
 def argProc(args, opts):
@@ -163,7 +164,7 @@ def main():
         mgs.makeGraphs(datadir, numSubGraphs, maxSubGraphSize, genesets, threshold, numCores, adjfile, genefile)
 
     elif mode == 'setscoring':
-        std.runStandard(datadir, Nf, exprfile, filterType, numCores, subgraphs, genefile, genesets, adjfile, phenofile, threshold, maxSubGraphSize, outputdir)
+        ent.runEntropy(datadir, Nf, exprfile, filterType, numCores, subgraphs, genefile, genesets, adjfile, phenofile, threshold, maxSubGraphSize, outputdir)
 
     else:
         print("Modes available: makegraphs, setscoring")

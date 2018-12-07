@@ -106,3 +106,36 @@ def analysis2(predacc, genes, featureImp, gseaScore, level1Score, outdir):
     #print('\t'.join([seti,a,b,d,g]))
     fout.close()
     return(1)
+
+
+
+# trees, (in, out) where those are pointers to the denovo_trees file.
+def analysis3(predacc, genes, featureImp, gseaScore, outdir):
+    # predacc - prediction accuracy from random forest
+    # genes - list of gene sets
+    # dirs - working directory
+    # setscores - the file of set scores matrix
+    # setsamples - the sample names to write into the set score matrix.
+    # featureImp
+    # gseaScore - scores from ssGSEA
+    # level1Score - scores from 1 level
+
+    fout = open(outdir+'analyout.tsv','w')
+
+    #fout.write("set\tmsgs\tgsea\tfeatimp\tngenes\tgenes\n")
+    #print("set\tmsgs\tgsea\tngenes\n")
+
+    # put the sets in order of prediction ability
+    predidx = np.argsort(featureImp)
+
+    for i in predidx:
+        seti = str(i)
+        a = str(predacc)
+        d = str(gseaScore)
+        c = str(len(genes[i]))
+        g = str(featureImp[i])
+        fout.write('\t'.join([seti,a,d,c,g])+'\n')
+        print('\t'.join([seti,a,d,c,g]))
+    fout.close()
+
+    return(1)
