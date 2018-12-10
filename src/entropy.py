@@ -32,12 +32,12 @@ def entropyScoringV1( inputv ):
     sampRes = [] # list of scores across gene sets
 
     for i, gs in enumerate(genes):  # for each gene set
-        vals = np.array([np.ceil(pow(2.0, x)) for x in sigs if pow(2.0,x) > 2])  # our count data, with init filtering
+        vals = np.array([np.ceil(x) for x in sigs if x > 1])  # our count data, with init filtering
         f = nbinomfit.fit_nbinom(X=vals)            # fit model to our gene counts data
         rv = nbinom(f['size'], f['prob'])           # make an object to sample from
         gsfiltered = [gi for gi in gs if gi in gdict]
         gidx = [gdict[gi] for gi in gsfiltered]             # get the gene index
-        scorevals = [pow(2.0,sigs[i]) for i in gidx]  # then get the values for genes in gs
+        scorevals = [np.ceil(sigs[i]) for i in gidx]  # then get the values for genes in gs
         ps = rv.cdf(scorevals)                      # look up the probs
         score = sum([ (pi * np.log(pi)) for pi in ps])                   # compute entropy, genes are bins
         sampRes.append(score)
